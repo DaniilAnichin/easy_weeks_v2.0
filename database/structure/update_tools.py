@@ -1,6 +1,12 @@
-from sqlalchemy import and_
+from sqlalchemy import and_, or_
 from database.structure.select_tools import *
-from database import db_codes
+from database.structure.db_structure import *
+# from database import db_codes
+__all__ = [
+    'update_degree', 'update_department', 'update_faculty', 'update_group',
+    'update_lesson', 'update_lesson_plan', 'update_room', 'update_subject',
+    'update_teacher', 'update_tmp_lesson', 'update_university'
+]
 
 
 def update_university(s, id_u=1, full_name='', short_name=''):
@@ -269,9 +275,8 @@ def update_subject(s, id_s=0, short_name='', full_name=''):
 
 
 def update_lesson_plan(s, id_lp=0, id_sub=0, id_les_type=1, id_grps=[],
-                       id_tes=[1],
-                       times_for_2_week=0, split_groups=0, capacity=32,
-                       needed_stuff=''):
+                       id_tes=[1], times_for_2_week=0, split_groups=0,
+                       capacity=32, needed_stuff=''):
     if id_lp == 0:
         print 'No lesson plan selected'
         return -13

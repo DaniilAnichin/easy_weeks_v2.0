@@ -44,16 +44,16 @@ class Universities(Base):
 
     faculties = relationship('Faculties', backref='universities', cascade="all, delete-orphan")
 
-    @staticmethod
-    def get_column(column_name=''):
-        if column_name == 'id':
-            return Universities.id
-        elif column_name == 'full_name':
-            return Universities.full_name
-        elif column_name == 'short_name':
-            return Universities.short_name
-        else:
-            return 0
+    _columns = ['id', 'full_name', 'short_name']
+    _fields = _columns + ['faculties']
+
+    @property
+    def fields(self):
+        return type(self)._fields
+
+    @property
+    def columns(self):
+        return type(self)._columns
 
 
 class Faculties(Base):
@@ -66,18 +66,16 @@ class Faculties(Base):
 
     departments = relationship('Departments', backref='faculties', cascade="all, delete-orphan")
 
-    @staticmethod
-    def get_column(column_name=''):
-        if column_name == 'id':
-            return Faculties.id
-        elif column_name == 'full_name':
-            return Faculties.full_name
-        elif column_name == 'short_name':
-            return Faculties.short_name
-        elif column_name == 'id_university':
-            return Faculties.id_university
-        else:
-            return 0
+    _columns = ['id', 'full_name', 'short_name', 'id_university']
+    _fields = _columns + ['departments']
+
+    @property
+    def fields(self):
+        return type(self)._fields
+
+    @property
+    def columns(self):
+        return type(self)._columns
 
 
 Department_rooms = Table('department_rooms', Base.metadata,
@@ -99,18 +97,16 @@ class Departments(Base):
 
     rooms = relationship('Rooms', secondary=Department_rooms, backref='departments')
 
-    @staticmethod
-    def get_column(column_name=''):
-        if column_name == 'id':
-            return Departments.id
-        elif column_name == 'full_name':
-            return Departments.full_name
-        elif column_name == 'short_name':
-            return Departments.short_name
-        elif column_name == 'rooms':
-            return Departments.rooms
-        else:
-            return 0
+    _columns = ['id', 'full_name', 'short_name']
+    _fields = _columns + ['groups', 'teachers', 'rooms']
+
+    @property
+    def fields(self):
+        return type(self)._fields
+
+    @property
+    def columns(self):
+        return type(self)._columns
 
 
 Lesson_groups = Table('lesson_groups', Base.metadata,
@@ -129,18 +125,16 @@ class Groups(Base):
     name = Column(String)
     id_department = Column(Integer, ForeignKey('departments.id'))
 
-    @staticmethod
-    def get_column(column_name=''):
-        if column_name == 'id':
-            return Groups.id
-        elif column_name == 'name':
-            return Groups.name
-        elif column_name == 'id_department':
-            return Groups.id_department
-        elif column_name == 'lesson_plan':
-            return Groups.lesson_plan.id
-        else:
-            return 0
+    _columns = ['id', 'name', 'id_department']
+    _fields = _columns + []
+
+    @property
+    def fields(self):
+        return type(self)._fields
+
+    @property
+    def columns(self):
+        return type(self)._columns
 
 
 class Degrees(Base):
@@ -152,16 +146,16 @@ class Degrees(Base):
 
     teachers = relationship('Teachers', backref='degrees', cascade='all, delete-orphan')
 
-    @staticmethod
-    def get_column(column_name=''):
-        if column_name == 'id':
-            return Degrees.id
-        elif column_name == 'full_name':
-            return Degrees.full_name
-        elif column_name == 'short_name':
-            return Degrees.short_name
-        else:
-            return 0
+    _columns = ['id', 'full_name', 'short_name']
+    _fields = _columns + ['teachers']
+
+    @property
+    def fields(self):
+        return type(self)._fields
+
+    @property
+    def columns(self):
+        return type(self)._columns
 
 
 class Teachers(Base):
@@ -173,22 +167,16 @@ class Teachers(Base):
     id_department = Column(Integer, ForeignKey('departments.id'))
     id_degree = Column(Integer, ForeignKey('degrees.id'))
 
-    @staticmethod
-    def get_column(column_name=''):
-        if column_name == 'id':
-            return Teachers.id
-        elif column_name == 'full_name':
-            return Teachers.full_name
-        elif column_name == 'short_name':
-            return Teachers.short_name
-        elif column_name == 'id_department':
-            return Teachers.id_department
-        elif column_name == 'id_degree':
-            return Teachers.id_degree
-        elif column_name == 'lesson_plan':
-            return Teachers.lesson_plan.id
-        else:
-            return 0
+    _columns = ['id', 'full_name', 'short_name', 'id_department', 'id_degree']
+    _fields = _columns + ['faculties']
+
+    @property
+    def fields(self):
+        return type(self)._fields
+
+    @property
+    def columns(self):
+        return type(self)._columns
 
 
 class Rooms(Base):
@@ -203,20 +191,16 @@ class Rooms(Base):
     lessons = relationship('Lessons', backref='rooms', cascade='all, delete-orphan')
     tmp_lessons = relationship('Tmp_lessons', backref='rooms', cascade='all, delete-orphan')
 
-    @staticmethod
-    def get_column(column_name=''):
-        if column_name == 'id':
-            return Rooms.id
-        elif column_name == 'name':
-            return Rooms.name
-        elif column_name == 'capacity':
-            return Rooms.capacity
-        elif column_name == 'additional_stuff':
-            return Rooms.additional_stuff
-        elif column_name == 'departments':
-            return Rooms.departments
-        else:
-            return 0
+    _columns = ['id', 'name', 'capacity', 'additional_stuff', 'id_department']
+    _fields = _columns + ['lessons', 'tmp_lessons']
+
+    @property
+    def fields(self):
+        return type(self)._fields
+
+    @property
+    def columns(self):
+        return type(self)._columns
 
 
 class Subjects(Base):
@@ -228,16 +212,16 @@ class Subjects(Base):
 
     lesson_plan = relationship('Lesson_plan', backref='subjects', cascade='all, delete-orphan')
 
-    @staticmethod
-    def get_column(column_name=''):
-        if column_name == 'id':
-            return Subjects.id
-        elif column_name == 'full_name':
-            return Subjects.full_name
-        elif column_name == 'short_name':
-            return Subjects.short_name
-        else:
-            return 0
+    _columns = ['id', 'full_name', 'short_name']
+    _fields = _columns + ['lesson_plan']
+
+    @property
+    def fields(self):
+        return type(self)._fields
+
+    @property
+    def columns(self):
+        return type(self)._columns
 
 
 class Lesson_types(Base):
@@ -249,16 +233,12 @@ class Lesson_types(Base):
 
     lesson_plan = relationship('Lesson_plan', backref='lesson_types', cascade='all, delete-orphan')
 
-    @staticmethod
-    def get_column(column_name=''):
-        if column_name == 'id':
-            return Lesson_types.id
-        elif column_name == 'full_name':
-            return Lesson_types.full_name
-        elif column_name == 'short_name':
-            return Lesson_types.short_name
-        else:
-            return 0
+    _columns = ['id', 'full_name', 'short_name']
+    _fields = _columns + ['lesson_plan']
+
+    @property
+    def fields(self):
+        return type(self)._fields
 
 
 class Weeks(Base):
@@ -271,16 +251,16 @@ class Weeks(Base):
     lessons = relationship('Lessons', backref='weeks', cascade='all, delete-orphan')
     tmp_lessons = relationship('Tmp_lessons', backref='weeks', cascade='all, delete-orphan')
 
-    @staticmethod
-    def get_column(column_name=''):
-        if column_name == 'id':
-            return Weeks.id
-        elif column_name == 'full_name':
-            return Weeks.full_name
-        elif column_name == 'short_name':
-            return Weeks.short_name
-        else:
-            return 0
+    _columns = ['id', 'full_name', 'short_name']
+    _fields = _columns + ['lessons', 'tmp_lessons']
+
+    @property
+    def fields(self):
+        return type(self)._fields
+
+    @property
+    def columns(self):
+        return type(self)._columns
 
 
 class Week_days(Base):
@@ -293,16 +273,16 @@ class Week_days(Base):
     lessons = relationship('Lessons', backref='week_days', cascade='all, delete-orphan')
     tmp_lessons = relationship('Tmp_lessons', backref='week_days', cascade='all, delete-orphan')
 
-    @staticmethod
-    def get_column(column_name=''):
-        if column_name == 'id':
-            return Week_days.id
-        elif column_name == 'full_name':
-            return Week_days.full_name
-        elif column_name == 'short_name':
-            return Week_days.short_name
-        else:
-            return 0
+    _columns = ['id', 'full_name', 'short_name']
+    _fields = _columns + ['lessons', 'tmp_lessons']
+
+    @property
+    def fields(self):
+        return type(self)._fields
+
+    @property
+    def columns(self):
+        return type(self)._columns
 
 
 class Lesson_times(Base):
@@ -315,16 +295,16 @@ class Lesson_times(Base):
     lessons = relationship('Lessons', backref='lesson_times', cascade='all, delete-orphan')
     tmp_lessons = relationship('Tmp_lessons', backref='lesson_times', cascade='all, delete-orphan')
 
-    @staticmethod
-    def get_column(column_name=''):
-        if column_name == 'id':
-            return Lesson_times.id
-        elif column_name == 'full_name':
-            return Lesson_times.full_name
-        elif column_name == 'short_name':
-            return Lesson_times.short_name
-        else:
-            return 0
+    _columns = ['id', 'full_name', 'short_name']
+    _fields = _columns + ['lessons', 'tmp_lessons']
+
+    @property
+    def fields(self):
+        return type(self)._fields
+
+    @property
+    def columns(self):
+        return type(self)._columns
 
 
 class Lesson_plan(Base):
@@ -345,34 +325,17 @@ class Lesson_plan(Base):
     groups = relationship('Groups', secondary=Lesson_groups, backref='lesson_plan')
     teachers = relationship('Teachers', secondary=Lesson_teachers, backref='lesson_plan')
 
-    @staticmethod
-    def get_column(column_name=''):
-        if column_name == 'id':
-            return Lesson_plan.id
-        elif column_name == 'id_subject':
-            return Lesson_plan.id_subject
-        elif column_name == 'id_lesson_type':
-            return Lesson_plan.id_lesson_type
-        elif column_name == 'times_for_2_week':
-            return Lesson_plan.times_for_2_week
-        elif column_name == 'needed_stuff':
-            return Lesson_plan.needed_stuff
-        elif column_name == 'capacity':
-            return Lesson_plan.capacity
-        elif column_name == 'split_groups':
-            return Lesson_plan.split_groups
-        elif column_name == 'param_checker':
-            return Lesson_plan.param_checker
-        elif column_name == 'groups':
-            return Groups.id
-        elif column_name == '_groups':
-            return Lesson_plan.groups
-        elif column_name == 'teachers':
-            return Teachers.id
-        elif column_name == '_teachers':
-            return Lesson_plan.teachers
-        else:
-            return 0
+    _columns = ['id', 'id_subject', 'id_lesson_type', 'times_for_2_week',
+                'needed_stuff', 'capacity', 'split_groups', 'param_checker']
+    _fields = _columns + ['lessons', 'groups', 'teachers']
+
+    @property
+    def fields(self):
+        return type(self)._fields
+
+    @property
+    def columns(self):
+        return type(self)._columns
 
 
 class Lessons(Base):
@@ -387,24 +350,17 @@ class Lessons(Base):
 
     row_time = Column(Integer)
 
-    @staticmethod
-    def get_column(column_name=''):
-        if column_name == 'id':
-            return Lessons.id
-        elif column_name == 'id_lesson_plan':
-            return Lessons.id_lesson_plan
-        elif column_name == 'id_room':
-            return Lessons.id_room
-        elif column_name == 'id_lesson_time':
-            return Lessons.id_lesson_time
-        elif column_name == 'id_week_day':
-            return Lessons.id_week_day
-        elif column_name == 'id_week':
-            return Lessons.id_week
-        elif column_name == 'row_time':
-            return Lessons.row_time
-        else:
-            return 0
+    _columns = ['id', 'id_lesson_plan', 'id_room', 'id_lesson_time',
+                'id_week_day', 'id_week', 'row_time']
+    _fields = _columns + []
+
+    @property
+    def fields(self):
+        return type(self)._fields
+
+    @property
+    def columns(self):
+        return type(self)._columns
 
 
 class Tmp_lessons(Base):
@@ -419,21 +375,14 @@ class Tmp_lessons(Base):
 
     row_time = Column(Integer)
 
-    @staticmethod
-    def get_column(column_name=''):
-        if column_name == 'id':
-            return Tmp_lessons.id
-        elif column_name == 'id_lesson_plan':
-            return Tmp_lessons.id_lesson_plan
-        elif column_name == 'id_room':
-            return Tmp_lessons.id_room
-        elif column_name == 'id_lesson_time':
-            return Tmp_lessons.id_lesson_time
-        elif column_name == 'id_week_day':
-            return Tmp_lessons.id_week_day
-        elif column_name == 'id_week':
-            return Tmp_lessons.id_week
-        elif column_name == 'row_time':
-            return Tmp_lessons.row_time
-        else:
-            return 0
+    _columns = ['id', 'id_lesson_plan', 'id_room', 'id_lesson_time',
+                'id_week_day', 'id_week', 'row_time']
+    _fields = _columns + []
+
+    @property
+    def fields(self):
+        return type(self)._fields
+
+    @property
+    def columns(self):
+        return type(self)._columns

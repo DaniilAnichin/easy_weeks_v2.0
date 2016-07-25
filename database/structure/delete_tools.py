@@ -1,4 +1,9 @@
 from database.structure.db_structure import *
+__all__ = [
+    'delete_degree', 'delete_department', 'delete_faculty', 'delete_group',
+    'delete_lesson', 'delete_lesson_plan', 'delete_room', 'delete_subject',
+    'delete_teacher', 'delete_tmp_lesson', 'delete_university'
+]
 
 
 def delete_university(s, id_u):

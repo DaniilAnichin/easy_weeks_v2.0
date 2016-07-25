@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
-
+from database.structure.db_structure import *
 # for f in vars(Universities(short_name=unicode("Unknown", 'utf-8'), full_name=unicode("Unknown", 'utf-8'))):
 #     print f
 
@@ -21,9 +21,19 @@ def get_class_list():
     # print getattr(db_structure, class_list[0])
 
 
-def get_fields_list():
-    for i in range(5):
-        pass
+def get_fields_list(class_name=''):
+    # except_list = ['delete', 'update', 'select', 'new']
+    # for i in dir():
+    #     pass
+    obj = Universities(short_name=unicode("Unknown", 'utf-8'), full_name=unicode("Unknown", 'utf-8'))
+    print obj.fields
+    print obj.columns
+    # for f in dir(obj):
+    #     if not f.startswith('_'):
+    #         print f
+    #         print getattr(Universities, f)
+    #         print
+    # print getattr(obj, 'staff')
 
 
 def get_method_list():
@@ -48,4 +58,4 @@ def get_method_list():
 
 
 if __name__ == '__main__':
-    get_method_list()
+    get_fields_list()

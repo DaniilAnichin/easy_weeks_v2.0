@@ -1,5 +1,11 @@
-from database.structure.select_tools import *
 from sqlalchemy import or_, and_
+from database.structure.select_tools import *
+from database.structure.db_structure import *
+__all__ = [
+    'new_degree', 'new_department', 'new_faculty', 'new_group', 'new_lesson',
+    'new_lesson_plan', 'new_room', 'new_subject', 'new_teacher',
+    'new_tmp_lesson', 'new_university'
+]
 
 
 def new_university(s, full_name='', short_name=''):
@@ -283,19 +289,19 @@ def new_lesson_plan(s, id_sub=0, id_les_type=1, id_grps=[], id_tes=[1],
 
         return -13
 
-    new_lesson_plan = Lesson_plan(id_subject=id_sub,
-                                  id_lesson_type=id_les_type,
-                                  times_for_2_week=times_for_2_week,
-                                  needed_stuff=needed_stuff,
-                                  capacity=capacity,
-                                  split_groups=split_groups,
-                                  param_checker=param_checker)
+    new_lessonplan = Lesson_plan(id_subject=id_sub,
+                                 id_lesson_type=id_les_type,
+                                 times_for_2_week=times_for_2_week,
+                                 needed_stuff=needed_stuff,
+                                 capacity=capacity,
+                                 split_groups=split_groups,
+                                 param_checker=param_checker)
     for id_te in id_tes:
         exist_te = s.query(Teachers).get(id_te)
-        new_lesson_plan.teachers.append(exist_te)
+        new_lessonplan.teachers.append(exist_te)
     for id_gr in id_grps:
         exist_gr = s.query(Groups).get(id_gr)
-        new_lesson_plan.groups.append(exist_gr)
+        new_lessonplan.groups.append(exist_gr)
 
     s.add(new_lesson_plan)
     s.commit()
