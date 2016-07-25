@@ -3,13 +3,19 @@
 
 import urllib
 import json
-from db.Database_config import *
+import os
+from database.start_db import *
+from database import DATABASE_DIR, DATABASE_NAME
+
+
+lessons_url = "http://api.rozklad.org.ua/v2/teachers/%s/lessons"
+teachers_url = "http://api.rozklad.org.ua/v2/teachers/?search={'query': '%s'}"
 
 
 def get_teacher_id(s, cur_teacher, add_teacher=True):
     cur_teacher_soname = cur_teacher[cur_teacher.index(' ') + 1:cur_teacher.index(' ', cur_teacher.index(' ') + 1)]
 
-    curURL = "http://api.rozklad.org.ua/v2/teachers/?search={'query': '%s'}" % cur_teacher_soname
+    curURL = teachers_url % cur_teacher_soname
     #    webbrowser.open(curURL)
     info = json.load(urllib.urlopen(curURL))
     if info["statusCode"] == 200:
@@ -18,20 +24,22 @@ def get_teacher_id(s, cur_teacher, add_teacher=True):
                 cur_teacher_id = str(row['teacher_id'])
                 if add_teacher:
                     new_teacher(s, row['teacher_name'], unicode(cur_teacher[cur_teacher.index(' ') + 1:], 'utf-8'), 1,
-                                select_degees(s, short_name=unicode(cur_teacher[:cur_teacher.index(' ')], 'utf-8'))[0]\
+                                select_degrees(s, short_name=unicode(cur_teacher[:cur_teacher.index(' ')], 'utf-8'))[0]\
                                 ['id'])
                 return cur_teacher_id
     return -1
 
 
-def main(args):
-    s = create_new_database('FICT_timetable.db')
-    #    s = connect_database('FICT_timetable.db')
-    with open('_teachers.txt', 'r') as f:
+def main():
+    # temporary deleting:
+    os.remove(os.path.join(DATABASE_DIR, DATABASE_NAME))
+    s = create_new_database(os.path.join(DATABASE_DIR, DATABASE_NAME))
+    # s = connect_database('FICT_timetable.db')
+    with open(os.path.join(DATABASE_DIR, 'Import_script', '_teachers.txt'), 'r') as f:
         for teacher in f:
             teacher = teacher[:-2]
             if get_teacher_id(s, teacher) != -1:
-                cur_url = "http://api.rozklad.org.ua/v2/teachers/%s/lessons" % get_teacher_id(s, teacher)
+                cur_url = lessons_url % get_teacher_id(s, teacher)
                 info = json.load(urllib.urlopen(cur_url))
                 if info["statusCode"] == 200:
                     lp_dict = []
@@ -61,7 +69,7 @@ def main(args):
                         id_groups = []
                         for g in lp['groups']:
                             id_groups.append(select_groups(s, name=g)[0]['id'])
-                        add_lesson_plan(s, select_subject(s, full_name=lp['ln'])[0]['id'],
+                        new_lesson_plan(s, select_subject(s, full_name=lp['ln'])[0]['id'],
                                         select_lesson_types(s, short_name=lp['lt'])[0]['id'],
                                         id_groups,
                                         [select_teachers(s, short_name=unicode(teacher[teacher.index(' ')+1:], 'utf-8'))
@@ -89,4 +97,4 @@ def main(args):
 if __name__ == '__main__':
     import sys
 
-    sys.exit(main(sys.argv))
+    sys.exit(main())

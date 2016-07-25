@@ -1,6 +1,6 @@
-from .. import *
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import and_, or_
+from sqlalchemy import or_
+
+from database.structure.db_structure import *
 
 
 def select_universities(s, id_u=0, **kwargs):
@@ -141,7 +141,7 @@ def select_groups(s, id_groups=[], **kwargs):
     return groups_dict
 
 
-def select_degees(s, id_d=0, **kwargs):
+def select_degrees(s, id_d=0, **kwargs):
     if kwargs.get('full_name', '') == '' and kwargs.get('short_name', '') == '' and not id_d:
         print "Must be one of the parameters"
         return -1
@@ -156,6 +156,10 @@ def select_degees(s, id_d=0, **kwargs):
             d = s.query(Degrees).get(1)
         d_dict = {'id': d.id, 'short_name': d.short_name, 'full_name': d.full_name, 'teachers': d.teachers}
         degrees_dict.append(d_dict)
+
+        print vars(d)
+        for pair in vars(d):
+            print pair
 
         return degrees_dict
 
@@ -174,6 +178,7 @@ def select_degees(s, id_d=0, **kwargs):
     return degrees_dict
 
 
+# I'm not sure about this one:
 def select_teachers(s, id_t=0, **kwargs):
     if kwargs.get('full_name', '') == '' and kwargs.get('short_name', '') == '' \
             and not kwargs.get('id_department', 0) and not kwargs.get('id_degree', 0) and not id_t:
@@ -287,7 +292,7 @@ def select_subject(s, id_s=0, **kwargs):
 
 def select_lesson_types(s, id_t=0, **kwargs):
     if kwargs.get('full_name', '') == '' and kwargs.get('short_name', '') == '' and not id_t:
-        #print "Must be one of the parameters"
+        # print "Must be one of the parameters"
         t = s.query(Lesson_types).get(1)
         return [{'id': t.id, 'short_name': t.short_name, 'full_name': t.full_name}]
     if type(s) is int:

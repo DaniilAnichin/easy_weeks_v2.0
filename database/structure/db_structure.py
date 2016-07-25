@@ -25,6 +25,13 @@
 from sqlalchemy import Table, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
+__all__ = [
+    'Degrees', 'Department_rooms', 'Departments', 'Faculties', 'Groups',
+    'Lesson_groups', 'Lesson_plan', 'Lesson_teachers', 'Lesson_times',
+    'Lesson_types', 'Lessons', 'Rooms', 'Subjects', 'Teachers', 'Tmp_lessons',
+    'Universities', 'Week_days', 'Weeks'
+]
+
 
 Base = declarative_base()
 
@@ -106,26 +113,6 @@ class Departments(Base):
             return 0
 
 
-# class Streams(Base):
-#     __tablename__ = 'streams'
-#
-#     id = Column(Integer, primary_key=True)
-#     name = Column(String)
-#     id_department = Column(Integer, ForeignKey('departments.id'))
-#
-#     groups = relationship('Groups', backref='streams', cascade="all, delete-orphan")
-#
-#     lesson_plan = relationship('Lesson_plan', backref='streams', cascade='all, delete-orphan')
-#
-#     # def __init__(self, name='', id_de=1):
-#     #     if name == '':
-#     #         print "Name must be"
-#     #         del self
-#     #     else:
-#     #         self.name = name
-#     #         self.id_department = id_de
-
-
 Lesson_groups = Table('lesson_groups', Base.metadata,
                       Column('id_lesson_plan', Integer, ForeignKey('lesson_plan.id')),
                       Column('id_group', Integer, ForeignKey('groups.id')))
@@ -133,7 +120,6 @@ Lesson_groups = Table('lesson_groups', Base.metadata,
 Lesson_teachers = Table('lesson_teachers', Base.metadata,
                         Column('id_lesson_plan', Integer, ForeignKey('lesson_plan.id')),
                         Column('id_teacher', Integer, ForeignKey('teachers.id')))
-
 
 
 class Groups(Base):

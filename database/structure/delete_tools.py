@@ -1,5 +1,5 @@
-from .. import *
-from sqlalchemy.orm import sessionmaker
+from database.structure.db_structure import *
+
 
 def delete_university(s, id_u):
     if type(s) is int:

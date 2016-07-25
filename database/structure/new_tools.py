@@ -1,7 +1,5 @@
-from .. import *
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import and_, or_
-from ..select_tools import *
+from database.structure.select_tools import *
+from sqlalchemy import or_, and_
 
 
 def new_university(s, full_name='', short_name=''):
@@ -89,36 +87,6 @@ def new_department(s, full_name='', short_name='', id_fa=1):
     return 0
 
 
-# def new_stream(s, name='', id_de=1):
-#     if name == '':
-#         print "Name must be"
-#         return -1
-#     if type(s) is int:
-#         print "No session"
-#         return -2
-#
-#    
-#     
-#
-#     exists_de = s.query(Departments).filter(Departments.id == id_de)
-#     if not exists_de:
-#         print "Non such department with this id: %d" % id_de
-#         return -5
-#
-#     exists_st = s.query(Streams).filter(and_(Streams.name == name,
-#                                              Streams.id_department == id_de)).first()
-#     if exists_st:
-#         print "This stream %s already exist in department %s with id %d" % (name,
-#                                                                             exists_st.departments.short_name,
-#                                                                             exists_st.id)
-#         return -6
-#
-#     s.add(Streams(name=name, id_department=id_de))
-#     s.commit()
-#     
-#     return 0
-
-
 def new_group(s, name='', id_dp=1):
     if name == '':
         print "Name must be"
@@ -133,8 +101,9 @@ def new_group(s, name='', id_dp=1):
 
         return -5
 
-    exists_gr = s.query(Groups).filter(and_(Groups.name == name,
-                                            Groups.id_department == id_dp)).first()
+    exists_gr = s.query(Groups).filter(
+        and_(Groups.name == name, Groups.id_department == id_dp)
+    ).first()
     if exists_gr:
         print "This group %s already exist in department %s with id %d" % (name,
                                                                            exists_gr.departments.short_name,
@@ -266,7 +235,7 @@ def new_subject(s, short_name='', full_name=''):
     return 0
 
 
-def add_lesson_plan(s, id_sub=0, id_les_type=1, id_grps=[], id_tes=[1],
+def new_lesson_plan(s, id_sub=0, id_les_type=1, id_grps=[], id_tes=[1],
                     times_for_2_week=0, split_groups=0, capacity=32, needed_stuff=''):
     if times_for_2_week < 1:
         print "Not selected number of lesson"

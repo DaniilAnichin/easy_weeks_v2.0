@@ -41,19 +41,17 @@ class Button(QtGui.QPushButton):
         else:
             print 'copied'
 
-
     def mousePressEvent(self, e):
         QtGui.QPushButton.mousePressEvent(self, e)
         if e.button() == QtCore.Qt.LeftButton:
             print 'press'
 
 
-
 class Example(QtGui.QWidget):
     def __init__(self):
         super(Example, self).__init__()
+        self.buttons = []
         self.initUI()
-
 
     def initUI(self):
         self.setAcceptDrops(True)
@@ -61,15 +59,13 @@ class Example(QtGui.QWidget):
         button = Button('Button', self)
         button.move(100, 65)
 
-        self.buttons = [button]
+        self.buttons.append(button)
 
         self.setWindowTitle('Copy or Move')
         self.setGeometry(300, 300, 280, 150)
 
-
     def dragEnterEvent(self, e):
         e.accept()
-
 
     def dropEvent(self, e):
         # get the relative position from the mime data
@@ -98,9 +94,8 @@ class Example(QtGui.QWidget):
         e.accept()
 
 
-
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     ex = Example()
     ex.show()
-    app.exec_()  
+    app.exec_()

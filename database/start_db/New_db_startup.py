@@ -21,29 +21,28 @@
 #  MA 02110-1301, USA.
 #
 #
-
-from start_up import *
-
+from database import DATABASE_DIR
+import os.path
+from database.structure import *
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-import os.path
 
 
 def create_new_database(path):
-    if os.path.isfile(path):
+    full_path = os.path.join(DATABASE_DIR, path)
+    if os.path.isfile(full_path):
         print "Data base with same name already exits"
         return -1
-    en = create_engine('sqlite:///%s' % path)
+    en = create_engine('sqlite:///%s' % full_path)
     Base.metadata.create_all(en)
-    S = sessionmaker(bind=en)
-    s = S()
+    session_m = sessionmaker(bind=en)
+    s = session_m()
     s.add_all([
         Universities(short_name=unicode("Unknown", 'utf-8'), full_name=unicode("Unknown", 'utf-8')),
         Faculties(short_name=unicode("Unknown", 'utf-8'), full_name=unicode("Unknown", 'utf-8'),
                   id_university=1),
         Departments(short_name=unicode("Unknown", 'utf-8'), full_name=unicode("Unknown", 'utf-8'),
                     id_faculty=1),
-#       Streams(name=unicode("Unknown", 'utf-8'), id_department=1),
         Degrees(short_name=unicode("Unknown", 'utf-8'), full_name=unicode("Unknown", 'utf-8')),
         Degrees(short_name=unicode("ас.", 'utf-8'), full_name=unicode("асистент", 'utf-8')),
         Degrees(short_name=unicode("вик.", 'utf-8'), full_name=unicode("викладач", 'utf-8')),
@@ -79,18 +78,19 @@ def create_new_database(path):
 
 
 def connect_database(path):
-    if not os.path.isfile(path):
+    full_path = os.path.join(DATABASE_DIR, path)
+    if not os.path.isfile(full_path):
         print "Data base does not exits"
         return -1
-    en = create_engine('sqlite:///%s' % path)
+    en = create_engine('sqlite:///%s' % full_path)
     Base.metadata.create_all(en)
-    S = sessionmaker(bind=en)
-    s = S()
+    session_m = sessionmaker(bind=en)
+    s = session_m()
     return s
 
 
-def main(args):
-    s = create_new_database("Test.db")
+def main():
+    s = create_new_database('Test.db')
     # s = connect_database('Test.db')
     new_university(s,
                     unicode("Національний технічний університет України 'Київський політехнічний інститут'", 'utf-8'),
@@ -105,8 +105,8 @@ def main(args):
     new_teacher(s, '', unicode("Орловський І. В.", 'utf-8'), 2, 4)
     new_room(s, unicode("438", 'utf-8'), 64, '', [2])
     new_subject(s, unicode("Вища математика -2", 'utf-8'), unicode("ВМ-2", 'utf-8'))
-    add_lesson_plan(s, 1, 2, [1, 2], [2], 3, 0, 64, '')
-    add_lesson_plan(s, 1, 3, [1], [2], 2, 0, 32, '')
+    new_lesson_plan(s, 1, 2, [1, 2], [2], 3, 0, 64, '')
+    new_lesson_plan(s, 1, 3, [1], [2], 2, 0, 32, '')
     new_lesson(s, 1, 2, 0)
     new_lesson(s, 2, 2, 1)
     new_tmp_lesson(s, 1, 2, 32)
@@ -125,4 +125,4 @@ def main(args):
 if __name__ == '__main__':
     import sys
 
-    sys.exit(main(sys.argv))
+    sys.exit(main())
