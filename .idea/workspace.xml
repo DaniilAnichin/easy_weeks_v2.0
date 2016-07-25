@@ -2,40 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="efba25a3-c94c-4dd7-acb7-a88090d3e1b2" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/codeStyleSettings.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/import_schedule/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/structure/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/structure/all.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/database/structure/model_fields.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/gui/drawing/login.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/gui/drawing/main_file.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/gui/examples/elements/combo+.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/gui/examples/elements/completer.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/gui/examples/elements/password.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/gui/examples/elements/stretch.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/gui/examples/elements/timer.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/gui/translate.py" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/database/Database_config/start_up/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/database/Database_config/start_up/adding_tools/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/database/Database_config/start_up/delete_tools/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/database/Database_config/start_up/select_tools/__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/database/Database_config/start_up/update_tools/__init__.py" afterPath="" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/Database_config/New_db_startup.py" afterPath="$PROJECT_DIR$/database/start_db/New_db_startup.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/Database_config/__init__.py" afterPath="$PROJECT_DIR$/database/start_db/__init__.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/Database_config/start_up/adding_tools/adding_tools.py" afterPath="$PROJECT_DIR$/database/structure/new_tools.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/Database_config/start_up/db_structure.py" afterPath="$PROJECT_DIR$/database/structure/db_structure.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/Database_config/start_up/delete_tools/delete_tools.py" afterPath="$PROJECT_DIR$/database/structure/delete_tools.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/Database_config/start_up/select_tools/select_tools.py" afterPath="$PROJECT_DIR$/database/structure/select_tools.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/Database_config/start_up/update_tools/update_tools.py" afterPath="$PROJECT_DIR$/database/structure/update_tools.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/Import_script/GetCurTimetable.py" afterPath="$PROJECT_DIR$/database/import_schedule/GetCurTimetable.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/Import_script/_teachers.txt" afterPath="$PROJECT_DIR$/database/import_schedule/_teachers.txt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/__init__.py" afterPath="$PROJECT_DIR$/database/__init__.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gui/examples/elements/drag_more.py" afterPath="$PROJECT_DIR$/gui/examples/elements/drag_more.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tests/creating_test.py" afterPath="$PROJECT_DIR$/tests/creating_test.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/structure/update_tools.py" afterPath="$PROJECT_DIR$/database/structure/update_tools.py" />
     </list>
     <ignored path="easy_weeks.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -104,8 +71,8 @@
           <file leaf-file-name="update_tools.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/database/structure/update_tools.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="324">
-                  <caret line="469" column="45" selection-start-line="469" selection-start-column="45" selection-end-line="469" selection-end-column="45" />
+                <state relative-caret-position="-270">
+                  <caret line="3" column="0" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
                   <folding>
                     <element signature="e#0#27#0" expanded="true" />
                   </folding>
@@ -144,8 +111,8 @@
           <file leaf-file-name="__init__.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/database/__init__.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="396">
-                  <caret line="31" column="11" selection-start-line="31" selection-start-column="11" selection-end-line="31" selection-end-column="11" />
+                <state relative-caret-position="324">
+                  <caret line="18" column="17" selection-start-line="18" selection-start-column="17" selection-end-line="18" selection-end-column="17" />
                   <folding />
                 </state>
               </provider>
@@ -648,9 +615,9 @@
     <layout>
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.10542963" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.33638212" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33638212" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.39918533" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -982,14 +949,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/database/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="396">
-          <caret line="31" column="11" selection-start-line="31" selection-start-column="11" selection-end-line="31" selection-end-column="11" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/database/structure/select_tools.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="418">
@@ -1000,10 +959,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/database/structure/update_tools.py">
+    <entry file="file://$PROJECT_DIR$/database/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="324">
-          <caret line="469" column="45" selection-start-line="469" selection-start-column="45" selection-end-line="469" selection-end-column="45" />
+          <caret line="18" column="17" selection-start-line="18" selection-start-column="17" selection-end-line="18" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database/structure/update_tools.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-270">
+          <caret line="3" column="0" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
           <folding>
             <element signature="e#0#27#0" expanded="true" />
           </folding>
