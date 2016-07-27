@@ -25,6 +25,7 @@
 from sqlalchemy import Table, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import as_declarative, declared_attr
 __all__ = [
     'Degrees', 'Department_rooms', 'Departments', 'Faculties', 'Groups',
     'Lesson_groups', 'Lesson_plan', 'Lesson_teachers', 'Lesson_times',
@@ -33,19 +34,15 @@ __all__ = [
 ]
 
 
-Base = declarative_base()
+_Base = declarative_base()
 
 
-class Universities(Base):
-    __tablename__ = 'universities'
+@as_declarative()
+class Base(object):
+    @declared_attr
+    def __tablename__(cls):
+        return cls.__name__.lower()
     id = Column(Integer, primary_key=True)
-    full_name = Column(String)
-    short_name = Column(String)
-
-    faculties = relationship('Faculties', backref='universities', cascade="all, delete-orphan")
-
-    _columns = ['id', 'full_name', 'short_name']
-    _fields = _columns + ['faculties']
 
     @property
     def fields(self):
@@ -54,6 +51,16 @@ class Universities(Base):
     @property
     def columns(self):
         return type(self)._columns
+
+
+class Universities(Base):
+    full_name = Column(String)
+    short_name = Column(String)
+
+    faculties = relationship('Faculties', backref='universities', cascade="all, delete-orphan")
+
+    _columns = ['id', 'full_name', 'short_name']
+    _fields = _columns + ['faculties']
 
 
 class Faculties(Base):
@@ -77,10 +84,23 @@ class Faculties(Base):
     def columns(self):
         return type(self)._columns
 
+#
+# Department_rooms = Table('department_rooms', Base.metadata,
+#                          Column('id_department', Integer, ForeignKey('departments.id')),
+#                          Column('id_room', Integer, ForeignKey('rooms.id')))
 
-Department_rooms = Table('department_rooms', Base.metadata,
-                         Column('id_department', Integer, ForeignKey('departments.id')),
-                         Column('id_room', Integer, ForeignKey('rooms.id')))
+
+class Department_rooms(Base):
+    # id = None
+    id_department = Column(Integer, ForeignKey('departments.id'))
+    id_room = Column(Integer, ForeignKey('rooms.id'))
+
+    _columns = ['id_room', 'id_department']
+    _fields = _columns
+    #
+    # @property
+    # def foreign_keys(self):
+    #     return [getattr(type(self), column) for column in self._columns]
 
 
 class Departments(Base):
@@ -95,7 +115,7 @@ class Departments(Base):
 
     teachers = relationship('Teachers', backref='departments', cascade="all, delete-orphan")
 
-    rooms = relationship('Rooms', secondary=Department_rooms, backref='departments')
+    rooms = relationship('Rooms', secondary='department_rooms', backref='departments')
 
     _columns = ['id', 'full_name', 'short_name']
     _fields = _columns + ['groups', 'teachers', 'rooms']
@@ -179,30 +199,6 @@ class Teachers(Base):
         return type(self)._columns
 
 
-class Rooms(Base):
-    __tablename__ = 'rooms'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    capacity = Column(Integer)
-    additional_stuff = Column(String)
-    id_department = Column(Integer, ForeignKey('departments.id'))
-
-    lessons = relationship('Lessons', backref='rooms', cascade='all, delete-orphan')
-    tmp_lessons = relationship('Tmp_lessons', backref='rooms', cascade='all, delete-orphan')
-
-    _columns = ['id', 'name', 'capacity', 'additional_stuff', 'id_department']
-    _fields = _columns + ['lessons', 'tmp_lessons']
-
-    @property
-    def fields(self):
-        return type(self)._fields
-
-    @property
-    def columns(self):
-        return type(self)._columns
-
-
 class Subjects(Base):
     __tablename__ = 'subjects'
 
@@ -214,6 +210,30 @@ class Subjects(Base):
 
     _columns = ['id', 'full_name', 'short_name']
     _fields = _columns + ['lesson_plan']
+
+    @property
+    def fields(self):
+        return type(self)._fields
+
+    @property
+    def columns(self):
+        return type(self)._columns
+
+
+class Rooms(Base):
+    __tablename__ = 'rooms'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    capacity = Column(Integer)
+    additional_stuff = Column(String)
+    # id_department = Column(Integer, ForeignKey('departments.id'))
+
+    lessons = relationship('Lessons', backref='rooms', cascade='all, delete-orphan')
+    tmp_lessons = relationship('Tmp_lessons', backref='rooms', cascade='all, delete-orphan')
+
+    _columns = ['id', 'name', 'capacity', 'additional_stuff']
+    _fields = _columns + ['lessons', 'tmp_lessons', 'departments']
 
     @property
     def fields(self):

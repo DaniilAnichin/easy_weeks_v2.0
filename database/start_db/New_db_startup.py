@@ -21,14 +21,15 @@
 #  MA 02110-1301, USA.
 #
 #
-from database import DATABASE_DIR
 import os.path
-from database.structure import *
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from database import DATABASE_DIR, DATABASE_NAME
+from database.structure import *
+from database.structure.db_structure import Base
 
 
-def create_new_database(path):
+def create_new_database(path=DATABASE_NAME):
     full_path = os.path.join(DATABASE_DIR, path)
     if os.path.isfile(full_path):
         print "Data base with same name already exits"
@@ -77,7 +78,7 @@ def create_new_database(path):
     return s
 
 
-def connect_database(path):
+def connect_database(path=DATABASE_NAME):
     full_path = os.path.join(DATABASE_DIR, path)
     if not os.path.isfile(full_path):
         print "Data base does not exits"

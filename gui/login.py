@@ -3,7 +3,7 @@
 import bcrypt
 import sys
 from PyQt4 import QtGui, QtCore
-from gui.translate import _translate, _fromUtf8
+from gui.translate import translate, fromUtf8
 
 
 class User:
@@ -48,11 +48,11 @@ class LoginDialog(QtGui.QDialog):
         self.setFixedSize(300, 115)
 
     def retranslateUi(self):
-        self.setWindowTitle(_translate('Login', 'Вікно входу', None))
+        self.setWindowTitle(translate('Login', 'Вікно входу', None))
 
-        self.submit_button.setText(_translate('Login', 'Увійти', None))
-        self.login_label.setText(_translate('Login', 'Логін: ', None))
-        self.password_label.setText(_translate('Login', 'Пароль: ', None))
+        self.submit_button.setText(translate('Login', 'Увійти', None))
+        self.login_label.setText(translate('Login', 'Логін: ', None))
+        self.password_label.setText(translate('Login', 'Пароль: ', None))
 
     def accept(self):
         login = str(self.login_input.text())
@@ -64,11 +64,11 @@ class LoginDialog(QtGui.QDialog):
                 super(LoginDialog, self).accept()
             else:
                 self.login_input.setText(
-                    _translate('Login', 'Невірний пароль!', None)
+                    translate('Login', 'Невірний пароль!', None)
                     )
         except KeyError:
             self.login_input.setText(
-                _translate('Login', 'Невірний логін!', None)
+                translate('Login', 'Невірний логін!', None)
             )
 
 

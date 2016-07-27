@@ -1,12 +1,19 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
-from PyQt4 import QtGui
-_encoding = QtGui.QApplication.UnicodeUTF8
+from PyQt4 import QtGui, QtCore
+
+try:
+    fromUtf8 = QtCore.QString.fromUtf8
+except AttributeError:
+    def fromUtf8(s):
+        return s
 
 
-def _fromUtf8(s):
-    return s
+try:
+    _encoding = QtGui.QApplication.UnicodeUTF8
 
-
-def _translate(context, text, disambig):
-    return QtGui.QApplication.translate(context, text, disambig, _encoding)
+    def translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+except AttributeError:
+    def translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig)
