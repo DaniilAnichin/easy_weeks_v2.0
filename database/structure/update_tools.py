@@ -319,13 +319,13 @@ def update_lesson_plan(s, id_lp=0, id_sub=0, id_les_type=1, id_grps=[],
         times_for_2_week, split_groups, capacity
     )
 
-    exist_lp = s.query(Lesson_plan).filter(
-        Lesson_plan.param_checker == param_checker).first()
+    exist_lp = s.query(Lesson_plans).filter(
+        Lesson_plans.param_checker == param_checker).first()
     if exist_lp:
         print "Lesson plan with this parameters already exist"
         return -13
 
-    lp = s.query(Lesson_plan).get(id_lp)
+    lp = s.query(Lesson_plans).get(id_lp)
     for l in s.query(Lessons).filter(Lessons.id_lesson_plan == id_lp).all():
         if lp.capacity > l.rooms.capacity:
             print "Impossible to change lesson_plan. Problems with capacity"
@@ -377,7 +377,7 @@ def update_lesson(s, id_l, id_lp, id_room, row_time):
         print "no Such lesson with id %d" % id_l
         return -13
 
-    exist_lp = s.query(Lesson_plan).get(id_lp)
+    exist_lp = s.query(Lesson_plans).get(id_lp)
     if not exist_lp:
         print "No such lesson_plan with id %d" % id_lp
 
@@ -389,7 +389,7 @@ def update_lesson(s, id_l, id_lp, id_room, row_time):
         return -10
 
     exist_ls = s.query(Lessons).filter(Lessons.id_lesson_plan == id_lp).all()
-    for g in s.query(Lesson_plan).get(id_lp).groups:
+    for g in s.query(Lesson_plans).get(id_lp).groups:
         for lessons in select_lessons(s, id_lesson_plan=[i['id'] for i in
                                                          select_lesson_plans(s,
                                                                              groups=[
@@ -397,7 +397,7 @@ def update_lesson(s, id_l, id_lp, id_room, row_time):
             if lessons['row_time'] == row_time:
                 print "Invalid time"
                 return -14
-    for t in s.query(Lesson_plan).get(id_lp).teachers:
+    for t in s.query(Lesson_plans).get(id_lp).teachers:
         for lessons in select_lessons(s, id_lesson_plan=[i['id'] for i in
                                                          select_lesson_plans(s,
                                                                              teachers=[
@@ -461,7 +461,7 @@ def update_tmp_lesson(s, id_l, id_lp, id_room, row_time):
         print "no Such lesson with id %d" % id_l
         return -13
 
-    exist_lp = s.query(Lesson_plan).get(id_lp)
+    exist_lp = s.query(Lesson_plans).get(id_lp)
     if not exist_lp:
         print "No such lesson_plan with id %d" % id_lp
 
@@ -474,7 +474,7 @@ def update_tmp_lesson(s, id_l, id_lp, id_room, row_time):
 
     exist_ls = s.query(Tmp_lessons).filter(
         Tmp_lessons.id_lesson_plan == id_lp).all()
-    for g in s.query(Lesson_plan).get(id_lp).groups:
+    for g in s.query(Lesson_plans).get(id_lp).groups:
         for lessons in select_lessons(s, id_lesson_plan=[i['id'] for i in
                                                          select_lesson_plans(s,
                                                                              groups=[
@@ -482,7 +482,7 @@ def update_tmp_lesson(s, id_l, id_lp, id_room, row_time):
             if lessons['row_time'] == row_time:
                 print "Invalid time"
                 return -14
-    for t in s.query(Lesson_plan).get(id_lp).teachers:
+    for t in s.query(Lesson_plans).get(id_lp).teachers:
         for lessons in select_lessons(s, id_lesson_plan=[i['id'] for i in
                                                          select_lesson_plans(s,
                                                                              teachers=[

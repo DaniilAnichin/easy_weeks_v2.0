@@ -29,15 +29,20 @@ def get_fields_list(class_name=''):
     # for i in dir():
     #     pass
 
-    # s = connect_database()
-    # obj = select_universities(s, 1)
+    session = connect_database()
+    # obj = select_rooms(s, 1)
     # print obj
 
     obj = Universities(short_name=unicode("Unknown", 'utf-8'), full_name=unicode("Unknown", 'utf-8'))
-    print obj.fields
-    print obj.columns
-    for field in obj.fields:
-        print '{0}: {1}'.format(field, getattr(obj, field))
+
+    obj = Universities.fields()
+
+    print Departments.rooms()
+    # print Departments.fields()
+    # print obj.fields
+    # print obj.columns
+    # for field in obj.fields:
+    #     print '{0}: {1}'.format(field, getattr(obj, field))
     # for f in dir(obj):
     #     if not f.startswith('_'):
     #         print f
@@ -67,11 +72,5 @@ def get_method_list():
         print len(import_dict[pair])
 
 
-def get_qt_staff():
-    for field in dir(QtCore.Qt):
-        if field.endswith('Action'):
-            print field
-
-
 if __name__ == '__main__':
-    get_qt_staff()
+    get_fields_list()

@@ -123,10 +123,10 @@ def delete_lesson_plan(s, id_lp):
         print "No session"
         return -2
 
-    if not s.query(Lesson_plan).get(id_lp):
+    if not s.query(Lesson_plans).get(id_lp):
         print "No such lesson plan"
         return -3
-    lp = s.query(Lesson_plan).get(id_lp)
+    lp = s.query(Lesson_plans).get(id_lp)
     s.delete(lp)
     s.commit()
     return 0

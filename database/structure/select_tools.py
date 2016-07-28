@@ -240,11 +240,12 @@ def select_rooms(s, id_r=0, **kwargs):
         d_vect = []
         for d in r.departments:
             d_vect.append(select_departments(d.id))
-        r_dict = {'id': r.id, 'ame': r.short_name, 'capacity': r.capacity,
+        r_dict = {'id': r.id, 'name': r.name, 'capacity': r.capacity,
                   'departments': d_vect, 'additional_stuff': r.additional_stuff}
         rooms_dict.append(r_dict)
 
-        return rooms_dict
+        return r
+        # return rooms_dict
 
     r = s.query(Rooms)
     for key in kwargs.keys():
@@ -261,7 +262,7 @@ def select_rooms(s, id_r=0, **kwargs):
                   'departments': d_vect, 'additional_stuff': r.additional_stuff}
         rooms_dict.append(r_dict)
 
-    return rooms_dict
+    return rooms_obj
 
 
 def select_subject(s, id_s=0, **kwargs):
@@ -427,7 +428,7 @@ def select_weeks(s, id_t=0, **kwargs):
 
 def select_lesson_plans(s, id_lesson_plan=[], **kwargs):
     if not kwargs.get('id_subject', 0) and not kwargs.get('id_lesson_type', 0) \
-            and not kwargs.get('times_for_2_week') and not kwargs.get('capacity', 0) \
+            and not kwargs.get('amount') and not kwargs.get('capacity', 0) \
             and not (kwargs.get('split_groups') == 0 or kwargs.get('split_groups') == 1) \
             and kwargs.get('param_checker', '') == '' and not id_lesson_plan and not kwargs.get('groups', []) \
             and not kwargs.get('teachers', []):
@@ -440,7 +441,7 @@ def select_lesson_plans(s, id_lesson_plan=[], **kwargs):
     les_plan_dict = []
     if id_lesson_plan:
         for id_lp in id_lesson_plan:
-            lp = s.query(Lesson_plan).get(id_lp)
+            lp = s.query(Lesson_plans).get(id_lp)
             if not lp:
                 print "No such lesson plan"
 
@@ -449,26 +450,26 @@ def select_lesson_plans(s, id_lesson_plan=[], **kwargs):
             t_vect = []
             for t in lp.teachers:
                 t_vect.append(select_teachers(s, t.id))
-            lp = s.query(Lesson_plan).get(id_lp)
+            lp = s.query(Lesson_plans).get(id_lp)
             for g in lp.groups:
                 g_vect.append(select_groups(s, [g.id]))
             lp_dict = {'id': lp.id, 'id_subject': lp.id_subject, 'id_lesson_type': lp.id_lesson_type,
-                       'times_for_2_week': lp.times_for_2_week, 'capacity': lp.capacity,
+                       'amount': lp.times_for_2_week, 'capacity': lp.capacity,
                        'split_groups': lp.split_groups, 'param_checker': lp.param_checker, 'groups': g_vect,
                        'teachers': t_vect}
             les_plan_dict.append(lp_dict)
 
         return les_plan_dict
 
-    lp = s.query(Lesson_plan)
+    lp = s.query(Lesson_plans)
     for key in kwargs.keys():
         if key == 'groups' or key == 'teachers':
             # for gt in kwargs[key]:
-                # lp = lp.filter(getattr(Lesson_plan, key).any(getattr(Lesson_plan, key) == gt))
-            lp = lp.filter(getattr(Lesson_plan, key).any(
-                getattr(Lesson_plan, key).in_(kwargs[key])))
-        elif getattr(Lesson_plan, key):
-            lp = lp.filter(getattr(Lesson_plan, key) == kwargs[key])
+                # lp = lp.filter(getattr(Lesson_plans, key).any(getattr(Lesson_plans, key) == gt))
+            lp = lp.filter(getattr(Lesson_plans, key).any(
+                getattr(Lesson_plans, key).in_(kwargs[key])))
+        elif getattr(Lesson_plans, key):
+            lp = lp.filter(getattr(Lesson_plans, key) == kwargs[key])
     lp_obj = lp.all()
     for lp in lp_obj:
         g_vect = []
@@ -478,7 +479,7 @@ def select_lesson_plans(s, id_lesson_plan=[], **kwargs):
         for g in lp.groups:
             g_vect.append(select_groups(s, [g.id]))
         lp_dict = {'id': lp.id, 'id_subject': lp.id_subject, 'id_lesson_type': lp.id_lesson_type,
-                   'times_for_2_week': lp.times_for_2_week, 'capacity': lp.capacity,
+                   'amount': lp.times_for_2_week, 'capacity': lp.capacity,
                    'split_groups': lp.split_groups, 'param_checker': lp.param_checker, 'groups': g_vect,
                    'teachers': t_vect}
         les_plan_dict.append(lp_dict)

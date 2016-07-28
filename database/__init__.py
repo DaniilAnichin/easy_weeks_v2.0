@@ -13,7 +13,7 @@ db_codes = {
     'university': 3,
     'faculty': 4,
     'department': 5,
-    '': 6,
+    'wrong': 6,
     'group': 7,
     'degree': 8,
     'teacher': 9,
@@ -21,24 +21,27 @@ db_codes = {
     'subject': 11,
     'lesson': 12,
     'lesson_plan': 13,
-
-
+    'exists': 14,
+    'absent': 15,
+    'reserved': 16
 }
 
-db_codes_output = [
-    'Success'
-    'Some params missed',
-    'No DB session',
-    'Problem with university',
-    'Problem with faculty',
-    'Problem with department',
-    0,
-    'Problem with groups',
-    'Problem with degrees',
-    'Problem with teachers',
-    'Problem with rooms',
-    'Problem with lessons',
-    'Problem with lesson plans',
-    '',
-    ''
-]
+db_codes_output = {
+    0: 'Success',
+    1: 'Some params missed',
+    2: 'No DB session',
+    3: 'Problem with university',
+    4: 'Problem with faculty',
+    5: 'Problem with department',
+    6: 'Incorrect parameter',
+    7: 'Problem with groups',
+    8: 'Problem with degrees',
+    9: 'Problem with teachers',
+    10: 'Problem with rooms',
+    11: 'Problems with subjects',
+    12: 'Problem with lessons',
+    13: 'Problem with lesson plans',
+    14: 'This data already exists',
+    15: 'Data with this id does not exist',
+    16: 'This data may not be edited in any way'
+}
