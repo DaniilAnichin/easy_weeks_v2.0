@@ -22,7 +22,7 @@
 #
 #
 import re
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, or_
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 from database import db_codes
@@ -51,6 +51,13 @@ class Base(object):
         s1 = first_cap_re.sub(r'\1_\2', cls.__name__)
         return all_cap_re.sub(r'\1_\2', s1).lower()
 
+    @classmethod
+    def single(cls):
+        if cls.__name__ in ['Faculties', 'Universities']:
+            return cls.__name__[:-2] + 'y'
+        else:
+            return cls.__name__[:-1]
+
     id = Column(Integer, primary_key=True)
 
     @classmethod
@@ -75,6 +82,7 @@ class Base(object):
 
     @classmethod
     def create(cls, session, **kwargs):
+        # looks like it's working
         if isinstance(session, int):
             return db_codes['session']
 
@@ -82,24 +90,27 @@ class Base(object):
 
         # Global filter loop:
         for key in kwargs.keys():
-            if key not in cls.fields():
+            if key not in cls.columns():
                 return db_codes['wrong']
-            elif isinstance(kwargs[key], list):
-                result.filter(getattr(cls, key) in kwargs[key])
             else:
                 result.filter(getattr(cls, key) == kwargs[key])
 
         if result.all():
             return db_codes['exists']
+        else:
+            session.add(cls(**kwargs))
 
         return db_codes['success']
 
     @classmethod
-    def read(cls, session, **kwargs):
+    def read(cls, session, all_=False, **kwargs):
         if isinstance(session, int):
             return db_codes['session']
 
         result = session.query(cls)
+
+        if all_:
+            return result.all()
 
         # Global filter loop:
         for key in kwargs.keys():
@@ -107,7 +118,13 @@ class Base(object):
                 return db_codes['wrong']
             elif isinstance(kwargs[key], list):
                 # More lists
-                result.filter(getattr(cls, key) in kwargs[key])
+                elements = getattr(result.all()[0], key)
+                if isinstance(elements, list):
+                    result.filter(or_(
+                        element.in_(kwargs[key]) for element in getattr(cls, key)
+                    ))
+                else:
+                    result.filter(cls.id.in_(kwargs[key]))
             else:
                 result.filter(getattr(cls, key) == kwargs[key])
 
@@ -118,7 +135,11 @@ class Base(object):
         if isinstance(session, int):
             return db_codes['session']
 
-        result = session.query(cls).get(main_id)
+        # No deleting first data
+        if main_id == 1:
+            return db_codes['reserved']
+
+        result = cls.read(session, id=main_id)[0]
 
         # Check for existance
         if not result:
@@ -126,17 +147,20 @@ class Base(object):
 
         # Global filter loop:
         for key in kwargs.keys():
-            if key not in cls.fields():
+            if key not in cls.columns():
                 return db_codes['wrong']
-            elif isinstance(kwargs[key], list):
-                result.filter(getattr(cls, key) in kwargs[key])
             else:
-                result.filter(getattr(cls, key) == kwargs[key])
+                setattr(result, key, kwargs[key])
+
+        if cls.read(session, **kwargs):
+            return db_codes['exists']
+        session.commit()
 
         return db_codes['success']
 
     @classmethod
     def delete(cls, session, main_id):
+        # looks like it's working
         if isinstance(session, int):
             return db_codes['session']
 
@@ -144,21 +168,25 @@ class Base(object):
         if main_id == 1:
             return db_codes['reserved']
 
-        result = session.query(cls).get(main_id)
+        result = cls.read(session, id=main_id)
 
-        # Check for existance
+        # Check for existence
         if not result:
             return db_codes['absent']
 
         # Reset links:
-        for reference in cls.links():
-            if reference not in cls.columns():
-                referenced = getattr(result, reference)
-                if isinstance(referenced, list):
-                    for element in referenced:
-                        setattr(element, 'id_' + cls.__tablename__, 1)
-                else:
-                    setattr(referenced, 'id_' + cls.__tablename__, 1)
+        for link in cls.links():
+            linked = getattr(result, link)
+            if isinstance(linked, list):
+                for element in linked:
+                    setattr(element, 'id_' + cls.single(), 1)
+            else:
+                setattr(linked, 'id_' + cls.single(), 1)
+
+        for association in cls.associations():
+            linked = getattr(result, association)
+            for element in linked:
+                getattr(element, cls.__tablename__).remove(result)
 
         session.delete(result)
         session.commit()
@@ -178,6 +206,7 @@ class Users(Base):
 
     _columns = ['id', 'nickname', 'hashed_password']
     _associations = ['departments']
+    error = db_codes['user']
 
 
 class UserDepartments(Base):
@@ -185,6 +214,7 @@ class UserDepartments(Base):
     id_department = Column(Integer, ForeignKey('departments.id'))
 
     _columns = ['id_user', 'id_department']
+    error = db_codes['user']
 
 
 class Universities(Base):
@@ -195,6 +225,7 @@ class Universities(Base):
 
     _columns = ['id', 'full_name', 'short_name']
     _links = ['faculties']
+    error = db_codes['user']
 
 
 class Faculties(Base):
@@ -206,6 +237,7 @@ class Faculties(Base):
 
     _columns = ['id', 'full_name', 'short_name', 'id_university']
     _links = ['departments', 'university']
+    error = db_codes['user']
 
 
 class DepartmentRooms(Base):
@@ -213,6 +245,7 @@ class DepartmentRooms(Base):
     id_room = Column(Integer, ForeignKey('rooms.id'))
 
     _columns = ['id_room', 'id_department']
+    error = db_codes['user']
 
 
 class Departments(Base):
@@ -227,6 +260,7 @@ class Departments(Base):
     _columns = ['id', 'full_name', 'short_name']
     _links = ['groups', 'teachers', 'faculty']
     _associations = ['rooms']
+    error = db_codes['user']
 
 
 class GroupPlans(Base):
@@ -234,6 +268,7 @@ class GroupPlans(Base):
     id_lesson_plan = Column(Integer, ForeignKey('lesson_plans.id'))
 
     _columns = ['id_group', 'id_lesson_plan']
+    error = db_codes['user']
 
 
 class TeacherPlans(Base):
@@ -241,6 +276,7 @@ class TeacherPlans(Base):
     id_lesson_plan = Column(Integer, ForeignKey('lesson_plans.id'))
 
     _columns = ['id_teacher', 'id_lesson_plan']
+    error = db_codes['user']
 
 
 class Groups(Base):
@@ -250,6 +286,7 @@ class Groups(Base):
     _columns = ['id', 'name', 'id_department']
     _links = ['department']
     _associations = ['lesson_plans']
+    error = db_codes['user']
 
 
 class Degrees(Base):
@@ -260,6 +297,7 @@ class Degrees(Base):
 
     _columns = ['id', 'full_name', 'short_name']
     _links = ['teachers']
+    error = db_codes['user']
 
 
 class Teachers(Base):
@@ -271,6 +309,7 @@ class Teachers(Base):
     _columns = ['id', 'full_name', 'short_name', 'id_department', 'id_degree']
     _links = ['department', 'degree']
     _associations = ['lesson_plans']
+    error = db_codes['user']
 
 
 class Subjects(Base):
@@ -281,6 +320,7 @@ class Subjects(Base):
 
     _columns = ['id', 'full_name', 'short_name']
     _links = ['lesson_plans']
+    error = db_codes['user']
 
 
 class Rooms(Base):
@@ -294,6 +334,7 @@ class Rooms(Base):
     _columns = ['id', 'name', 'capacity', 'additional_stuff']
     _links = ['lessons', 'tmp_lessons']
     _associations = ['departments']
+    error = db_codes['user']
 
 
 class LessonTypes(Base):
@@ -304,6 +345,7 @@ class LessonTypes(Base):
 
     _columns = ['id', 'full_name', 'short_name']
     _links = ['lesson_plans']
+    error = db_codes['user']
 
 
 class Weeks(Base):
@@ -315,6 +357,7 @@ class Weeks(Base):
 
     _columns = ['id', 'full_name', 'short_name']
     _links = ['lessons', 'tmp_lessons']
+    error = db_codes['user']
 
 
 class WeekDays(Base):
@@ -326,6 +369,7 @@ class WeekDays(Base):
 
     _columns = ['id', 'full_name', 'short_name']
     _links = ['lessons', 'tmp_lessons']
+    error = db_codes['user']
 
 
 class LessonTimes(Base):
@@ -337,6 +381,7 @@ class LessonTimes(Base):
 
     _columns = ['id', 'full_name', 'short_name']
     _links = ['lessons', 'tmp_lessons']
+    error = db_codes['lesson_time']
 
 
 class LessonPlans(Base):
@@ -358,6 +403,7 @@ class LessonPlans(Base):
                 'needed_stuff', 'capacity', 'split_groups', 'param_checker']
     _links = ['subject', 'lesson_type', 'lessons']
     _associations = ['groups', 'teachers']
+    error = db_codes['lesson_plan']
 
 
 class Lessons(Base):
@@ -372,6 +418,15 @@ class Lessons(Base):
     _columns = ['id', 'id_lesson_plan', 'id_room', 'id_lesson_time',
                 'id_week_day', 'id_week', 'row_time']
     _links = ['lesson_plan', 'room', 'lesson_time', 'week_day', 'week']
+    error = db_codes['temp_lesson']
+
+    @classmethod
+    def update(cls, session, main_id, **kwargs):
+        pass
+
+    @classmethod
+    def create(cls, session, **kwargs):
+        pass
 
 
 class TmpLessons(Base):
@@ -386,3 +441,4 @@ class TmpLessons(Base):
     _columns = ['id', 'id_lesson_plan', 'id_room', 'id_lesson_time',
                 'id_week_day', 'id_week', 'row_time']
     _links = ['lesson_plan', 'room', 'lesson_time', 'week_day', 'week']
+    error = db_codes['lesson']

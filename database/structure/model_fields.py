@@ -22,23 +22,40 @@ def get_class_list():
             class_list.append(var)
             print var
     print len(class_list)
-    # print getattr(db_structure, class_list[0])
+    # prin.pop(0)t getattr(db_structure, class_list[0])
 
 
 def get_fields_list(class_name=''):
-    # except_list = ['delete', 'update', 'select', 'new']
-    # for i in dir():
-    #     pass
-
     session = connect_database()
     # obj = select_rooms(s, 1)
     # print obj
 
     obj = session.query(Departments).all()[0]
-    print obj.full_name
-    print obj.rooms[0].fields()
+    users = session.query(Users).all()
+    # print obj.name
+    print users
     print dir(obj)
-    print obj.faculty.university
+    # print obj.departments[0].fields()
+    print obj.users
+    for merge in session.query(UserDepartments).all():
+        print merge.id_user, ': ', merge.id_department
+    # obj.users.pop(1)
+    # obj.users.append(users[1])
+    print obj.users
+
+    # print obj.teachers
+    # session.delete(obj)
+    # session.commit()
+    # obj = session.query(Teachers).all()[0]
+    lp = LessonPlans.read(session, id=1)
+    obj = Teachers.read(session, lesson_plans=[lp])[0]
+    print obj
+    # setattr(obj, 'id_' + 'department', 0)
+    print obj.department
+    # obj.teachers.pop(00)
+    # setattr(obj, 'name', u'Unknown')
+    # session.commit()
+    # print obj.name
     #
     # print type(Departments.id_faculty.table)
     # # print type(Departments.rooms.table)

@@ -35,7 +35,7 @@ class DragButton(QtGui.QPushButton):
 
         if e.button() == QtCore.Qt.RightButton:
             # Pressing callback
-            print 'Pressing callback'
+            # print 'Pressing callback'
             print self
 
     def mouseMoveEvent(self, e):
