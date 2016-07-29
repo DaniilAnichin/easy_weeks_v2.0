@@ -81,6 +81,15 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(0)
+
+        # timer = QtCore.QTimer()
+        # timer.setSingleShot(True)
+        # timer.singleShot(5000, partial(
+        #     self.tabWidget.setTabEnabled,
+        #     2,
+        #     False
+        # ))
+
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
 

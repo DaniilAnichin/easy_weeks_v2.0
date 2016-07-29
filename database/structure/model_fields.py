@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
 from PyQt4 import QtCore
+from sqlalchemy import Column, Integer, String, ForeignKey
 from database.structure.db_structure import *
 from database.structure.select_tools import *
 from database.start_db.New_db_startup import connect_database
@@ -33,11 +34,18 @@ def get_fields_list(class_name=''):
     # obj = select_rooms(s, 1)
     # print obj
 
-    obj = Universities(short_name=unicode("Unknown", 'utf-8'), full_name=unicode("Unknown", 'utf-8'))
+    obj = session.query(Departments).all()[0]
+    print obj.full_name
+    print obj.rooms[0].fields()
+    print dir(obj)
+    print obj.faculty.university
+    #
+    # print type(Departments.id_faculty.table)
+    # # print type(Departments.rooms.table)
+    # print isinstance(Departments.rooms, Column)
+    # print isinstance(Departments.teachers, Column)
+    # print isinstance(Departments.id_faculty, Column)
 
-    obj = Universities.fields()
-
-    print Departments.rooms()
     # print Departments.fields()
     # print obj.fields
     # print obj.columns

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import bcrypt
 from database.structure.db_structure import *
 
 
@@ -12,25 +13,27 @@ def create_empty(session):
         Degrees(short_name=u'Unknown', full_name=u'Unknown'),
         Teachers(short_name=u'Unknown', full_name=u'Unknown', id_department=1, id_degree=1),
         Subjects(short_name=u'Unknown', full_name=u'Unknown'),
-        Lesson_types(short_name=u'Unknown', full_name=u'Unknown'),
+        LessonTypes(short_name=u'Unknown', full_name=u'Unknown'),
         Weeks(short_name=u'Unknown', full_name=u'Unknown'),
-        Week_days(short_name=u'Unknown', full_name=u'Unknown'),
-        Lesson_times(short_name=u'Unknown', full_name=u'Unknown'),
+        WeekDays(short_name=u'Unknown', full_name=u'Unknown'),
+        LessonTimes(short_name=u'Unknown', full_name=u'Unknown'),
         Rooms(name=u'Unknown', capacity=320, additional_stuff=''),
         Groups(name=u'Unknown', id_department=1),
-        Lesson_plans(
+        LessonPlans(
             id_subject=1, id_lesson_type=1, amount=4, needed_stuff='',
             capacity=32, split_groups=0
         ),
         Lessons(id_lesson_plan=1, id_room=1, id_lesson_time=1, id_week_day=1, id_week=1),
-        Tmp_lessons(id_lesson_plan=1, id_room=1, id_lesson_time=1, id_week_day=1, id_week=1)
+        TmpLessons(id_lesson_plan=1, id_room=1, id_lesson_time=1, id_week_day=1, id_week=1),
+        Users(nickname='Test', status='method', hashed_password=bcrypt.hashpw('password', bcrypt.gensalt()))
     ])
 
     # Association tables:
     session.add_all([
-        Department_rooms(id_department=1, id_room=1),
-        Teacher_plans(id_lesson_plan=1, id_teacher=1),
-        Group_plans(id_lesson_plan=1, id_group=1)
+        DepartmentRooms(id_department=1, id_room=1),
+        TeacherPlans(id_lesson_plan=1, id_teacher=1),
+        GroupPlans(id_lesson_plan=1, id_group=1),
+        UserDepartments(id_user=1, id_department=1)
     ])
 
     session.commit()
@@ -47,26 +50,29 @@ def create_common(session):
         Degrees(short_name=u'проф.', full_name=u'професор'),
         Degrees(short_name=u'ст.вик.', full_name=u'старший викладач'),
 
-        Lesson_types(short_name=u'Лек', full_name=u'Лекція'),
-        Lesson_types(short_name=u'Прак', full_name=u'Практика'),
-        Lesson_types(short_name=u'Лаб', full_name=u'Лабораторна'),
+        LessonTypes(short_name=u'Лек', full_name=u'Лекція'),
+        LessonTypes(short_name=u'Прак', full_name=u'Практика'),
+        LessonTypes(short_name=u'Лаб', full_name=u'Лабораторна'),
 
         Weeks(short_name=u'І', full_name=u'Перший тиждень'),
         Weeks(short_name=u'ІІ', full_name=u'Другий тиждень'),
 
-        Week_days(short_name=u'Пн', full_name=u'Понеділок'),
-        Week_days(short_name=u'Вт', full_name=u'Вівторок'),
-        Week_days(short_name=u'Ср', full_name=u'Середа'),
-        Week_days(short_name=u'Чт', full_name=u'Четвер'),
-        Week_days(short_name=u'Пт', full_name=u'П\'ятниця'),
-        Week_days(short_name=u'Сб', full_name=u'Субота'),
+        WeekDays(short_name=u'Пн', full_name=u'Понеділок'),
+        WeekDays(short_name=u'Вт', full_name=u'Вівторок'),
+        WeekDays(short_name=u'Ср', full_name=u'Середа'),
+        WeekDays(short_name=u'Чт', full_name=u'Четвер'),
+        WeekDays(short_name=u'Пт', full_name=u'П\'ятниця'),
+        WeekDays(short_name=u'Сб', full_name=u'Субота'),
 
-        Lesson_times(short_name=u'1', full_name=u'8:30-10:05'),
-        Lesson_times(short_name=u'2', full_name=u'10:25-12:00'),
-        Lesson_times(short_name=u'3', full_name=u'12:20-13:55'),
-        Lesson_times(short_name=u'4', full_name=u'14:15-15:50'),
-        Lesson_times(short_name=u'5', full_name=u'16:10-17:45'),
-        Lesson_times(short_name=u'6', full_name=u'18:05-19:40')
+        LessonTimes(short_name=u'1', full_name=u'8:30-10:05'),
+        LessonTimes(short_name=u'2', full_name=u'10:25-12:00'),
+        LessonTimes(short_name=u'3', full_name=u'12:20-13:55'),
+        LessonTimes(short_name=u'4', full_name=u'14:15-15:50'),
+        LessonTimes(short_name=u'5', full_name=u'16:10-17:45'),
+        LessonTimes(short_name=u'6', full_name=u'18:05-19:40'),
+
+        Users(nickname='Admin', status='admin', hashed_password=bcrypt.hashpw('easy_weeks_admin', bcrypt.gensalt())),
+        Users(nickname='Method', status='method', hashed_password=bcrypt.hashpw('easy_weeks_method', bcrypt.gensalt()))
     ])
 
     session.commit()

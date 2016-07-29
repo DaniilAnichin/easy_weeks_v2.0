@@ -123,10 +123,10 @@ def delete_lesson_plan(s, id_lp):
         print "No session"
         return -2
 
-    if not s.query(Lesson_plans).get(id_lp):
+    if not s.query(LessonPlans).get(id_lp):
         print "No such lesson plan"
         return -3
-    lp = s.query(Lesson_plans).get(id_lp)
+    lp = s.query(LessonPlans).get(id_lp)
     s.delete(lp)
     s.commit()
     return 0
@@ -151,10 +151,10 @@ def delete_tmp_lesson(s, id_tl):
         print "No session"
         return -2
 
-    if not s.query(Tmp_lessons).get(id_tl):
+    if not s.query(TmpLessons).get(id_tl):
         print "No such tmp lesson"
         return -3
-    tl = s.query(Tmp_lessons).get(id_tl)
+    tl = s.query(TmpLessons).get(id_tl)
     s.delete(tl)
     s.commit()
     return 0

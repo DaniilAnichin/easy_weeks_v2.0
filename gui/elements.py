@@ -36,6 +36,7 @@ class DragButton(QtGui.QPushButton):
         if e.button() == QtCore.Qt.RightButton:
             # Pressing callback
             print 'Pressing callback'
+            print self
 
     def mouseMoveEvent(self, e):
         if e.buttons() != QtCore.Qt.LeftButton:
@@ -89,16 +90,15 @@ class DragButton(QtGui.QPushButton):
 
 
 class ButtonGrid(QtGui.QGridLayout):
-    def __init__(self, parent, drag_enabled=False):
+    def __init__(self, parent):
         super(ButtonGrid, self).__init__(parent)
         self.parent_name = parent.objectName()
-        self.drag_enabled = drag_enabled
 
-    def set_table(self, lesson_set):
+    def set_table(self, lesson_set, drag_enabled=False):
         for i in range(len(lesson_set)):
             for j in range(len(lesson_set[i])):
                 lesson_button = DragButton(self.parent())
-                lesson_button.setAcceptDrops(self.drag_enabled)
+                lesson_button.setAcceptDrops(drag_enabled)
                 lesson_button.setText(str(lesson_set[i][j]))
                 lesson_button.setStyleSheet(
                     color_start + button_colors[lesson_set[i][j]].name()
@@ -146,10 +146,10 @@ class WeekTool(QtGui.QToolBox):
         # self.second.setObjectName('second_%s' % self.objectName())
 
     def set_table(self, lesson_set, drag_enabled=False):
-        first_table = ButtonGrid(self.first, drag_enabled)
-        first_table.set_table(lesson_set[:len(lesson_set) / 2])
-        second_table = ButtonGrid(self.second, drag_enabled)
-        second_table.set_table(lesson_set[len(lesson_set) / 2:])
+        first_table = ButtonGrid(self.first)
+        first_table.set_table(lesson_set[:len(lesson_set) / 2], drag_enabled)
+        second_table = ButtonGrid(self.second)
+        second_table.set_table(lesson_set[len(lesson_set) / 2:], drag_enabled)
         self.addItem(self.first, '')
         self.addItem(self.second, '')
         self.translateUI()
