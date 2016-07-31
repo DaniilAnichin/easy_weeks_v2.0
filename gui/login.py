@@ -1,9 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
 import bcrypt
+import logging
 import sys
 from PyQt4 import QtGui, QtCore
+from database import set_logger
 from gui.translate import translate, fromUtf8
+logger = logging.getLogger()
+set_logger(logger)
 
 
 class User:
@@ -13,6 +17,7 @@ class User:
         self.status = status
 
     def check(self, inputed_pw):
+        logger.debug('User auth passing')
         return bcrypt.hashpw(inputed_pw, self.hashed) == self.hashed
 
 
@@ -23,6 +28,7 @@ users = {user.name: user for user in [a_user, m_user]}
 
 class LoginDialog(QtGui.QDialog):
     def __init__(self, **kwargs):
+        self.logger = logger
         super(LoginDialog, self).__init__(**kwargs)
         self.submit_button = QtGui.QPushButton(self)
         self.submit_button.clicked.connect(self.accept)
@@ -45,31 +51,32 @@ class LoginDialog(QtGui.QDialog):
 
         self.retranslateUi()
         self.setWindowModality(QtCore.Qt.ApplicationModal)
-        self.setFixedSize(300, 115)
+        self.logger.debug('Passed init for %s', self.__class__.__name__)
+
+        # self.setFixedSize(300, 115)
 
     def retranslateUi(self):
-        self.setWindowTitle(translate('Login', 'Вікно входу', None))
+        self.setWindowTitle(fromUtf8('Вікно входу'))
 
-        self.submit_button.setText(translate('Login', 'Увійти', None))
-        self.login_label.setText(translate('Login', 'Логін: ', None))
-        self.password_label.setText(translate('Login', 'Пароль: ', None))
+        self.login_label.setText(fromUtf8('Логін: '))
+        self.password_label.setText(fromUtf8('Пароль: '))
+        self.submit_button.setText(fromUtf8('Увійти'))
+        self.logger.debug('Translated UI for %s', self.__class__.__name__)
 
     def accept(self):
-        login = str(self.login_input.text())
-        password = str(self.password_input.text())
+        login = unicode(self.login_input.text()).encode('cp1251')
+        password = unicode(self.password_input.text()).encode('cp1251')
         try:
             logged_in = users[login].check(password)
             if logged_in:
                 print 'Matched'
                 super(LoginDialog, self).accept()
             else:
-                self.login_input.setText(
-                    translate('Login', 'Невірний пароль!', None)
-                    )
+                self.login_input.setText(fromUtf8('Невірний пароль!'))
+                self.logger.info('Incorrect password')
         except KeyError:
-            self.login_input.setText(
-                translate('Login', 'Невірний логін!', None)
-            )
+            self.login_input.setText(fromUtf8('Невірний логін!'))
+            self.logger.info('Incorrect login')
 
 
 def main():

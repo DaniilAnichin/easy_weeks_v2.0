@@ -29,29 +29,37 @@ def get_fields_list(class_name=''):
     session = connect_database()
     # obj = select_rooms(s, 1)
     # print obj
+    print WeekDays.__tablename__
+    print WeekDays.single()
+    obj = UserDepartments.read(session, True)[0]
+    print unicode(obj)
+    obj = TeacherPlans.read(session, True)[0]
+    print unicode(obj)
+    obj = Users.read(session, True)[0]
+    print type(unicode(obj))
 
-    obj = session.query(Departments).all()[0]
-    users = session.query(Users).all()
+    # obj = session.query(Departments).all()[0]
+    # users = session.query(Users).all()
     # print obj.name
-    print users
-    print dir(obj)
+    # print users
+    # print dir(obj)
     # print obj.departments[0].fields()
-    print obj.users
-    for merge in session.query(UserDepartments).all():
-        print merge.id_user, ': ', merge.id_department
+    # print obj.users
+    # for merge in session.query(UserDepartments).all():
+        # print merge.id_user, ': ', merge.id_department
     # obj.users.pop(1)
     # obj.users.append(users[1])
-    print obj.users
+    # print obj.users
 
     # print obj.teachers
     # session.delete(obj)
     # session.commit()
     # obj = session.query(Teachers).all()[0]
-    lp = LessonPlans.read(session, id=1)
-    obj = Teachers.read(session, lesson_plans=[lp])[0]
-    print obj
+    # lp = LessonPlans.read(session, id=1)
+    # obj = Teachers.read(session, lesson_plans=[lp])[0]
+    # print obj
     # setattr(obj, 'id_' + 'department', 0)
-    print obj.department
+    # print obj.department
     # obj.teachers.pop(00)
     # setattr(obj, 'name', u'Unknown')
     # session.commit()

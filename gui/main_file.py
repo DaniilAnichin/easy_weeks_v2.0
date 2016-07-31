@@ -8,17 +8,6 @@ from gui.elements import EasyTab
 from gui.translate import translate, fromUtf8
 
 
-# Check if it works on windows...
-# On linux default is good enough
-class MyTab(QtGui.QTabWidget):
-    def setTabEnabled(self, p_int, bool):
-        super(MyTab, self).setTabEnabled(p_int, bool)
-        self.setStyleSheet(
-            'QTabBar::tab::disabled{width: 0; height: 0; margin: 0; '
-            'padding: 0; border: none;}'
-        )
-
-
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow, lesson_set):
         MainWindow.resize(805, 600)
@@ -91,8 +80,6 @@ class Ui_MainWindow(object):
         # ))
 
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-
-
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(translate("MainWindow", "MainWindow", None))

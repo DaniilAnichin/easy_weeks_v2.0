@@ -41,6 +41,7 @@ def create_empty(session):
 
 
 def create_common(session):
+    # Adding week days, degrees, times, etc
     session.add_all([
         Degrees(short_name=u'ас.', full_name=u'асистент'),
         Degrees(short_name=u'вик.', full_name=u'викладач'),
@@ -75,5 +76,14 @@ def create_common(session):
         Users(nickname='Method', status='method', hashed_password=bcrypt.hashpw('easy_weeks_method', bcrypt.gensalt()))
     ])
 
+    session.commit()
+    return session
+
+
+def create_custom(session):
+    # Complete this staff
+    session.add_all([
+        Departments(short_name=u'ТК', full_name=u'Техн')
+    ])
     session.commit()
     return session

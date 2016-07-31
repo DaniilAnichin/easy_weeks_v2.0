@@ -1,10 +1,27 @@
 import os
+import logging
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-
 DATABASE_DIR = os.path.join(BASE_DIR, 'database')
 DATABASE_NAME = 'FICT_timetable.db'
+
+
+def set_logger(logger):
+    # logger = logging.getLogger('easy_weeks')
+    formatter = logging.Formatter(
+        u'%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]  %(message)s'
+    )
+    filehandler = logging.FileHandler(os.path.join(BASE_DIR, u'easy_weeks.log'))
+    filehandler.setLevel(logging.DEBUG)
+    filehandler.setFormatter(formatter)
+
+    console = logging.StreamHandler()
+    console.setLevel(logging.DEBUG)
+    console.setFormatter(formatter)
+
+    logger.addHandler(filehandler)
+    logger.addHandler(console)
 
 db_codes = {
     'success': 0,
@@ -23,7 +40,11 @@ db_codes = {
     'lesson_plan': 13,
     'exists': 14,
     'absent': 15,
-    'reserved': 16
+    'reserved': 16,
+    'user': 17,
+    'temp_lesson': 18,
+    '': 19,
+    '': 20,
 }
 
 db_codes_output = {
@@ -43,5 +64,8 @@ db_codes_output = {
     13: 'Problem with lesson plans',
     14: 'This data already exists',
     15: 'Data with this id does not exist',
-    16: 'This data may not be edited in any way'
+    16: 'This data may not be edited in any way',
+    17: 'Problem with users',
+    18: 'Problem with temporary_lessons',
+    19: ''
 }
