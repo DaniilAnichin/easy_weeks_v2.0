@@ -1,15 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
 from PyQt4 import QtCore
-from sqlalchemy import Column, Integer, String, ForeignKey
 from database.structure.db_structure import *
-from database.structure.select_tools import *
 from database.start_db.New_db_startup import connect_database
-# for f in vars(Universities(short_name=unicode("Unknown", 'utf-8'), full_name=unicode("Unknown", 'utf-8'))):
-#     print f
-
-# (getattr(obj,attr))
-
 # ForUp: Could you describe, what kind of improvements do you want to implement?
 
 
@@ -27,8 +20,6 @@ def get_class_list():
 
 def get_fields_list(class_name=''):
     session = connect_database()
-    # obj = select_rooms(s, 1)
-    # print obj
     print WeekDays.__tablename__
     print WeekDays.single()
     obj = UserDepartments.read(session, True)[0]

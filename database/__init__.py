@@ -7,21 +7,22 @@ DATABASE_DIR = os.path.join(BASE_DIR, 'database')
 DATABASE_NAME = 'FICT_timetable.db'
 
 
-def set_logger(logger):
-    # logger = logging.getLogger('easy_weeks')
-    formatter = logging.Formatter(
-        u'%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]  %(message)s'
-    )
-    filehandler = logging.FileHandler(os.path.join(BASE_DIR, u'easy_weeks.log'))
-    filehandler.setLevel(logging.DEBUG)
-    filehandler.setFormatter(formatter)
-
-    console = logging.StreamHandler()
-    console.setLevel(logging.DEBUG)
-    console.setFormatter(formatter)
-
-    logger.addHandler(filehandler)
-    logger.addHandler(console)
+class Logger(logging.Logger):
+    def __init__(self):
+        super(Logger, self).__init__('root')
+        if not self.level == logging.DEBUG:
+            self.setLevel(logging.DEBUG)
+            formatter = logging.Formatter(
+    u'%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]  %(message)s'
+            )
+            filehandler = logging.FileHandler(
+                os.path.join(BASE_DIR, u'easy_weeks.log')
+            )
+            filehandler.setFormatter(formatter)
+            console = logging.StreamHandler()
+            console.setFormatter(formatter)
+            self.addHandler(filehandler)
+            self.addHandler(console)
 
 db_codes = {
     'success': 0,

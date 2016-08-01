@@ -1,23 +1,22 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
 import bcrypt
-import logging
 import sys
 from PyQt4 import QtGui, QtCore
-from database import set_logger
+from database import Logger
 from gui.translate import translate, fromUtf8
-logger = logging.getLogger()
-set_logger(logger)
+logger = Logger()
 
 
 class User:
+    # move whole model to db_structure
     def __init__(self, name, password, status):
         self.name = name
         self.hashed = bcrypt.hashpw(password, bcrypt.gensalt())
         self.status = status
 
     def check(self, inputed_pw):
-        logger.debug('User auth passing')
+        logger.info('User auth passing')
         return bcrypt.hashpw(inputed_pw, self.hashed) == self.hashed
 
 
@@ -43,15 +42,10 @@ class LoginDialog(QtGui.QDialog):
         self.login_form.addRow(self.password_label, self.password_input)
         self.login_form.addRow(self.submit_button)
         self.setLayout(self.login_form)
-        # vbox = QtGui.QVBoxLayout(self)
-        # vbox.addWidget(self.login_input, 1)
-        # vbox.addWidget(self.password_input, 1)
-        # vbox.addWidget(self.submit_button, 1)
-        # self.setLayout(vbox)
 
         self.retranslateUi()
         self.setWindowModality(QtCore.Qt.ApplicationModal)
-        self.logger.debug('Passed init for %s', self.__class__.__name__)
+        self.logger.info('Passed init for %s', self.__class__.__name__)
 
         # self.setFixedSize(300, 115)
 
@@ -61,7 +55,7 @@ class LoginDialog(QtGui.QDialog):
         self.login_label.setText(fromUtf8('Логін: '))
         self.password_label.setText(fromUtf8('Пароль: '))
         self.submit_button.setText(fromUtf8('Увійти'))
-        self.logger.debug('Translated UI for %s', self.__class__.__name__)
+        self.logger.info('Translated UI for %s', self.__class__.__name__)
 
     def accept(self):
         login = unicode(self.login_input.text()).encode('cp1251')
@@ -69,7 +63,7 @@ class LoginDialog(QtGui.QDialog):
         try:
             logged_in = users[login].check(password)
             if logged_in:
-                print 'Matched'
+                self.logger.info('Auth passed')
                 super(LoginDialog, self).accept()
             else:
                 self.login_input.setText(fromUtf8('Невірний пароль!'))
@@ -91,14 +85,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-'''
-    def initUI(self):
-        lo = QFormLayout()
-        lo.addRow(QLabel("Type some text in textbox and drag it into combo box"))
-        edit = QLineEdit()
-        edit.setDragEnabled(True)
-        com = Combo("Button", self)
-        lo.addRow(edit, com)
-        self.setLayout(lo)
-        self.setWindowTitle('Simpl
-        '''

@@ -239,6 +239,7 @@ class Universities(Base):
 class Faculties(Base):
     full_name = Column(String)
     short_name = Column(String)
+    short_name = Column(String)
     id_university = Column(Integer, ForeignKey('universities.id'))
 
     def __unicode__(self):
@@ -477,6 +478,23 @@ class Lessons(Base):
     def __unicode__(self):
         return u'%s at %s' % (unicode(self.lesson_plan), unicode(self.row_time))
 
+    def time(self):
+        return dict(
+            id_week=self.id_week,
+            id_week_day=self.id_week_day,
+            id_lesson_time=self.id_lesson_time
+        )
+
+    def set_time(self, time):
+        self.id_week = time.get('id_week', 1)
+        self.id_week_day = time.get('id_week_day', 1)
+        self.id_lesson_time = time.get('id_lesson_time', 1)
+        # self.raw_time =
+
+    @classmethod
+    def bad_time(cls):
+        return dict(id_week=1, id_week_day=1, id_lesson_time=1)
+
     row_time = Column(Integer)
 
     _columns = ['id', 'id_lesson_plan', 'id_room', 'id_lesson_time',
@@ -493,21 +511,7 @@ class Lessons(Base):
         pass
 
 
-class TmpLessons(Base):
-    id_lesson_plan = Column(Integer, ForeignKey('lesson_plans.id'))
-    id_room = Column(Integer, ForeignKey('rooms.id'))
-    id_lesson_time = Column(Integer, ForeignKey('lesson_times.id'))
-    id_week_day = Column(Integer, ForeignKey('week_days.id'))
-    id_week = Column(Integer, ForeignKey('weeks.id'))
-
-    def __unicode__(self):
-        return u'%s at %s' % (unicode(self.lesson_plan), unicode(self.row_time))
-
-    row_time = Column(Integer)
-
-    _columns = ['id', 'id_lesson_plan', 'id_room', 'id_lesson_time',
-                'id_week_day', 'id_week', 'row_time']
-    _links = ['lesson_plan', 'room', 'lesson_time', 'week_day', 'week']
+class TmpLessons(Lessons):
     # error = db_codes['lesson']
 
     @classmethod
