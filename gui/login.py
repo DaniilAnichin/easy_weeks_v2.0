@@ -4,7 +4,7 @@ import bcrypt
 import sys
 from PyQt4 import QtGui, QtCore
 from database import Logger
-from gui.translate import translate, fromUtf8
+from gui.translate import fromUtf8
 logger = Logger()
 
 

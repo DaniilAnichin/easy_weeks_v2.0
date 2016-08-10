@@ -353,7 +353,7 @@ class SearchTab(QtGui.QWidget):
     def initUI(self):
         self.hbox = QtGui.QHBoxLayout(self)
         self.hbox.setObjectName('search_tab_hbox')
-        self.form = QtGui.QFormLayout(self)
+        self.form = QtGui.QFormLayout()
         self.form.setObjectName('search_tab_form')
 
         self.object_label = QtGui.QLabel(self)
@@ -412,3 +412,26 @@ class SearchTab(QtGui.QWidget):
         self.time_choice.addItem(fromUtf8('18:05 - 19:40'))
 
         self.submit_button.setText(fromUtf8('Знайти'))
+
+
+class WeekMenuBar(QtGui.QMenuBar):
+    def __init__(self, *args, **kwargs):
+        # self.menubar.setGeometry(QtCore.QRect(0, 0, 805, 19))
+        self.menu_data = kwargs.pop('menu_data', [])
+        super(WeekMenuBar, self).__init__(*args, **kwargs)
+
+        for menu in self.menu_data:
+            menu_element = QtGui.QMenu(self)
+            menu_element.setTitle(fromUtf8(menu[0]))
+            setattr(self, 'menu_%d' % self.menu_data.index(menu), menu_element)
+            for action in menu[1:]:
+                if not action:
+                    menu_element.addSeparator()
+                else:
+                    action_element = QtGui.QAction(self.parent())
+                    action_element.setText(fromUtf8(action[0]))
+                    action_element.triggered.connect(action[1])
+                    menu_element.addAction(action_element)
+            self.addAction(menu_element.menuAction())
+
+        self.parent().setMenuBar(self)

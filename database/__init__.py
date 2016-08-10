@@ -11,16 +11,18 @@ class Logger(logging.Logger):
     def __init__(self):
         super(Logger, self).__init__('root')
         if not self.level == logging.DEBUG:
-            self.setLevel(logging.DEBUG)
             formatter = logging.Formatter(
     u'%(filename)s[LINE:%(lineno)d]# %(levelname)-8s [%(asctime)s]  %(message)s'
             )
+
             filehandler = logging.FileHandler(
                 os.path.join(BASE_DIR, u'easy_weeks.log')
             )
             filehandler.setFormatter(formatter)
+            filehandler.setLevel(logging.INFO)
             console = logging.StreamHandler()
             console.setFormatter(formatter)
+            console.setLevel(logging.DEBUG)
             self.addHandler(filehandler)
             self.addHandler(console)
 

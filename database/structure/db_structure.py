@@ -22,16 +22,17 @@
 #
 #
 import re
-from sqlalchemy import Column, Integer, String, ForeignKey, or_
+import bcrypt
+from sqlalchemy import Column, Integer, Boolean, String, ForeignKey, or_
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
-from database import db_codes
-
+from database import db_codes, Logger
+logger = Logger()
 __all__ = [
     'Degrees', 'DepartmentRooms', 'Departments', 'Faculties', 'Groups',
     'GroupPlans', 'LessonPlans', 'TeacherPlans', 'LessonTimes',
-    'LessonTypes', 'Lessons', 'Rooms', 'Subjects', 'Teachers', 'TmpLessons',
-    'Universities', 'WeekDays', 'Weeks', 'Users', 'UserDepartments'
+    'LessonTypes', 'Lessons', 'Rooms', 'Subjects', 'Teachers', 'Universities',
+    'WeekDays', 'Weeks', 'Users', 'UserDepartments'
 ]
 first_cap_re = re.compile('(.)([A-Z][a-z]+)')
 all_cap_re = re.compile('([a-z0-9])([A-Z])')
@@ -43,8 +44,9 @@ class Base(object):
     _links = []
     _associations = []
 
-    def __init__(self, **kwargs):
-        super(Base, self).__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        logger.info('DB model init call invokes')   # Never called..
+        super(Base, self).__init__(*args, **kwargs)
 
     @declared_attr
     def __tablename__(cls):
@@ -194,9 +196,21 @@ class Users(Base):
     hashed_password = Column(String)
     status = Column(String)   # Expected values are 'admin' and 'method'
     message = Column(String)   # Message when giving an methodist request
+    translated = u'Користувач'
+
+    def __init__(self, *args, **kwargs):
+        logger.info('Hashed user password')
+        password = kwargs.pop('password', '')
+        hashed = bcrypt.hashpw(password, bcrypt.gensalt())
+        kwargs.update(hashed_password=hashed)
+        super(Users, self).__init__(*args, **kwargs)
 
     def __unicode__(self):
         return self.nickname
+
+    def authenticate(self, password):
+        logger.info('User auth passing')
+        return self.hashed_password == bcrypt.hashpw(password, self.hashed_password)
 
     # To give methodist user separated rights we need to create merging table
     # between User and Department, but if we don't - user can edit any table.
@@ -212,6 +226,7 @@ class Users(Base):
 class UserDepartments(Base):
     id_user = Column(Integer, ForeignKey('users.id'))
     id_department = Column(Integer, ForeignKey('departments.id'))
+    translated = u'Користувач-Кафедра'
 
     def __unicode__(self):
         return u'%d in %d' % (self.id_user, self.id_department)
@@ -223,6 +238,7 @@ class UserDepartments(Base):
 class Universities(Base):
     full_name = Column(String)
     short_name = Column(String)
+    translated = u'Університет'
 
     def __unicode__(self):
         return self.short_name
@@ -239,8 +255,8 @@ class Universities(Base):
 class Faculties(Base):
     full_name = Column(String)
     short_name = Column(String)
-    short_name = Column(String)
     id_university = Column(Integer, ForeignKey('universities.id'))
+    translated = u'Факультет'
 
     def __unicode__(self):
         return self.short_name
@@ -257,6 +273,7 @@ class Faculties(Base):
 class DepartmentRooms(Base):
     id_department = Column(Integer, ForeignKey('departments.id'))
     id_room = Column(Integer, ForeignKey('rooms.id'))
+    translated = u'Кімнати кафедри'
 
     def __unicode__(self):
         return u'%d in %d' % (self.id_room, self.id_department)
@@ -269,6 +286,7 @@ class Departments(Base):
     full_name = Column(String)
     short_name = Column(String)
     id_faculty = Column(Integer, ForeignKey('faculties.id'))
+    translated = u'Кафедра'
 
     def __unicode__(self):
         return self.short_name
@@ -292,6 +310,7 @@ class Departments(Base):
 class GroupPlans(Base):
     id_group = Column(Integer, ForeignKey('groups.id'))
     id_lesson_plan = Column(Integer, ForeignKey('lesson_plans.id'))
+    translated = u'Заняття групи'
 
     def __unicode__(self):
         return u'%d in %d' % (self.id_group, self.id_lesson_plan)
@@ -303,6 +322,7 @@ class GroupPlans(Base):
 class TeacherPlans(Base):
     id_teacher = Column(Integer, ForeignKey('teachers.id'))
     id_lesson_plan = Column(Integer, ForeignKey('lesson_plans.id'))
+    translated = u'Заняття викладача'
 
     def __unicode__(self):
         return u'%d in %d' % (self.id_teacher, self.id_lesson_plan)
@@ -314,6 +334,7 @@ class TeacherPlans(Base):
 class Groups(Base):
     name = Column(String)
     id_department = Column(Integer, ForeignKey('departments.id'))
+    translated = u'Група'
 
     def __unicode__(self):
         return self.name
@@ -327,6 +348,7 @@ class Groups(Base):
 class Degrees(Base):
     full_name = Column(String)
     short_name = Column(String)
+    translated = u'Ступінь'
 
     def __unicode__(self):
         return self.short_name
@@ -343,6 +365,7 @@ class Teachers(Base):
     short_name = Column(String)
     id_department = Column(Integer, ForeignKey('departments.id'))
     id_degree = Column(Integer, ForeignKey('degrees.id'))
+    translated = u'Викладач'
 
     def __unicode__(self):
         return self.short_name
@@ -356,6 +379,7 @@ class Teachers(Base):
 class Subjects(Base):
     full_name = Column(String)
     short_name = Column(String)
+    translated = u'Предмет'
 
     def __unicode__(self):
         return self.short_name
@@ -371,15 +395,15 @@ class Rooms(Base):
     name = Column(String)
     capacity = Column(Integer)
     additional_stuff = Column(String)
+    translated = u'Аудиторія'
 
     def __unicode__(self):
         return self.name
 
     lessons = relationship('Lessons', backref='room', cascade='all, delete-orphan')
-    tmp_lessons = relationship('TmpLessons', backref='room', cascade='all, delete-orphan')
 
     _columns = ['id', 'name', 'capacity', 'additional_stuff']
-    _links = ['lessons', 'tmp_lessons']
+    _links = ['lessons']
     _associations = ['departments']
     # error = db_codes['room']
 
@@ -387,6 +411,7 @@ class Rooms(Base):
 class LessonTypes(Base):
     full_name = Column(String)
     short_name = Column(String)
+    translated = u'Тип'
 
     def __unicode__(self):
         return self.short_name
@@ -401,51 +426,52 @@ class LessonTypes(Base):
 class Weeks(Base):
     full_name = Column(String)
     short_name = Column(String)
+    translated = u'Тиждень'
 
     def __unicode__(self):
         return self.short_name
 
     lessons = relationship('Lessons', backref='week', cascade='all, delete-orphan')
-    tmp_lessons = relationship('TmpLessons', backref='week', cascade='all, delete-orphan')
 
     _columns = ['id', 'full_name', 'short_name']
-    _links = ['lessons', 'tmp_lessons']
+    _links = ['lessons']
     # error = db_codes['']
 
 
 class WeekDays(Base):
     full_name = Column(String)
     short_name = Column(String)
+    translated = u'День'
 
     def __unicode__(self):
         return self.short_name
 
     lessons = relationship('Lessons', backref='week_day', cascade='all, delete-orphan')
-    tmp_lessons = relationship('TmpLessons', backref='week_day', cascade='all, delete-orphan')
 
     _columns = ['id', 'full_name', 'short_name']
-    _links = ['lessons', 'tmp_lessons']
+    _links = ['lessons']
     # error = db_codes['user']
 
 
 class LessonTimes(Base):
     full_name = Column(String)
     short_name = Column(String)
+    translated = u'Час'
 
     def __unicode__(self):
         return self.short_name
 
     lessons = relationship('Lessons', backref='lesson_time', cascade='all, delete-orphan')
-    tmp_lessons = relationship('TmpLessons', backref='lesson_time', cascade='all, delete-orphan')
 
     _columns = ['id', 'full_name', 'short_name']
-    _links = ['lessons', 'tmp_lessons']
+    _links = ['lessons']
     # error = db_codes['lesson_time']
 
 
 class LessonPlans(Base):
     id_subject = Column(Integer, ForeignKey('subjects.id'))
     id_lesson_type = Column(Integer, ForeignKey('lesson_types.id'))
+    translated = u'Навчальній план'
 
     def __unicode__(self):
         return self.subject
@@ -474,6 +500,8 @@ class Lessons(Base):
     id_lesson_time = Column(Integer, ForeignKey('lesson_times.id'))
     id_week_day = Column(Integer, ForeignKey('week_days.id'))
     id_week = Column(Integer, ForeignKey('weeks.id'))
+    is_temp = Column(Boolean)
+    translated = u'Заняття'
 
     def __unicode__(self):
         return u'%s at %s' % (unicode(self.lesson_plan), unicode(self.row_time))
@@ -500,24 +528,12 @@ class Lessons(Base):
     _columns = ['id', 'id_lesson_plan', 'id_room', 'id_lesson_time',
                 'id_week_day', 'id_week', 'row_time']
     _links = ['lesson_plan', 'room', 'lesson_time', 'week_day', 'week']
-    # error = db_codes['temp_lesson']
+    # error = db_codes['lessons']
 
-    @classmethod
-    def update(cls, session, main_id, **kwargs):
-        pass
-
-    @classmethod
-    def create(cls, session, **kwargs):
-        pass
-
-
-class TmpLessons(Lessons):
-    # error = db_codes['lesson']
-
-    @classmethod
-    def update(cls, session, main_id, **kwargs):
-        pass
-
-    @classmethod
-    def create(cls, session, **kwargs):
-        pass
+    # @classmethod
+    # def update(cls, session, main_id, **kwargs):
+    #     pass
+    #
+    # @classmethod
+    # def create(cls, session, **kwargs):
+    #     pass

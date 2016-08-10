@@ -38,6 +38,9 @@ def swap_lessons(session, first, second):
 
 
 def check_temp_lessons(session, table):
+    for day in table:
+        for lesson in day:
+            pass
     pass
 
 
