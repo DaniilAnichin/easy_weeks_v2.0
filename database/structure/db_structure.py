@@ -27,6 +27,7 @@ from sqlalchemy import Column, Integer, Boolean, String, ForeignKey, or_
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 from database import db_codes, Logger
+from gui.translate import shorten
 logger = Logger()
 __all__ = [
     'Degrees', 'DepartmentRooms', 'Departments', 'Faculties', 'Groups',
@@ -506,8 +507,21 @@ class Lessons(Base):
     id_lesson_time = Column(Integer, ForeignKey('lesson_times.id'))
     id_week_day = Column(Integer, ForeignKey('week_days.id'))
     id_week = Column(Integer, ForeignKey('weeks.id'))
-    is_temp = Column(Boolean)
+    is_temp = Column(Boolean, default=False)
+    is_empty = Column(Boolean, default=False)
+    row_time = Column(Integer)
     translated = u'Заняття'
+    week_ids = range(2, 4)
+    day_ids = range(2, 8)
+    time_ids = range(2, 7)
+
+    def __init__(self, *args, **kwargs):
+        row_time = kwargs.get('row_time', '')
+        if row_time:
+            kwargs.update(self.from_row(row_time))
+        super(Lessons, self).__init__(*args, **kwargs)
+        self.row_time = self.to_row(self.time())
+        logger.info('Passed lesson init')
 
     def __unicode__(self):
         return u'%s at %s' % (unicode(self.lesson_plan), unicode(self.row_time))
@@ -520,16 +534,70 @@ class Lessons(Base):
         )
 
     def set_time(self, time):
-        self.id_week = time.get('id_week', 1)
-        self.id_week_day = time.get('id_week_day', 1)
-        self.id_lesson_time = time.get('id_lesson_time', 1)
-        # self.raw_time =
+        for key in time.keys():
+            setattr(self, key, time(key))
+        self.row_time = self.to_row(time)
+
+    def from_row(self, row_time):
+        number = row_time % len(self.time_ids)
+        row_time /= len(self.time_ids)
+        day = row_time % len(self.day_ids)
+        row_time /= len(self.day_ids)
+        week = row_time % len(self.week_ids)
+        return dict(
+            id_week=self.week_ids[week],
+            id_week_day=self.day_ids[day],
+            id_lesson_time=self.time_ids[number]
+        )
+
+    def to_row(self, time):
+        row_time = self.time_ids.index(time['id_lesson_time'])
+        row_time += self.day_ids.index(time['id_week_day']) * len(self.time_ids)
+        row_time += self.week_ids.index(time['id_week']) * \
+                    len(self.day_ids) * len(self.time_ids)
+        return row_time
 
     @classmethod
     def bad_time(cls):
         return dict(id_week=1, id_week_day=1, id_lesson_time=1)
 
-    row_time = Column(Integer)
+    @classmethod
+    def get_empty(cls, **kwargs):
+        defaults = dict(
+            id_week=cls.week_ids[0],
+            id_week_day=cls.day_ids[0],
+            id_lesson_type=cls.time_ids[0]
+        )
+        if 'rooms' in kwargs.keys():
+            defaults.pop('rooms')
+            defaults.update({'rooms': kwargs['rooms']})
+
+        lesson_plan = LessonPlans(defaults, )
+        if set(kwargs.keys()) < set(cls.fields()):
+            return Lessons(is_temp=True, is_empty=True)
+        else:
+            return Lessons(is_temp=True, id_empty=True, **kwargs)
+
+    def make_temp(self, session, time):
+        temp_lesson = Lessons.create(session, )
+
+    def to_table(self, *args):
+        # Make lesson to string to view it on the table
+        if self.is_empty:
+            return u''
+        result = shorten(unicode(self.lesson_plan.subject), 15)
+        if 'teachers' not in args:
+            teachers = u', '.join(
+                unicode(teacher) for teacher in self.lesson_plan.teachers
+            )
+            result += u'\n' + shorten(teachers, 15)
+        if 'rooms' not in args:
+            # rooms = u', '.join(unicode(room) for room in self.rooms)
+            result += u'\n' + shorten(unicode(self.room), 15)
+        if 'groups' not in args:
+            groups = u', '.join(unicode(group) for group in self.lesson_plan.groups)
+            result += u'\n' + shorten(groups, 15)
+        return result
 
     _columns = ['id', 'id_lesson_plan', 'id_room', 'id_lesson_time',
                 'id_week_day', 'id_week', 'row_time']

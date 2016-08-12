@@ -18,3 +18,7 @@ try:
 except AttributeError:
     def translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
+
+
+def shorten(line, number):
+    return line[:number] + (line[number:] and '...')

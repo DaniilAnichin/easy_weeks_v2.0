@@ -1,24 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/database/structure/db_structure.py" line="120" />
-    <bookmark url="file://$PROJECT_DIR$/database/start_db/seeds.py" line="82" />
+    <bookmark url="file://$PROJECT_DIR$/database/structure/db_structure.py" line="121" />
+    <bookmark url="file://$PROJECT_DIR$/database/start_db/seeds.py" line="83" />
     <bookmark url="file://$PROJECT_DIR$/gui/login.py" line="10" />
-    <bookmark url="file://$PROJECT_DIR$/gui/elements.py" line="487" />
+    <bookmark url="file://$PROJECT_DIR$/gui/elements.py" line="504" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="efba25a3-c94c-4dd7-acb7-a88090d3e1b2" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/gui/examples/elements/new_combo.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/start_db/seeds.py" afterPath="$PROJECT_DIR$/database/start_db/seeds.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/structure/db_structure.py" afterPath="$PROJECT_DIR$/database/structure/db_structure.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gui/dialogs.py" afterPath="$PROJECT_DIR$/gui/dialogs.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gui/elements.py" afterPath="$PROJECT_DIR$/gui/elements.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gui/examples/elements/combo+.py" afterPath="$PROJECT_DIR$/gui/examples/elements/combo+.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gui/examples/elements/completer.py" afterPath="$PROJECT_DIR$/gui/examples/elements/completer.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gui/examples/elements/drag_more.py" afterPath="$PROJECT_DIR$/gui/examples/elements/drag_more.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gui/login.py" afterPath="$PROJECT_DIR$/gui/login.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gui/main_file.py" afterPath="$PROJECT_DIR$/gui/main_file.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gui/translate.py" afterPath="$PROJECT_DIR$/gui/translate.py" />
     </list>
     <ignored path="easy_weeks.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -41,40 +36,20 @@
       <file leaf-file-name="main_file.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gui/main_file.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="198">
-              <caret line="20" column="29" selection-start-line="20" selection-start-column="17" selection-end-line="20" selection-end-column="29" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="db_structure.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/database/structure/db_structure.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="264">
-              <caret line="227" column="32" selection-start-line="227" selection-start-column="32" selection-end-line="227" selection-end-column="32" />
+            <state relative-caret-position="468">
+              <caret line="71" column="0" selection-start-line="71" selection-start-column="0" selection-end-line="71" selection-end-column="0" />
               <folding>
-                <element signature="e#856#865#0" expanded="true" />
+                <element signature="e#44#54#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="seeds.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/database/start_db/seeds.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="396">
-              <caret line="23" column="39" selection-start-line="23" selection-start-column="39" selection-end-line="23" selection-end-column="39" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="dialogs.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="dialogs.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gui/dialogs.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="306">
-              <caret line="145" column="45" selection-start-line="145" selection-start-column="45" selection-end-line="145" selection-end-column="45" />
+            <state relative-caret-position="-148">
+              <caret line="144" column="0" selection-start-line="144" selection-start-column="0" selection-end-line="144" selection-end-column="0" />
               <folding>
                 <element signature="e#44#73#0" expanded="true" />
                 <element signature="e#322#2203#0" expanded="false" />
@@ -84,13 +59,27 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="db_structure.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/database/structure/db_structure.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="392">
+              <caret line="607" column="14" selection-start-line="607" selection-start-column="14" selection-end-line="607" selection-end-column="14" />
+              <folding>
+                <element signature="e#856#865#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="elements.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gui/elements.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-2">
-              <caret line="57" column="21" selection-start-line="57" selection-start-column="21" selection-end-line="57" selection-end-column="21" />
+            <state relative-caret-position="54">
+              <caret line="145" column="47" selection-start-line="145" selection-start-column="47" selection-end-line="145" selection-end-column="47" />
               <folding>
-                <element signature="e#42#52#0" expanded="true" />
+                <element signature="e#42#71#0" expanded="true" />
+                <element signature="e#868#2149#0" expanded="false" />
+                <element signature="e#2195#3950#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -148,7 +137,6 @@
         <option value="$PROJECT_DIR$/database/structure/select_tools.py" />
         <option value="$PROJECT_DIR$/database/structure/update_tools.py" />
         <option value="$PROJECT_DIR$/database/structure/__init__.py" />
-        <option value="$PROJECT_DIR$/gui/translate.py" />
         <option value="$PROJECT_DIR$/database/structure/model_fields.py" />
         <option value="$PROJECT_DIR$/database/__init__.py" />
         <option value="$PROJECT_DIR$/database/tools.py" />
@@ -157,11 +145,12 @@
         <option value="$PROJECT_DIR$/gui/examples/elements/combo+.py" />
         <option value="$PROJECT_DIR$/gui/examples/elements/new_combo.py" />
         <option value="$PROJECT_DIR$/gui/login.py" />
+        <option value="$PROJECT_DIR$/gui/dialogs.py" />
         <option value="$PROJECT_DIR$/database/start_db/seeds.py" />
-        <option value="$PROJECT_DIR$/database/structure/db_structure.py" />
+        <option value="$PROJECT_DIR$/gui/translate.py" />
         <option value="$PROJECT_DIR$/gui/main_file.py" />
         <option value="$PROJECT_DIR$/gui/elements.py" />
-        <option value="$PROJECT_DIR$/gui/dialogs.py" />
+        <option value="$PROJECT_DIR$/database/structure/db_structure.py" />
       </list>
     </option>
   </component>
@@ -351,7 +340,7 @@
       <recent name="$PROJECT_DIR$/database/Database_config/start_up" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.dialogs">
+  <component name="RunManager" selected="Python.main_file">
     <configuration default="false" name="dialogs" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -365,23 +354,6 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="easy_weeks" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/gui/dialogs.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <method />
-    </configuration>
-    <configuration default="false" name="new_combo" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/gui/examples/elements" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="easy_weeks" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/gui/examples/elements/new_combo.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -433,6 +405,23 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="easy_weeks" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/gui/main_file.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="elements" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/gui" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="easy_weeks" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/gui/elements.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -597,18 +586,18 @@
     </configuration>
     <list size="5">
       <item index="0" class="java.lang.String" itemvalue="Python.dialogs" />
-      <item index="1" class="java.lang.String" itemvalue="Python.new_combo" />
-      <item index="2" class="java.lang.String" itemvalue="Python.login" />
-      <item index="3" class="java.lang.String" itemvalue="Python.New_db_startup" />
-      <item index="4" class="java.lang.String" itemvalue="Python.main_file" />
+      <item index="1" class="java.lang.String" itemvalue="Python.login" />
+      <item index="2" class="java.lang.String" itemvalue="Python.New_db_startup" />
+      <item index="3" class="java.lang.String" itemvalue="Python.main_file" />
+      <item index="4" class="java.lang.String" itemvalue="Python.elements" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.dialogs" />
-        <item index="1" class="java.lang.String" itemvalue="Python.main_file" />
+        <item index="0" class="java.lang.String" itemvalue="Python.main_file" />
+        <item index="1" class="java.lang.String" itemvalue="Python.elements" />
         <item index="2" class="java.lang.String" itemvalue="Python.New_db_startup" />
-        <item index="3" class="java.lang.String" itemvalue="Python.login" />
-        <item index="4" class="java.lang.String" itemvalue="Python.new_combo" />
+        <item index="3" class="java.lang.String" itemvalue="Python.dialogs" />
+        <item index="4" class="java.lang.String" itemvalue="Python.login" />
       </list>
     </recent_temporary>
   </component>
@@ -651,7 +640,7 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="27" />
+      <option name="time" value="28" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -826,14 +815,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/gui/translate.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="252">
-          <caret line="14" column="0" selection-start-line="14" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/gui/examples/elements/drag_more.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="558">
@@ -911,7 +892,7 @@
         <state relative-caret-position="596">
           <caret line="56" column="16" selection-start-line="56" selection-start-column="16" selection-end-line="56" selection-end-column="16" />
           <folding>
-            <element signature="e#46#73#0" expanded="true" />
+            <element signature="e#46#73#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -926,7 +907,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/database/start_db/New_db_startup.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-54">
+        <state relative-caret-position="432">
           <caret line="29" column="0" selection-start-line="29" selection-start-column="0" selection-end-line="29" selection-end-column="0" />
           <folding />
         </state>
@@ -934,48 +915,62 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/database/start_db/seeds.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="396">
-          <caret line="23" column="39" selection-start-line="23" selection-start-column="39" selection-end-line="23" selection-end-column="39" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/database/structure/db_structure.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="264">
-          <caret line="227" column="32" selection-start-line="227" selection-start-column="32" selection-end-line="227" selection-end-column="32" />
-          <folding>
-            <element signature="e#856#865#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/gui/main_file.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="198">
-          <caret line="20" column="29" selection-start-line="20" selection-start-column="17" selection-end-line="20" selection-end-column="29" />
+        <state relative-caret-position="342">
+          <caret line="52" column="37" selection-start-line="52" selection-start-column="31" selection-end-line="52" selection-end-column="37" />
+          <caret line="53" column="38" selection-start-line="53" selection-start-column="31" selection-end-line="53" selection-end-column="38" />
+          <caret line="54" column="37" selection-start-line="54" selection-start-column="31" selection-end-line="54" selection-end-column="37" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/gui/elements.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2">
-          <caret line="57" column="21" selection-start-line="57" selection-start-column="21" selection-end-line="57" selection-end-column="21" />
+        <state relative-caret-position="54">
+          <caret line="145" column="47" selection-start-line="145" selection-start-column="47" selection-end-line="145" selection-end-column="47" />
           <folding>
-            <element signature="e#42#52#0" expanded="true" />
+            <element signature="e#42#71#0" expanded="true" />
+            <element signature="e#868#2149#0" expanded="false" />
+            <element signature="e#2195#3950#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/gui/dialogs.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="306">
-          <caret line="145" column="45" selection-start-line="145" selection-start-column="45" selection-end-line="145" selection-end-column="45" />
+        <state relative-caret-position="-148">
+          <caret line="144" column="0" selection-start-line="144" selection-start-column="0" selection-end-line="144" selection-end-column="0" />
           <folding>
             <element signature="e#44#73#0" expanded="true" />
             <element signature="e#322#2203#0" expanded="false" />
             <element signature="e#2244#4173#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gui/main_file.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="468">
+          <caret line="71" column="0" selection-start-line="71" selection-start-column="0" selection-end-line="71" selection-end-column="0" />
+          <folding>
+            <element signature="e#44#54#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gui/translate.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="414">
+          <caret line="23" column="31" selection-start-line="23" selection-start-column="31" selection-end-line="23" selection-end-column="31" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database/structure/db_structure.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="392">
+          <caret line="607" column="14" selection-start-line="607" selection-start-column="14" selection-end-line="607" selection-end-column="14" />
+          <folding>
+            <element signature="e#856#865#0" expanded="true" />
           </folding>
         </state>
       </provider>

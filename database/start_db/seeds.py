@@ -63,6 +63,7 @@ def create_common(session):
         WeekDays(short_name=u'Чт', full_name=u'Четвер'),
         WeekDays(short_name=u'Пт', full_name=u'П\'ятниця'),
         WeekDays(short_name=u'Сб', full_name=u'Субота'),
+        WeekDays(short_name=u'Нд', full_name=u'Неділя'),
 
         LessonTimes(short_name=u'1', full_name=u'8:30-10:05'),
         LessonTimes(short_name=u'2', full_name=u'10:25-12:00'),

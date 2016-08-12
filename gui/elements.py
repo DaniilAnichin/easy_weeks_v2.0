@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import sys
 from functools import partial
 from database import Logger
 from PyQt4 import QtGui, QtCore
@@ -8,14 +7,27 @@ from gui.translate import fromUtf8
 logger = Logger()
 
 
-color_start = 'background-color: '
+# color_start = 'background-color: '
+color_start = '''border: 1px solid #8f8f91;
+    border-radius: 6px;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
+                                      stop: 0 #{}, stop: 1 #{});
+    min-width: 80px;'''
 
 # need other colors, looks ugly
-button_colors = [
-    QtGui.QColor(255, 0, 0),
-    QtGui.QColor(0, 255, 0),
-    QtGui.QColor(0, 0, 255)
-]
+# button_colors = {
+#     u'Unknown': QtGui.QColor(0, 0, 0),
+#     u'Лек': QtGui.QColor(255, 0, 0),
+#     u'Прак': QtGui.QColor(0, 255, 0),
+#     u'Лаб': QtGui.QColor(0, 0, 255)
+# }
+
+button_colors = {
+    u'Unknown': ['ffffff', 'dddddd'],
+    u'Лек': ['7777ff', '1111ff'],
+    u'Прак': ['77ff77', '11ff11'],
+    u'Лаб': ['ff7777', 'ff1111']
+}
 
 
 class EditableList(QtGui.QListWidget):
@@ -173,32 +185,37 @@ class DragButton(QtGui.QPushButton):
         else:
             e.ignore()
 
+    def set_bg_color(self, lesson_type):
+        # palette = self.palette()
+        # palette.setColor(
+        #     QtGui.QPalette.Button,
+        #     button_colors[lesson_type]
+        # )
+        # self.setAutoFillBackground(True)
+        # self.setPalette(palette)
+        # self.update()
+
+        self.setStyleSheet(
+            # color_start + button_colors[lesson_type].name()
+            # color_start.format(*button_colors[lesson_type])
+            color_start.format(*button_colors[u'Лек'])
+        )
+
 
 class ButtonGrid(QtGui.QGridLayout):
     def __init__(self, parent):
         super(ButtonGrid, self).__init__(parent)
         self.parent_name = parent.objectName()
 
-    def set_table(self, lesson_set, drag_enabled=False):
+    def set_table(self, lesson_set, view_args, drag_enabled=False):
         for i in range(len(lesson_set)):
             for j in range(len(lesson_set[i])):
                 lesson_button = DragButton(self.parent())
                 lesson_button.setAcceptDrops(drag_enabled)
-                lesson_button.setText(str(lesson_set[i][j]))
-
-                palette = lesson_button.palette()
-                palette.setColor(
-                    QtGui.QPalette.Button,
-                    button_colors[lesson_set[i][j]]
+                lesson_button.setText(lesson_set[i][j].to_table(view_args))
+                lesson_button.set_bg_color(
+                    lesson_set[i][j].lesson_plan.lesson_type.short_name
                 )
-                # lesson_button.setAutoFillBackground(True)
-                lesson_button.setPalette(palette)
-                # lesson_button.update()
-
-                # lesson_button.setStyleSheet(
-                #     color_start + button_colors[lesson_set[i][j]].name()
-                # )
-
                 self.addWidget(lesson_button, j, i, 1, 1)
 
 
@@ -240,11 +257,11 @@ class WeekTool(QtGui.QToolBox):
         # self.first.setObjectName('first_%s' % self.objectName())
         # self.second.setObjectName('second_%s' % self.objectName())
 
-    def set_table(self, lesson_set, drag_enabled=False):
+    def set_table(self, lesson_set, view_args, drag_enabled=False):
         first_table = ButtonGrid(self.first)
-        first_table.set_table(lesson_set[:len(lesson_set) / 2], drag_enabled)
+        first_table.set_table(lesson_set[:len(lesson_set) / 2], view_args, drag_enabled)
         second_table = ButtonGrid(self.second)
-        second_table.set_table(lesson_set[len(lesson_set) / 2:], drag_enabled)
+        second_table.set_table(lesson_set[len(lesson_set) / 2:], view_args, drag_enabled)
         self.addItem(self.first, '')
         self.addItem(self.second, '')
         self.translateUI()
@@ -290,10 +307,10 @@ class EasyTab(QtGui.QTabWidget):
         self.addTab(self.tab_admin, fromUtf8('Адміністратор'))
         self.addTab(self.tab_search, fromUtf8('Пошук'))
 
-    def set_table(self, lesson_set):
-        self.user_table.set_table(lesson_set)
+    def set_table(self, lesson_set, view_args):
+        self.user_table.set_table(lesson_set, view_args)
 
-        self.method_table.set_table(lesson_set, drag_enabled=True)
+        self.method_table.set_table(lesson_set, view_args, drag_enabled=True)
         # self.temp_table = TempGrid(self.tab_method)
         method_hbox = QtGui.QHBoxLayout(self.tab_method)
         method_hbox.addWidget(self.method_table, 1)
