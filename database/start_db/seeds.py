@@ -24,7 +24,7 @@ def create_empty(session):
             capacity=32, split_groups=0
         ),
         Lessons(id_lesson_plan=1, id_room=1, id_lesson_time=1, id_week_day=1, id_week=1),
-        Users(nickname='Test', status='method', hashed_password='password')
+        Users(nickname=u'Test', status=u'method', password='password')
     ])
 
     # Association tables:
@@ -71,8 +71,8 @@ def create_common(session):
         LessonTimes(short_name=u'5', full_name=u'16:10-17:45'),
         LessonTimes(short_name=u'6', full_name=u'18:05-19:40'),
 
-        Users(nickname='Admin', status='admin', hashed_password='easy_weeks_admin'),
-        Users(nickname='Method', status='method', hashed_password='easy_weeks_method')
+        Users(nickname=u'Admin', status=u'admin', password='easy_weeks_admin'),
+        Users(nickname=u'Method', status=u'method', password='easy_weeks_method')
     ])
 
     session.commit()

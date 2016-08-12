@@ -1,8 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import sys
+from functools import partial
+from database import Logger
 from PyQt4 import QtGui, QtCore
-from gui.translate import translate, fromUtf8
+from gui.translate import fromUtf8
+logger = Logger()
 
 
 color_start = 'background-color: '
@@ -13,6 +16,88 @@ button_colors = [
     QtGui.QColor(0, 255, 0),
     QtGui.QColor(0, 0, 255)
 ]
+
+
+class EditableList(QtGui.QListWidget):
+    def __init__(self, parent, items_list, suggested_list, inner_name):
+        super(EditableList, self).__init__(parent)
+        self.addItems(items_list)
+        self.added_items = items_list
+        self.suggested_list = suggested_list
+        setattr(self.parent(), inner_name, self)
+
+    def addItem(self, *__args):
+        super(EditableList, self).addItem(*__args)
+        # Save to this list, to be able to subtract
+        self.added_items += __args[:1]
+        logger.info('Added item "%s"' % __args[:1])
+
+    def chow_completer(self):
+        # Create completer combobox:
+        completer = CompleterCombo(self)
+        elems = list(set(self.suggested_list) - set(self.added_items))
+        elems.sort()
+        completer.addItems(elems)
+
+        # Create modal window
+        dialog = QtGui.QDialog()
+        dialog.setModal(True)
+
+        # Create button, connect
+        submit = QtGui.QPushButton(fromUtf8('Додати'))
+        submit.clicked().connect(partial(self.addItem, completer.currentText()))
+        submit.clicked().connect(dialog.close())
+
+        # Add to layout
+        vbox = QtGui.QVBoxLayout(dialog)
+        vbox.addWidget(completer, 1)
+        vbox.addWidget(submit, 1)
+
+        # show
+        logger.info('Raised completer window')
+        dialog.show()
+
+
+class CompleterCombo(QtGui.QComboBox):
+    def __init__(self, parent=None):
+        super(CompleterCombo, self).__init__(parent)
+
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.setEditable(True)
+
+        # add a filter model to filter matching items
+        self.pFilterModel = QtGui.QSortFilterProxyModel(self)
+        self.pFilterModel.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.pFilterModel.setSourceModel(self.model())
+
+        # add a completer, which uses the filter model
+        self.completer = QtGui.QCompleter(self.pFilterModel, self)
+        # always show all (filtered) completions
+        self.completer.setCompletionMode(QtGui.QCompleter.UnfilteredPopupCompletion)
+        self.setCompleter(self.completer)
+
+        # connect signals
+        self.lineEdit().textEdited[unicode].connect(self.pFilterModel.setFilterFixedString)
+        self.completer.activated.connect(self.on_completer_activated)
+
+    # on selection of an item from the completer, select the corresponding item from combobox
+    def on_completer_activated(self, text):
+        if text:
+            index = self.findText(text)
+            self.setCurrentIndex(index)
+            # self.activated[str].emit(self.itemText(index))
+
+    # on model change, update the models of the filter and completer as well
+    def setModel(self, model):
+        super(CompleterCombo, self).setModel(model)
+        self.pFilterModel.setSourceModel(model)
+        self.completer.setModel(self.pFilterModel)
+
+    # on model column change, update the model column of the filter and completer as well
+    def setModelColumn(self, column):
+        self.completer.setCompletionColumn(column)
+        self.pFilterModel.setFilterKeyColumn(column)
+        super(CompleterCombo, self).setModelColumn(column)
 
 
 class DragButton(QtGui.QPushButton):
@@ -100,9 +185,19 @@ class ButtonGrid(QtGui.QGridLayout):
                 lesson_button = DragButton(self.parent())
                 lesson_button.setAcceptDrops(drag_enabled)
                 lesson_button.setText(str(lesson_set[i][j]))
-                lesson_button.setStyleSheet(
-                    color_start + button_colors[lesson_set[i][j]].name()
+
+                palette = lesson_button.palette()
+                palette.setColor(
+                    QtGui.QPalette.Button,
+                    button_colors[lesson_set[i][j]]
                 )
+                # lesson_button.setAutoFillBackground(True)
+                lesson_button.setPalette(palette)
+                # lesson_button.update()
+
+                # lesson_button.setStyleSheet(
+                #     color_start + button_colors[lesson_set[i][j]].name()
+                # )
 
                 self.addWidget(lesson_button, j, i, 1, 1)
 
@@ -390,6 +485,7 @@ class SearchTab(QtGui.QWidget):
         self.object_choice.addItem(fromUtf8('Викладач'))
 
         self.week_label.setText(fromUtf8('Тиждень: '))
+        # Make this from database:
         self.week_choice.addItem(fromUtf8('Перший'))
         self.week_choice.addItem(fromUtf8('Другий'))
 

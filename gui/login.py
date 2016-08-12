@@ -47,7 +47,7 @@ class LoginDialog(QtGui.QDialog):
         self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.logger.info('Passed init for %s', self.__class__.__name__)
 
-        # self.setFixedSize(300, 115)
+        self.setFixedSize(300, 115)
 
     def retranslateUi(self):
         self.setWindowTitle(fromUtf8('Вікно входу'))

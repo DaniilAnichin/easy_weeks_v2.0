@@ -45,6 +45,10 @@ class Button(QtGui.QPushButton):
         QtGui.QPushButton.mousePressEvent(self, e)
         if e.button() == QtCore.Qt.LeftButton:
             print 'press'
+            for elem in dir(self.style()):
+                if 'olor' in elem:
+                    print elem
+            print dir(self.style().CE_PushButton)
 
 
 class Example(QtGui.QWidget):

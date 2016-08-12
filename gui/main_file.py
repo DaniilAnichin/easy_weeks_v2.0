@@ -37,8 +37,6 @@ class Ui_MainWindow(object):
             ]
         ]
 
-        # self.tabWidget = QtGui.QTabWidget(self.centralwidget)
-        # self.tabWidget = MyTab(self.centralwidget)
         self.tabWidget = EasyTab(self.centralwidget)
         self.tabWidget.set_table(lesson_set)
 
@@ -46,7 +44,6 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.statusbar = QtGui.QStatusBar(MainWindow)
-        self.statusbar.setObjectName(fromUtf8("statusbar"))
         MainWindow.setStatusBar(self.statusbar)
 
         self.menubar = WeekMenuBar(MainWindow, menu_data=menu_data)
@@ -67,6 +64,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(fromUtf8('EasyWeeks'))
+        logger.info('Passed MainMenu TranslateUI function')
 
     def show_table_dialog(self):
         logger.info('Started table choosing dialog function')

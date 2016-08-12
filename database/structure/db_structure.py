@@ -192,25 +192,31 @@ class Base(object):
 
 
 class Users(Base):
-    nickname = Column(String)
+    nickname = Column(String, unique=True)
     hashed_password = Column(String)
     status = Column(String)   # Expected values are 'admin' and 'method'
     message = Column(String)   # Message when giving an methodist request
     translated = u'Користувач'
 
     def __init__(self, *args, **kwargs):
-        logger.info('Hashed user password')
         password = kwargs.pop('password', '')
+        if not password:
+            logger.error('No password passed')
+            raise ValueError('No password passed')
         hashed = bcrypt.hashpw(password, bcrypt.gensalt())
+
         kwargs.update(hashed_password=hashed)
         super(Users, self).__init__(*args, **kwargs)
+        logger.info('Hashed user %s password' % self.nickname)
 
     def __unicode__(self):
         return self.nickname
 
     def authenticate(self, password):
-        logger.info('User auth passing')
-        return self.hashed_password == bcrypt.hashpw(password, self.hashed_password)
+        logger.info('User %s auth passing' % self.nickname)
+        encoded = password.encode('cp1251')
+        result = bcrypt.hashpw(encoded, self.hashed_password.encode('cp1251'))
+        return self.hashed_password.encode('cp1251') == result
 
     # To give methodist user separated rights we need to create merging table
     # between User and Department, but if we don't - user can edit any table.

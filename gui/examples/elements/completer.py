@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*- #
 import sys
 from PyQt4 import QtGui
-from database import base_path
+from database import BASE_DIR
 from gui.translate import translate
 
 
@@ -11,7 +11,7 @@ def main():
 
     edit = QtGui.QLineEdit()
     edit.setWindowTitle('QLineEdit Auto Complete')
-    with open(base_path + 'Import_script/' + '_teachers.txt', 'r') as f:
+    with open(BASE_DIR + '/database/import_schedule/' + '_teachers.txt', 'r') as f:
         teacher_list = [translate('myWindow', teacher[:-2], None)
                         for teacher in f.readlines()]
     completer = QtGui.QCompleter(teacher_list, edit)
