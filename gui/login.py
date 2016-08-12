@@ -4,7 +4,7 @@ import bcrypt
 import sys
 from PyQt4 import QtGui, QtCore
 from database import Logger
-from gui.translate import translate, fromUtf8
+from gui.translate import fromUtf8
 logger = Logger()
 
 
@@ -47,7 +47,7 @@ class LoginDialog(QtGui.QDialog):
         self.setWindowModality(QtCore.Qt.ApplicationModal)
         self.logger.info('Passed init for %s', self.__class__.__name__)
 
-        # self.setFixedSize(300, 115)
+        self.setFixedSize(300, 115)
 
     def retranslateUi(self):
         self.setWindowTitle(fromUtf8('Вікно входу'))
