@@ -34,10 +34,10 @@ def get_teacher_id(s, cur_teacher, add_teacher=True):
 
 def main():
     # temporary deleting:
-    os.remove(os.path.join(DATABASE_DIR, DATABASE_NAME))
-    s = create_new_database(os.path.join(DATABASE_DIR, DATABASE_NAME))
-    # s = connect_database('FICT_timetable.db')
-    with open(os.path.join(DATABASE_DIR, 'Import_script', '_teachers.txt'), 'r') as f:
+    # os.remove(os.path.join(DATABASE_DIR, DATABASE_NAME))
+    # s = create_new_database(os.path.join(DATABASE_DIR, DATABASE_NAME))
+    s = connect_database(os.path.join(DATABASE_DIR, DATABASE_NAME))
+    with open(os.path.join(DATABASE_DIR, 'import_schedule', '_teachers.txt'), 'r') as f:
         for teacher in f:
             teacher = teacher[:-2]
             if get_teacher_id(s, teacher) != -1:
@@ -81,7 +81,7 @@ def main():
                         id_groups = []
                         for g in row['groups']:
                             id_groups.append(select_groups(s, name=g['group_full_name'])[0]['id'])
-                        new_tmp_lesson(s, select_lesson_plans(s, id_subject=select_subject(s,
+                        new_lesson(s, select_lesson_plans(s, id_subject=select_subject(s,
                                                                                         full_name=
                                                                                         row['lesson_full_name']
                                                                                         )[0]['id'],

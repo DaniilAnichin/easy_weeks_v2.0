@@ -185,6 +185,8 @@ class EditLesson(WeeksDialog):
         for elem in field_list:
             self.default_combo_pair(elem)
 
+        self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.save))
+
     def default_combo_pair(self, param, lp=False):
         getter = self.lp if lp else self.lesson
         cls = type(getattr(getter, param))
@@ -204,7 +206,8 @@ class EditLesson(WeeksDialog):
         self.set_list_pair(label, selected_values, values, name)
 
     def save(self):
-        pass
+        logger.debug('Here must be editor saving')
+        self.close()
 
 
 def main():

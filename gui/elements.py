@@ -49,9 +49,8 @@ class EditableList(QtGui.QListWidget):
     def chow_completer(self):
         # Create completer combobox:
         completer = CompleterCombo(self)
-        elems = list(set(self.suggested_list) - set(self.added_items))
-        elems.sort()
-        completer.addItems(elems)
+        # elems = list(set(self.suggested_list) - set(self.added_items))
+        completer.addItems(list(set(self.suggested_list) - set(self.added_items)))
 
         # Create modal window
         dialog = QtGui.QDialog()
