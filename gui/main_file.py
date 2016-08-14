@@ -38,7 +38,7 @@ class Ui_MainWindow(object):
             ]
         ]
 
-        self.tabWidget = EasyTab(self.centralwidget)
+        self.tabWidget = EasyTab(self.centralwidget, MainWindow.session)
         self.tabWidget.set_table(lesson_set, view_args)
 
         self.hbox.addWidget(self.tabWidget)
@@ -92,12 +92,14 @@ class Ui_MainWindow(object):
 def main():
     # lesson_set = [[randint(0, 2) for i in range(5)] for j in range(12)]
     session = connect_database()
-    lesson_set = [[Lessons.read(session, id=1)[0]
-                   for i in range(len(Lessons.time_ids))]
-                  for j in range(len(Lessons.week_ids) * len(Lessons.day_ids))]
+    lesson_set = [[[Lessons.read(session, id=1)[0]
+                    for i in range(len(Lessons.time_ids))]
+                   for j in range(len(Lessons.day_ids))]
+                  for k in range(len(Lessons.week_ids))]
 
     app = QtGui.QApplication(sys.argv)
     window = QtGui.QMainWindow()
+    window.session = session
     ui = Ui_MainWindow()
     ui.setupUi(window, 'teachers', lesson_set)
     window.show()

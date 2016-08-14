@@ -46,7 +46,7 @@ db_codes = {
     'reserved': 16,
     'user': 17,
     'temp_lesson': 18,
-    '': 19,
+    'time': 19,
     '': 20,
 }
 
@@ -70,5 +70,5 @@ db_codes_output = {
     16: 'This data may not be edited in any way',
     17: 'Problem with users',
     18: 'Problem with temporary_lessons',
-    19: ''
+    19: 'Too many lessons'
 }
