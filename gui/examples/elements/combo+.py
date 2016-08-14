@@ -22,8 +22,9 @@ class myWindow(QtGui.QWidget):
         super(myWindow, self).__init__(parent)
 
         self.comboBox = QtGui.QComboBox(self)
-        with open(BASE_DIR + '/database/import_schedule/' + '_teachers.txt', 'r') as f:
-            teacher_list = [_translate('myWindow', teacher[:-2], None)
+#        with open(BASE_DIR + '/Import_script/' + '_teachers.txt', 'r') as f:
+        with open(BASE_DIR + '/Import_script/' + '_teachers.txt', 'r') as f:
+                teacher_list = [_translate('myWindow', teacher[:-2], None)
                             for teacher in f.readlines()]
         # self.comboBox.addItems([str(x) for x in range(1000)])
         self.comboBox.addItems(teacher_list)

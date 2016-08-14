@@ -22,12 +22,13 @@ def get_fields_list(class_name=''):
     session = connect_database()
     print WeekDays.__tablename__
     print WeekDays.single()
-    obj = UserDepartments.read(session, True)[0]
+    # obj = UserDepartments.read(session, True)[0]
+    # print unicode(obj)
+    obj = Teachers.read(session, id=1, id_department=1)
+    Teachers.update(session, 2, id=2, id_department=1)
+    obj = LessonPlans.read(session, groups=3)
     print unicode(obj)
-    obj = TeacherPlans.read(session, True)[0]
-    print unicode(obj)
-    obj = Users.read(session, True)[0]
-    print type(unicode(obj))
+
 
     # obj = session.query(Departments).all()[0]
     # users = session.query(Users).all()

@@ -283,13 +283,13 @@ def new_lesson_plan(s, id_sub=0, id_les_type=1, id_grps=[], id_tes=[1],
     param_checker = "%d,%d,%s%s%d,%d,%d" % (id_sub, id_les_type, groups_checker, teacher_checker,
                                             times_for_2_week, split_groups, capacity)
 
-    exist_lp = s.query(Lesson_plans).filter(Lesson_plans.param_checker == param_checker).first()
+    exist_lp = s.query(LessonPlans).filter(LessonPlans.param_checker == param_checker).first()
     if exist_lp:
         print "Lesson plan with this parameters already exist"
 
         return -13
 
-    new_lessonplan = Lesson_plans(id_subject=id_sub,
+    new_lessonplan = LessonPlans(id_subject=id_sub,
                                   id_lesson_type=id_les_type,
                                   times_for_2_week=times_for_2_week,
                                   needed_stuff=needed_stuff,
@@ -326,7 +326,7 @@ def new_lesson(s, id_lp, id_room, row_time):
         print "No session"
         return -2
 
-    exist_lp = s.query(Lesson_plans).get(id_lp)
+    exist_lp = s.query(LessonPlans).get(id_lp)
     if not exist_lp:
         print "No such lesson_plan with id %d" % id_lp
 
@@ -341,13 +341,13 @@ def new_lesson(s, id_lp, id_room, row_time):
     if len(exist_ls) >= exist_lp.times_for_2_week:
         print "Can't add new lesson (all lessons already handled) delete some to add new"
         return -15
-    for g in s.query(Lesson_plans).get(id_lp).groups:
+    for g in s.query(LessonPlans).get(id_lp).groups:
         for lessons in select_lessons(s, id_lesson_plan=[i['id'] for i in
                                                          select_lesson_plans(s, groups=[g.id])]):
             if lessons['row_time'] == row_time:
                 print "Invalid time"
                 return -14
-    for t in s.query(Lesson_plans).get(id_lp).teachers:
+    for t in s.query(LessonPlans).get(id_lp).teachers:
         for lessons in select_lessons(s, id_lesson_plan=[i['id'] for i in
                                                          select_lesson_plans(s, teachers=[t.id])]):
             if lessons['row_time'] == row_time:
@@ -383,72 +383,72 @@ def new_lesson(s, id_lp, id_room, row_time):
     return 0
 
 
-def new_tmp_lesson(s, id_lp, id_room, row_time):
-    if not id_lp:
-        print "No lesson_plan selected"
-        return -13
-    if not id_room:
-        print "No room selected"
-        return -10
-    # if not row_time:
-    #     print "No time selected"
-    #     return -14
-    if row_time < 0 or row_time > 59:
-        print "Invalid time"
-        return -14
-    if type(s) is int:
-        print "No session"
-        return -2
-
-    exist_lp = s.query(Lesson_plans).get(id_lp)
-    if not exist_lp:
-        print "No such lesson_plan with id %d" % id_lp
-
-        return -13
-    exist_rm = s.query(Rooms).get(id_room)
-    if not exist_rm:
-        print "No such room with id %d" % id_room
-
-        return -10
-
-    exist_ls = s.query(Tmp_lessons).join(Lesson_plans).filter(Lesson_plans.id == id_lp).all()
-    if len(exist_ls) >= exist_lp.times_for_2_week:
-        print "Can't add new lesson (all lessons already handled) delete some to add new"
-
-        return -15
-
-    for g in s.query(Lesson_plans).get(id_lp).groups:
-        for lessons in select_tmp_lessons(s, id_lesson_plan=[i['id'] for i in select_lesson_plans(s, groups=[g.id])]):
-            if lessons['row_time'] == row_time:
-                print "Invalid time"
-                return -14
-    for t in s.query(Lesson_plans).get(id_lp).teachers:
-        for lessons in select_tmp_lessons(s, id_lesson_plan=[i['id'] for i in select_lesson_plans(s, teachers=[t.id])]):
-            if lessons['row_time'] == row_time:
-                print "Invalid time"
-                return -14
-
-    for l in exist_ls:
-        if l.row_time == row_time:
-            print "Invalid time"
-
-            return -14
-    if id_room != 1:
-        for room_checker in s.query(Tmp_lessons).filter(Lessons.row_time == row_time).all():
-            if room_checker.id_room == id_room:
-                "This room is busy at this time"
-                return -16
-    if exist_lp.needed_stuff != exist_rm.additional_stuff or exist_lp.needed_stuff != '':
-        print "No such stuff"
-        return -15
-
-    s.add(Tmp_lessons(id_lesson_plan=id_lp,
-                      id_room=id_room,
-                      row_time=row_time,
-                      id_week=int(row_time / 30) + 1,
-                      id_week_day=int(row_time % 30 / 6) + 1,
-                      id_lesson_time=int(row_time % 5) + 1
-                      ))
-    s.commit()
-
-    return 0
+# def new_tmp_lesson(s, id_lp, id_room, row_time):
+#     if not id_lp:
+#         print "No lesson_plan selected"
+#         return -13
+#     if not id_room:
+#         print "No room selected"
+#         return -10
+#     # if not row_time:
+#     #     print "No time selected"
+#     #     return -14
+#     if row_time < 0 or row_time > 59:
+#         print "Invalid time"
+#         return -14
+#     if type(s) is int:
+#         print "No session"
+#         return -2
+#
+#     exist_lp = s.query(LessonPlans).get(id_lp)
+#     if not exist_lp:
+#         print "No such lesson_plan with id %d" % id_lp
+#
+#         return -13
+#     exist_rm = s.query(Rooms).get(id_room)
+#     if not exist_rm:
+#         print "No such room with id %d" % id_room
+#
+#         return -10
+#
+#     exist_ls = s.query(Tmp_lessons).join(LessonPlans).filter(LessonPlans.id == id_lp).all()
+#     if len(exist_ls) >= exist_lp.times_for_2_week:
+#         print "Can't add new lesson (all lessons already handled) delete some to add new"
+#
+#         return -15
+#
+#     for g in s.query(LessonPlans).get(id_lp).groups:
+#         for lessons in select_tmp_lessons(s, id_lesson_plan=[i['id'] for i in select_lesson_plans(s, groups=[g.id])]):
+#             if lessons['row_time'] == row_time:
+#                 print "Invalid time"
+#                 return -14
+#     for t in s.query(LessonPlans).get(id_lp).teachers:
+#         for lessons in select_tmp_lessons(s, id_lesson_plan=[i['id'] for i in select_lesson_plans(s, teachers=[t.id])]):
+#             if lessons['row_time'] == row_time:
+#                 print "Invalid time"
+#                 return -14
+#
+#     for l in exist_ls:
+#         if l.row_time == row_time:
+#             print "Invalid time"
+#
+#             return -14
+#     if id_room != 1:
+#         for room_checker in s.query(Tmp_lessons).filter(Lessons.row_time == row_time).all():
+#             if room_checker.id_room == id_room:
+#                 "This room is busy at this time"
+#                 return -16
+#     if exist_lp.needed_stuff != exist_rm.additional_stuff or exist_lp.needed_stuff != '':
+#         print "No such stuff"
+#         return -15
+#
+#     s.add(Tmp_lessons(id_lesson_plan=id_lp,
+#                       id_room=id_room,
+#                       row_time=row_time,
+#                       id_week=int(row_time / 30) + 1,
+#                       id_week_day=int(row_time % 30 / 6) + 1,
+#                       id_lesson_time=int(row_time % 5) + 1
+#                       ))
+#     s.commit()
+#
+#     return 0

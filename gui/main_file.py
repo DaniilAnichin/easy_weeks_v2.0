@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
 import sys
-import login
+# import login
 from functools import partial
 from PyQt4 import QtCore, QtGui
 from database import Logger

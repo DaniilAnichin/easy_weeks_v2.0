@@ -3,6 +3,7 @@ import logging
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+# BASE_DIR = os.path.dirname(os.path.dirname("/home/antonbogovis/Projects/ew-2_0/easy_weeks_v2.0"))
 DATABASE_DIR = os.path.join(BASE_DIR, 'database')
 DATABASE_NAME = 'FICT_timetable.db'
 
@@ -46,7 +47,7 @@ db_codes = {
     'reserved': 16,
     'user': 17,
     'temp_lesson': 18,
-    '': 19,
+    'time': 19,
     '': 20,
 }
 
@@ -70,5 +71,5 @@ db_codes_output = {
     16: 'This data may not be edited in any way',
     17: 'Problem with users',
     18: 'Problem with temporary_lessons',
-    19: ''
+    19: 'Impossible time'
 }

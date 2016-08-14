@@ -528,45 +528,45 @@ def select_lessons(s, id_les=[], **kwargs):
     return lesson_dict
 
 
-def select_tmp_lessons(s, id_les=[], **kwargs):
-    if not kwargs.get('id_lesson_plan', []) and not kwargs.get('id_room', 0) and not kwargs.get('id_lesson_time', 0) \
-            and not kwargs.get('id_week_day') and not kwargs.get('id_week', 0) \
-            and not kwargs.get('row_time', 0) and not id_les:
-        print "Must be one of the parameters"
-        return -1
-
-    if type(s) is int:
-        print "No session"
-        return -2
-
-    lesson_dict = []
-    if id_les:
-        for id_l in id_les:
-            l = s.query(TmpLessons).get(id_l)
-            if not l:
-                print "No such lesson"
-                return -3
-            l_dict = {'id': l.id, 'id_lesson_plan': select_lesson_plans(s, [l.id_lesson_plan]),
-                      'id_lesson_time': l.id_lesson_time,
-                      'id_week_day': l.id_week_day, 'id_week': l.id_week, 'row_time': l.row_time}
-            lesson_dict.append(l_dict)
-        return lesson_dict
-
-    l = s.query(TmpLessons)
-    for key in kwargs.keys():
-        if key == 'id_lesson_plan':
-            lp_dict = [TmpLessons.id_lesson_plan == id_lp for id_lp in kwargs[key]]
-            l = l.filter(or_(*lp_dict))
-        elif key in TmpLessons.fields:
-            l = l.filter(getattr(TmpLessons, key) == kwargs[key])
-    l_obj = l.all()
-    for l in l_obj:
-        l_dict = {'id': l.id, 'id_lesson_plan': select_lesson_plans(s, [l.id_lesson_plan]),
-                  'id_lesson_time': l.id_lesson_time,
-                  'id_week_day': l.id_week_day, 'id_week': l.id_week, 'row_time': l.row_time}
-        lesson_dict.append(l_dict)
-
-    return lesson_dict
+# def select_tmp_lessons(s, id_les=[], **kwargs):
+#     if not kwargs.get('id_lesson_plan', []) and not kwargs.get('id_room', 0) and not kwargs.get('id_lesson_time', 0) \
+#             and not kwargs.get('id_week_day') and not kwargs.get('id_week', 0) \
+#             and not kwargs.get('row_time', 0) and not id_les:
+#         print "Must be one of the parameters"
+#         return -1
+#
+#     if type(s) is int:
+#         print "No session"
+#         return -2
+#
+#     lesson_dict = []
+#     if id_les:
+#         for id_l in id_les:
+#             l = s.query(TmpLessons).get(id_l)
+#             if not l:
+#                 print "No such lesson"
+#                 return -3
+#             l_dict = {'id': l.id, 'id_lesson_plan': select_lesson_plans(s, [l.id_lesson_plan]),
+#                       'id_lesson_time': l.id_lesson_time,
+#                       'id_week_day': l.id_week_day, 'id_week': l.id_week, 'row_time': l.row_time}
+#             lesson_dict.append(l_dict)
+#         return lesson_dict
+#
+#     l = s.query(TmpLessons)
+#     for key in kwargs.keys():
+#         if key == 'id_lesson_plan':
+#             lp_dict = [TmpLessons.id_lesson_plan == id_lp for id_lp in kwargs[key]]
+#             l = l.filter(or_(*lp_dict))
+#         elif key in TmpLessons.fields:
+#             l = l.filter(getattr(TmpLessons, key) == kwargs[key])
+#     l_obj = l.all()
+#     for l in l_obj:
+#         l_dict = {'id': l.id, 'id_lesson_plan': select_lesson_plans(s, [l.id_lesson_plan]),
+#                   'id_lesson_time': l.id_lesson_time,
+#                   'id_week_day': l.id_week_day, 'id_week': l.id_week, 'row_time': l.row_time}
+#         lesson_dict.append(l_dict)
+#
+#     return lesson_dict
 
 
 def select_department_rooms(s, id_deps=[], id_rooms=[]):
