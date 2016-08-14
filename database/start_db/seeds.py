@@ -23,9 +23,9 @@ def create_empty(session):
             id_subject=1, id_lesson_type=1, amount=4, needed_stuff='',
             capacity=32, split_groups=0
         ),
-        Lessons(id_lesson_plan=1, id_room=1, id_lesson_time=1, id_week_day=1, id_week=1),
-        # TmpLessons(id_lesson_plan=1, id_room=1, id_lesson_time=1, id_week_day=1, id_week=1),
-        Users(nickname='Test', status='method', hashed_password=bcrypt.hashpw('password', bcrypt.gensalt()))
+        Lessons(id_lesson_plan=1, id_room=1, is_empty=False,
+                id_lesson_time=2, id_week_day=2, id_week=2),
+        Users(nickname=u'Test', status=u'method', password='password')
     ])
 
     # Association tables:
@@ -64,6 +64,7 @@ def create_common(session):
         WeekDays(short_name=u'Чт', full_name=u'Четвер'),
         WeekDays(short_name=u'Пт', full_name=u'П\'ятниця'),
         WeekDays(short_name=u'Сб', full_name=u'Субота'),
+        WeekDays(short_name=u'Нд', full_name=u'Неділя'),
 
         LessonTimes(short_name=u'1', full_name=u'8:30-10:05'),
         LessonTimes(short_name=u'2', full_name=u'10:25-12:00'),
@@ -72,8 +73,8 @@ def create_common(session):
         LessonTimes(short_name=u'5', full_name=u'16:10-17:45'),
         LessonTimes(short_name=u'6', full_name=u'18:05-19:40'),
 
-        Users(nickname='Admin', status='admin', hashed_password=bcrypt.hashpw('easy_weeks_admin', bcrypt.gensalt())),
-        Users(nickname='Method', status='method', hashed_password=bcrypt.hashpw('easy_weeks_method', bcrypt.gensalt()))
+        Users(nickname=u'Admin', status=u'admin', password='easy_weeks_admin'),
+        Users(nickname=u'Method', status=u'method', password='easy_weeks_method')
     ])
 
     session.commit()

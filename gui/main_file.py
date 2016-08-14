@@ -1,17 +1,18 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
 import sys
-# import login
 from functools import partial
 from PyQt4 import QtCore, QtGui
 from database import Logger
+from database.structure import *
+from database.start_db.New_db_startup import connect_database
 from gui.elements import EasyTab, WeekMenuBar
 from gui.translate import translate, fromUtf8
 logger = Logger()
 
 
 class Ui_MainWindow(object):
-    def setupUi(self, MainWindow, lesson_set):
+    def setupUi(self, MainWindow, view_args, lesson_set):
         MainWindow.resize(805, 600)
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.hbox = QtGui.QHBoxLayout(self.centralwidget)
@@ -37,8 +38,8 @@ class Ui_MainWindow(object):
             ]
         ]
 
-        self.tabWidget = EasyTab(self.centralwidget)
-        self.tabWidget.set_table(lesson_set)
+        self.tabWidget = EasyTab(self.centralwidget, MainWindow.session)
+        self.tabWidget.set_table(lesson_set, view_args)
 
         self.hbox.addWidget(self.tabWidget)
         MainWindow.setCentralWidget(self.centralwidget)
@@ -89,13 +90,18 @@ class Ui_MainWindow(object):
 
 
 def main():
-    from random import randint
-    lesson_set = [[randint(0, 2) for i in range(5)] for j in range(12)]
+    # lesson_set = [[randint(0, 2) for i in range(5)] for j in range(12)]
+    session = connect_database()
+    lesson_set = [[[Lessons.read(session, id=1)[0]
+                    for i in range(len(Lessons.time_ids))]
+                   for j in range(len(Lessons.day_ids))]
+                  for k in range(len(Lessons.week_ids))]
 
     app = QtGui.QApplication(sys.argv)
     window = QtGui.QMainWindow()
+    window.session = session
     ui = Ui_MainWindow()
-    ui.setupUi(window, lesson_set)
+    ui.setupUi(window, 'teachers', lesson_set)
     window.show()
     sys.exit(app.exec_())
 

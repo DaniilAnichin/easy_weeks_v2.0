@@ -4,9 +4,9 @@ from functools import partial
 from PyQt4 import QtGui, QtCore
 from database import Logger
 from database.structure import db_structure
+from database.structure.db_structure import *
 from translate import fromUtf8
-from gui.elements import CompleterCombo, EditableList
-
+from gui import elements
 logger = Logger()
 
 
@@ -63,12 +63,7 @@ class WeeksDialog(QtGui.QDialog):
     def __init__(self, *args, **kwargs):
         super(WeeksDialog, self).__init__(*args, **kwargs)
         self.setModal(True)
-        self.hbox = QtGui.QHBoxLayout(self)
-        self.left_vbox = QtGui.QVBoxLayout()
-        self.right_vbox = QtGui.QVBoxLayout()
-
-        self.hbox.addLayout(self.left_vbox, 1)
-        self.hbox.addLayout(self.right_vbox, 1)
+        self.vbox = QtGui.QVBoxLayout(self)
 
     @staticmethod
     def make_text(element):
@@ -79,36 +74,45 @@ class WeeksDialog(QtGui.QDialog):
 
         return this_text
 
-    def add_left_label(self, data):
-        this_label = QtGui.QLabel(self.make_text(data))
-        self.left_vbox.addWidget(this_label, 1)
-
-    def add_right_label(self, data):
-        this_label = QtGui.QLabel(self.make_text(data))
-        self.right_vbox.addWidget(this_label, 1)
-
-    def add_left_button(self, data, callback, *args, **kwargs):
+    def make_button(self, data, callback, *args, **kwargs):
         this_button = QtGui.QPushButton(self.make_text(data))
         this_button.clicked.connect(partial(callback, *args, **kwargs))
-        self.left_vbox.addWidget(this_button, 1)
+        return this_button
 
-    def add_right_button(self, data, callback, *args, **kwargs):
-        this_button = QtGui.QPushButton(self.make_text(data))
-        this_button.clicked.connect(partial(callback, *args, **kwargs))
-        self.right_vbox.addWidget(this_button, 1)
-
-    def add_right_combo(self, choice_list, name):
-        combo = CompleterCombo()
-        combo.addItems(unicode(item) for item in choice_list)
+    def make_combo(self, choice_list, selected, name):
+        combo = elements.CompleterCombo()
+        combo.values = [unicode(item) for item in choice_list]
+        combo.addItems(combo.values)
         setattr(self, name, combo)
-        self.right_vbox.addWidget(combo, 1)
+        combo.setCurrentIndex(combo.values.index(unicode(selected)))
         logger.info('Added combobox with name "%s"' % name)
+        return combo
 
-    def add_right_list(self, values_list, choice_list, name):
-        items_list = EditableList(self, values_list, choice_list, name)
-        self.right_vbox.addWidget(items_list, 1)
+    def make_list(self, values_list, choice_list, name):
+        text_values_list = [unicode(value) for value in values_list]
+        text_choice_list = [unicode(value) for value in choice_list]
+        items_list = elements.EditableList(self, text_values_list, text_choice_list, name)
         logger.info('Added list widget with name "%s"' % name)
+        return items_list
         # Something else?
+
+    def set_pair(self, first_data, second_data):
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(QtGui.QLabel(self.make_text(first_data)), 1)
+        hbox.addWidget(QtGui.QLabel(self.make_text(second_data)), 1)
+        self.vbox.addLayout(hbox, 1)
+
+    def set_combo_pair(self, first_data, second_data, name, selected=None):
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(QtGui.QLabel(self.make_text(first_data)), 1)
+        hbox.addWidget(self.make_combo(second_data, selected, name), 1)
+        self.vbox.addLayout(hbox, 1)
+
+    def set_list_pair(self, first_data, second_data, third_data, name):
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(QtGui.QLabel(self.make_text(first_data)), 1)
+        hbox.addWidget(self.make_list(second_data, third_data, name), 1)
+        self.vbox.addLayout(hbox, 1)
 
 
 class ShowObject(QtGui.QDialog):
@@ -130,31 +134,80 @@ class ShowObject(QtGui.QDialog):
                 self.values_box.addWidget(value_label, 1)
         hbox.addLayout(self.column_box, 1)
         hbox.addLayout(self.values_box, 1)
+        
+        
+class AdminEditor(WeeksDialog):
+    def __init__(self, element, *args, **kwargs):
+        super(AdminEditor, self).__init__(*args, **kwargs)
 
 
 class ShowLesson(WeeksDialog):
     def __init__(self, element, *args, **kwargs):
         super(ShowLesson, self).__init__(*args, **kwargs)
 
-        if not isinstance(element, db_structure.Lessons):
+        if not isinstance(element, Lessons):
             logger.info('Wrong object passed: not a lesson')
             raise ValueError
         logger.info('Setting lesson data')
         self.lesson = element
         self.lp = self.lesson.lesson_plan
 
-        self.set_pair(db_structure.Groups.translated, self.lp.groups)
-        self.set_pair(db_structure.Teachers.translated, self.lp.teachers)
-        self.set_pair(db_structure.Subjects.translated, self.lp.subject)
-        self.set_pair(db_structure.LessonTypes.translated, self.lp.lesson_type)
-        self.set_pair(db_structure.Rooms.translated, self.lesson.room)
-        self.set_pair(db_structure.Weeks.translated, self.lesson.week)
-        self.set_pair(db_structure.WeekDays.translated, self.lesson.week_day)
-        self.set_pair(db_structure.LessonTimes.translated, self.lesson.lesson_time)
+        self.set_pair(Groups.translated, self.lp.groups)
+        self.set_pair(Teachers.translated, self.lp.teachers)
+        self.set_pair(Subjects.translated, self.lp.subject)
+        self.set_pair(LessonTypes.translated, self.lp.lesson_type)
+        self.set_pair(Rooms.translated, self.lesson.room)
+        self.set_pair(Weeks.translated, self.lesson.week)
+        self.set_pair(WeekDays.translated, self.lesson.week_day)
+        self.set_pair(LessonTimes.translated, self.lesson.lesson_time)
 
-    def set_pair(self, first_data, second_data):
-        self.add_left_label(first_data)
-        self.add_right_label(second_data)
+
+class EditLesson(WeeksDialog):
+    def __init__(self, element, session, time=True, *args, **kwargs):
+        super(EditLesson, self).__init__(*args, **kwargs)
+
+        self.session = session
+
+        if not isinstance(element, Lessons):
+            logger.info('Wrong object passed: not a lesson')
+            raise ValueError
+
+        logger.info('Setting lesson data')
+        self.lesson = element
+        self.lp = self.lesson.lesson_plan
+        # self.set_pair(Teachers.translated, self.lp.teachers)
+        # self.set_pair(Groups.translated, self.lp.groups)
+        for elem in ['groups', 'teachers']:
+            self.default_list_pair(elem, lp=True)
+        self.default_combo_pair('subject', lp=True)
+        # field_list = ['room'] + (['week', 'week_day', 'lesson_time'] if True else [])
+        field_list = ['room'] + (['week', 'week_day', 'lesson_time'] if time else [])
+        for elem in field_list:
+            self.default_combo_pair(elem)
+
+        self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.save))
+
+    def default_combo_pair(self, param, lp=False):
+        getter = self.lp if lp else self.lesson
+        cls = type(getattr(getter, param))
+        label = cls.translated
+        values = cls.read(self.session, all_=True)
+        value = getattr(getter, param)
+        name = cls.__tablename__
+        self.set_combo_pair(label, values, name, value)
+
+    def default_list_pair(self, param, lp=False):
+        getter = self.lp if lp else self.lesson
+        cls = type(getattr(getter, param)[0])
+        label = cls.translated
+        values = cls.read(self.session, all_=True)
+        selected_values = getattr(getter, param)
+        name = cls.__tablename__
+        self.set_list_pair(label, selected_values, values, name)
+
+    def save(self):
+        logger.debug('Here must be editor saving')
+        self.close()
 
 
 def main():
@@ -165,11 +218,12 @@ def main():
     window = QtGui.QMainWindow()
     show_button = QtGui.QPushButton('Login', window)
     session = connect_database()
-    obj = db_structure.Lessons.read(session, id=1)
+    obj = Lessons.read(session, id=1)
     # dialog = ShowObject(obj[0])
     dialog = ShowLesson(obj[0])
+    dialog = EditLesson(obj[0], session)
 
-    # users = db_structure.Users.read(session, all_=True)
+    # users = Users.read(session, all_=True)
     # dialog = LoginDialog(users)
     show_button.clicked.connect(dialog.show)
     window.show()

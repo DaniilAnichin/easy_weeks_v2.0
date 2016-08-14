@@ -1,21 +1,27 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import sys
 from functools import partial
 from database import Logger
+from database.structure import db_structure
 from PyQt4 import QtGui, QtCore
 from gui.translate import fromUtf8
 logger = Logger()
 
 
-color_start = 'background-color: '
+# color_start = 'background-color: '
+color_start = '''border: 1px solid #8f8f91;
+    border-radius: 6px;
+    background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
+                                      stop: 0 #{}, stop: 1 #{});
+    min-width: 80px;'''
 
 # need other colors, looks ugly
-button_colors = [
-    QtGui.QColor(255, 0, 0),
-    QtGui.QColor(0, 255, 0),
-    QtGui.QColor(0, 0, 255)
-]
+button_colors = {
+    u'Unknown': ['ffffff', 'dddddd'],
+    u'Лек': ['7777ff', '1111ff'],
+    u'Прак': ['77ff77', '11ff11'],
+    u'Лаб': ['ff7777', 'ff1111']
+}
 
 
 class EditableList(QtGui.QListWidget):
@@ -26,18 +32,25 @@ class EditableList(QtGui.QListWidget):
         self.suggested_list = suggested_list
         setattr(self.parent(), inner_name, self)
 
+    def mousePressEvent(self, QMouseEvent):
+        pass
+
     def addItem(self, *__args):
         super(EditableList, self).addItem(*__args)
         # Save to this list, to be able to subtract
         self.added_items += __args[:1]
         logger.info('Added item "%s"' % __args[:1])
 
+    def removeItemWidget(self, listWidgetItem):
+        self.added_items.pop(listWidgetItem.text())
+        logger.info('Deleted item "%s"' % listWidgetItem.text())
+        super(EditableList, self).removeItemWidget(listWidgetItem)
+
     def chow_completer(self):
         # Create completer combobox:
         completer = CompleterCombo(self)
-        elems = list(set(self.suggested_list) - set(self.added_items))
-        elems.sort()
-        completer.addItems(elems)
+        # elems = list(set(self.suggested_list) - set(self.added_items))
+        completer.addItems(list(set(self.suggested_list) - set(self.added_items)))
 
         # Create modal window
         dialog = QtGui.QDialog()
@@ -101,19 +114,20 @@ class CompleterCombo(QtGui.QComboBox):
 
 
 class DragButton(QtGui.QPushButton):
-    def __init__(self, *args):
+    def __init__(self, lesson, view_args, draggable, *args):
         super(DragButton, self).__init__(*args)
+        self.lesson = lesson
+        self.view_args = view_args
         size_policy = QtGui.QSizePolicy(
             QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum
         )
         self.setSizePolicy(size_policy)
-        self.setAcceptDrops(True)
-        self.lesson = 'None'
-
-    def setAcceptDrags(self, bool):
-        if not bool:
-            pass
-            # delattr(self, 'mousePressEvent')
+        self.setAcceptDrops(draggable)
+        self.draggable = draggable
+        self.setText(self.lesson.to_table(view_args))
+        self.set_bg_color(
+            self.lesson.lesson_plan.lesson_type.short_name
+        )
 
     def mousePressEvent(self, e):
         QtGui.QPushButton.mousePressEvent(self, e)
@@ -121,14 +135,22 @@ class DragButton(QtGui.QPushButton):
         if e.button() == QtCore.Qt.RightButton:
             # Pressing callback
             # print 'Pressing callback'
-            print self
+            from gui.dialogs import ShowLesson, EditLesson
+
+            if self.draggable:
+                self.edit_dial = EditLesson(self.lesson, self.parent().session, time=False)
+                self.edit_dial.show()
+            else:
+                self.show_dial = ShowLesson(self.lesson)
+                self.show_dial.show()
+            logger.info('Pressed: %s' % self.__str__())
 
     def mouseMoveEvent(self, e):
-        if e.buttons() != QtCore.Qt.LeftButton:
+        if e.buttons() != QtCore.Qt.LeftButton or not self.draggable:
             return
 
         mimeData = QtCore.QMimeData()
-        mimeData.setText(self.lesson)
+        mimeData.setText(self.text())
 
         # Grab the button to a pixmap to make it more fancy
         pixmap = QtGui.QPixmap.grabWidget(self)
@@ -163,9 +185,11 @@ class DragButton(QtGui.QPushButton):
             else:
                 # Perform swap:
                 # Further add lesson swap
-                content = e.source().text()
+                content = e.source().lesson
+                e.source().lesson = self.lesson
                 e.source().setText(self.text())
-                self.setText(content)
+                self.lesson = content
+                self.setText(content.to_table(self.view_args))
 
                 # tell the QDrag we accepted it
                 e.setDropAction(QtCore.Qt.MoveAction)
@@ -173,33 +197,34 @@ class DragButton(QtGui.QPushButton):
         else:
             e.ignore()
 
+    def set_bg_color(self, lesson_type):
+        # palette = self.palette()
+        # palette.setColor(
+        #     QtGui.QPalette.Button,
+        #     button_colors[lesson_type]
+        # )
+        # self.setAutoFillBackground(True)
+        # self.setPalette(palette)
+        # self.update()
+
+        self.setStyleSheet(
+            # color_start + button_colors[lesson_type].name()
+            color_start.format(*button_colors[lesson_type])
+            # color_start.format(*button_colors[u'Лек'])
+        )
+
 
 class ButtonGrid(QtGui.QGridLayout):
     def __init__(self, parent):
         super(ButtonGrid, self).__init__(parent)
-        self.parent_name = parent.objectName()
+        # self.parent_name = parent.objectName()
 
-    def set_table(self, lesson_set, drag_enabled=False):
+    def set_table(self, lesson_set, view_args, drag_enabled=False):
         for i in range(len(lesson_set)):
             for j in range(len(lesson_set[i])):
-                lesson_button = DragButton(self.parent())
-                lesson_button.setAcceptDrops(drag_enabled)
-                lesson_button.setText(str(lesson_set[i][j]))
-
-                palette = lesson_button.palette()
-                palette.setColor(
-                    QtGui.QPalette.Button,
-                    button_colors[lesson_set[i][j]]
-                )
-                # lesson_button.setAutoFillBackground(True)
-                lesson_button.setPalette(palette)
-                # lesson_button.update()
-
-                # lesson_button.setStyleSheet(
-                #     color_start + button_colors[lesson_set[i][j]].name()
-                # )
-
-                self.addWidget(lesson_button, j, i, 1, 1)
+                self.addWidget(
+                    DragButton(lesson_set[i][j], view_args, drag_enabled),
+                    j, i, 1, 1)
 
 
 class TempGrid(QtGui.QGridLayout):
@@ -232,19 +257,22 @@ class TempGrid(QtGui.QGridLayout):
 
 
 class WeekTool(QtGui.QToolBox):
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent, session, *args, **kwargs):
         super(WeekTool, self).__init__(parent, *args, **kwargs)
-        self.first = QtGui.QWidget(self.parent())
-        self.second = QtGui.QWidget(self.parent())
+        self.session = session
+        self.first = QtGui.QWidget(parent)
+        self.first.session = session
+        self.second = QtGui.QWidget(parent)
+        self.second.session = session
         # self.setObjectName('week_tool_%s' % self.parent().objectName())
         # self.first.setObjectName('first_%s' % self.objectName())
         # self.second.setObjectName('second_%s' % self.objectName())
 
-    def set_table(self, lesson_set, drag_enabled=False):
+    def set_table(self, lesson_set, view_args, drag_enabled=False):
         first_table = ButtonGrid(self.first)
-        first_table.set_table(lesson_set[:len(lesson_set) / 2], drag_enabled)
+        first_table.set_table(lesson_set[0], view_args, drag_enabled)
         second_table = ButtonGrid(self.second)
-        second_table.set_table(lesson_set[len(lesson_set) / 2:], drag_enabled)
+        second_table.set_table(lesson_set[1], view_args, drag_enabled)
         self.addItem(self.first, '')
         self.addItem(self.second, '')
         self.translateUI()
@@ -255,8 +283,9 @@ class WeekTool(QtGui.QToolBox):
 
 
 class EasyTab(QtGui.QTabWidget):
-    def __init__(self, parent):
+    def __init__(self, parent, session):
         super(EasyTab, self).__init__(parent)
+        self.session = session
         # self.tabWidget.setTabEnabled(
         #     self.tabWidget.indexOf(self.tab_admin), False
         # )
@@ -273,14 +302,14 @@ class EasyTab(QtGui.QTabWidget):
     def initUI(self):
         self.tab_user = QtGui.QWidget(self)
         self.tab_method = QtGui.QWidget(self)
-        self.tab_admin = AdminTab(self)
-        self.tab_search = SearchTab(self)
+        self.tab_admin = AdminTab(self, self.session)
+        self.tab_search = SearchTab(self, self.session)
 
-        self.user_table = WeekTool(self.tab_user)
+        self.user_table = WeekTool(self.tab_user, self.session)
         user_hbox = QtGui.QHBoxLayout(self.tab_user)
         user_hbox.addWidget(self.user_table)
         self.tab_user.setLayout(user_hbox)
-        self.method_table = WeekTool(self.tab_method)
+        self.method_table = WeekTool(self.tab_method, self.session)
 
         self.translateUI()
 
@@ -290,10 +319,10 @@ class EasyTab(QtGui.QTabWidget):
         self.addTab(self.tab_admin, fromUtf8('Адміністратор'))
         self.addTab(self.tab_search, fromUtf8('Пошук'))
 
-    def set_table(self, lesson_set):
-        self.user_table.set_table(lesson_set)
+    def set_table(self, lesson_set, view_args):
+        self.user_table.set_table(lesson_set, view_args)
 
-        self.method_table.set_table(lesson_set, drag_enabled=True)
+        self.method_table.set_table(lesson_set, view_args, drag_enabled=True)
         # self.temp_table = TempGrid(self.tab_method)
         method_hbox = QtGui.QHBoxLayout(self.tab_method)
         method_hbox.addWidget(self.method_table, 1)
@@ -370,28 +399,18 @@ class EasyTab(QtGui.QTabWidget):
 '''
 
 
-def make_combo_box(parent, model, choice_list):
-    # choice_list = [{name: action}, ...]
-    combo_box = QtGui.QComboBox(parent)
-    combo_box.setObjectName('itemsChoice')
-    combo_box.addItem('')
-    combo_box.addItem('')
-    combo_box.addItem('')
-    combo_box.addItem('')
-    combo_box.addItem('')
-    combo_box.addItem('')
-
-
 class AdminTab(QtGui.QWidget):
-    def __init__(self, parent):
+    def __init__(self, parent, session):
         super(AdminTab, self).__init__(parent)
+        self.session = session
         self.setObjectName('admin_tab')
         self.initUI()
 
     def initUI(self):
         self.vbox = QtGui.QVBoxLayout(self)
         self.hbox = QtGui.QHBoxLayout()
-        self.objects = QtGui.QComboBox(self)
+        self.objects = CompleterCombo(self)
+        self.objects.currentIndexChanged.connect(self.set_list)
 
         self.hbox.addWidget(self.objects)
         spacer = QtGui.QSpacerItem(
@@ -412,36 +431,28 @@ class AdminTab(QtGui.QWidget):
         self.translateUI()
 
     def translateUI(self):
-        # for j in database.__all__
-        #     self.itemsChoice.addItem()...
-
-        self.objects.addItem(fromUtf8('Дні тиждня'))
-        self.objects.addItem(fromUtf8('Тиждні'))
-        self.objects.addItem(fromUtf8('Предмети'))
-        self.objects.addItem(fromUtf8('Рівні викладачів'))
-        self.objects.addItem(fromUtf8('Типи занятть'))
-        self.objects.addItem(fromUtf8('Викладачi'))
+        self.objects.addItems(
+            [getattr(db_structure, elem).translated for elem in db_structure.__all__]
+        )
 
         self.addButton.setText(fromUtf8('Додати'))
         self.deleteButton.setText(fromUtf8('Видалити'))
         self.editButton.setText(fromUtf8('Редагувати'))
 
-        day_list = [
-            'Понеділок',
-            'Вівторок',
-            'Середа',
-            'Четвер',
-            'П\'ятниця',
-            'Субота'
-        ]
-        for day in day_list * 2:
-            item = QtGui.QListWidgetItem(fromUtf8(day))
-            self.items_list.addItem(item)
+    def set_list(self):
+        logger.debug('Here we should set admin editable list')
+        logger.debug('Combo box index is: %s' % self.objects.currentIndex())
+        logger.debug('Combo box value is: %s' % self.objects.currentText())
+        cls_name = db_structure.__all__[self.objects.currentIndex()]
+        elements = getattr(db_structure, cls_name).read(self.session, all_=True)
+        self.items_list.clear()
+        self.items_list.addItems([unicode(elem) for elem in elements])
 
 
 class SearchTab(QtGui.QWidget):
-    def __init__(self, parent):
+    def __init__(self, parent, session):
         super(SearchTab, self).__init__(parent)
+        self.session = session
         self.setObjectName('search_tab')
         self.initUI()
 
@@ -471,6 +482,7 @@ class SearchTab(QtGui.QWidget):
             QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Minimum
         )
         self.submit_button = QtGui.QPushButton(self)
+        self.submit_button.clicked.connect(self.search)
         self.form.setItem(4, QtGui.QFormLayout.LabelRole, spacer)
         self.form.setWidget(4, QtGui.QFormLayout.FieldRole, self.submit_button)
 
@@ -485,29 +497,24 @@ class SearchTab(QtGui.QWidget):
         self.object_choice.addItem(fromUtf8('Викладач'))
 
         self.week_label.setText(fromUtf8('Тиждень: '))
-        # Make this from database:
-        self.week_choice.addItem(fromUtf8('Перший'))
-        self.week_choice.addItem(fromUtf8('Другий'))
+        self.week_choice.addItems(
+            [unicode(week) for week in db_structure.Weeks.read(self.session, all_=True)]
+        )
 
         self.day_label.setText(fromUtf8('День: '))
-        # Choose from DB
-        self.day_choice.addItem(fromUtf8('Понеділок'))
-        self.day_choice.addItem(fromUtf8('Вівторок'))
-        self.day_choice.addItem(fromUtf8('Середа'))
-        self.day_choice.addItem(fromUtf8('Четвер'))
-        self.day_choice.addItem(fromUtf8('П\'ятниця'))
-        self.day_choice.addItem(fromUtf8('Субота'))
+        self.day_choice.addItems(
+            [unicode(day) for day in db_structure.WeekDays.read(self.session, all_=True)]
+        )
 
         self.time_label.setText(fromUtf8('Час: '))
-        # Choose from DB
-        self.time_choice.addItem(fromUtf8('8:30 - 10:05'))
-        self.time_choice.addItem(fromUtf8('10:25 - 12:00'))
-        self.time_choice.addItem(fromUtf8('12:20 - 13:55'))
-        self.time_choice.addItem(fromUtf8('14:15 - 15:50'))
-        self.time_choice.addItem(fromUtf8('16:10 - 17:45'))
-        self.time_choice.addItem(fromUtf8('18:05 - 19:40'))
+        self.time_choice.addItems(
+            [unicode(time) for time in db_structure.LessonTimes.read(self.session, all_=True)]
+        )
 
         self.submit_button.setText(fromUtf8('Знайти'))
+
+    def search(self):
+        logger.debug('Here should be search')
 
 
 class WeekMenuBar(QtGui.QMenuBar):
