@@ -33,42 +33,64 @@ class EditableList(QtGui.QListWidget):
         setattr(self.parent(), inner_name, self)
 
     def mousePressEvent(self, QMouseEvent):
-        pass
+        QtGui.QListWidget.mousePressEvent(self, QMouseEvent)
+
+        if not (QMouseEvent.modifiers() & QtCore.Qt.ShiftModifier):
+            # Only Shift click performing
+            return
+
+        if QMouseEvent.button() == QtCore.Qt.RightButton:
+            # Right button for delete
+            self.removeItemWidget(self.currentItem())
+            logger.debug('Here should be delete')
+        elif QMouseEvent.button() == QtCore.Qt.LeftButton:
+            # Left button to add
+            self.show_completer()
 
     def addItem(self, *__args):
-        super(EditableList, self).addItem(*__args)
+        logger.debug(__args)
+
+        if unicode(__args[0]) not in self.suggested_list:
+            return
+
+        super(EditableList, self).addItem(*__args[:1])
         # Save to this list, to be able to subtract
-        self.added_items += __args[:1]
+        self.added_items += [unicode(__args[0])]
         logger.info('Added item "%s"' % __args[:1])
 
     def removeItemWidget(self, listWidgetItem):
-        self.added_items.pop(listWidgetItem.text())
+        try:
+            index = self.added_items.index(listWidgetItem.text())
+        except AttributeError:
+            logger.info('Already deleted')
+            return
+        self.added_items.pop(index)
         logger.info('Deleted item "%s"' % listWidgetItem.text())
-        super(EditableList, self).removeItemWidget(listWidgetItem)
+        self.takeItem(self.row(listWidgetItem))
 
-    def chow_completer(self):
+    def show_completer(self):
         # Create completer combobox:
         completer = CompleterCombo(self)
-        # elems = list(set(self.suggested_list) - set(self.added_items))
         completer.addItems(list(set(self.suggested_list) - set(self.added_items)))
 
         # Create modal window
-        dialog = QtGui.QDialog()
-        dialog.setModal(True)
+        self.dialog = QtGui.QDialog()
+        self.dialog.setModal(True)
 
         # Create button, connect
         submit = QtGui.QPushButton(fromUtf8('Додати'))
-        submit.clicked().connect(partial(self.addItem, completer.currentText()))
-        submit.clicked().connect(dialog.close())
+        # logger.debug(completer.currentText())
+        submit.clicked.connect(partial(self.addItem, completer.currentText()))
+        submit.clicked.connect(self.dialog.close)
 
         # Add to layout
-        vbox = QtGui.QVBoxLayout(dialog)
+        vbox = QtGui.QVBoxLayout(self.dialog)
         vbox.addWidget(completer, 1)
         vbox.addWidget(submit, 1)
 
         # show
         logger.info('Raised completer window')
-        dialog.show()
+        self.dialog.show()
 
 
 class CompleterCombo(QtGui.QComboBox):
@@ -129,12 +151,11 @@ class DragButton(QtGui.QPushButton):
             self.lesson.lesson_plan.lesson_type.short_name
         )
 
-    def mousePressEvent(self, e):
-        QtGui.QPushButton.mousePressEvent(self, e)
+    def mousePressEvent(self, QMouseEvent):
+        QtGui.QPushButton.mousePressEvent(self, QMouseEvent)
 
-        if e.button() == QtCore.Qt.RightButton:
+        if QMouseEvent.button() == QtCore.Qt.RightButton:
             # Pressing callback
-            # print 'Pressing callback'
             from gui.dialogs import ShowLesson, EditLesson
 
             if self.draggable:
@@ -264,9 +285,6 @@ class WeekTool(QtGui.QToolBox):
         self.first.session = session
         self.second = QtGui.QWidget(parent)
         self.second.session = session
-        # self.setObjectName('week_tool_%s' % self.parent().objectName())
-        # self.first.setObjectName('first_%s' % self.objectName())
-        # self.second.setObjectName('second_%s' % self.objectName())
 
     def set_table(self, lesson_set, view_args, drag_enabled=False):
         first_table = ButtonGrid(self.first)
@@ -286,6 +304,7 @@ class EasyTab(QtGui.QTabWidget):
     def __init__(self, parent, session):
         super(EasyTab, self).__init__(parent)
         self.session = session
+        # self.user =
         # self.tabWidget.setTabEnabled(
         #     self.tabWidget.indexOf(self.tab_admin), False
         # )
@@ -399,6 +418,20 @@ class EasyTab(QtGui.QTabWidget):
 '''
 
 
+class AdminList(QtGui.QListWidget):
+    def __init__(self, *args, **kwargs):
+        super(AdminList, self).__init__(*args, **kwargs)
+
+    def addItem(self, *__args):
+        logger.info('Item %s added', __args[0])
+        super(AdminList, self).addItem(*__args[1:])
+
+    def takeItem(self):
+        logger.info('Item %s deleted' % self.currentItem().text())
+        self.viewed_items.pop(self.row(self.currentItem()))
+        super(AdminList, self).takeItem(self.row(self.currentItem()))
+
+
 class AdminTab(QtGui.QWidget):
     def __init__(self, parent, session):
         super(AdminTab, self).__init__(parent)
@@ -418,15 +451,19 @@ class AdminTab(QtGui.QWidget):
         )
         self.hbox.addItem(spacer)
 
+        self.items_list = AdminList(self)
+
         self.addButton = QtGui.QPushButton(self)
+        self.addButton.clicked.connect(self.show_add)
         self.deleteButton = QtGui.QPushButton(self)
+        self.deleteButton.clicked.connect(partial(self.items_list.takeItem))
         self.editButton = QtGui.QPushButton(self)
+        self.editButton.clicked.connect(self.show_edit)
         self.hbox.addWidget(self.addButton)
         self.hbox.addWidget(self.deleteButton)
         self.hbox.addWidget(self.editButton)
-        self.vbox.addLayout(self.hbox)
 
-        self.items_list = QtGui.QListWidget(self)
+        self.vbox.addLayout(self.hbox)
         self.vbox.addWidget(self.items_list)
         self.translateUI()
 
@@ -440,13 +477,28 @@ class AdminTab(QtGui.QWidget):
         self.editButton.setText(fromUtf8('Редагувати'))
 
     def set_list(self):
-        logger.debug('Here we should set admin editable list')
-        logger.debug('Combo box index is: %s' % self.objects.currentIndex())
-        logger.debug('Combo box value is: %s' % self.objects.currentText())
         cls_name = db_structure.__all__[self.objects.currentIndex()]
+        logger.info('Setting admin list for %s' % cls_name)
         elements = getattr(db_structure, cls_name).read(self.session, all_=True)
         self.items_list.clear()
+        self.items_list.viewed_items = elements
         self.items_list.addItems([unicode(elem) for elem in elements])
+
+    def show_add(self):
+        from gui.dialogs import AdminEditor
+        cls_name = db_structure.__all__[self.objects.currentIndex()]
+        logger.info('Running create dialog for %s' % cls_name)
+        # elements = getattr(db_structure, cls_name).read(self.session, all_=True)
+
+    def show_edit(self):
+        from gui.dialogs import AdminEditor
+        cls_name = db_structure.__all__[self.objects.currentIndex()]
+        index = self.items_list.row(self.items_list.currentItem())
+        name = self.items_list.currentItem().text()
+        logger.info('Running edit dialog for %s - %s' % (cls_name, name))
+
+        element = self.items_list.viewed_items[index]
+        # self.edit_dial = AdminEditor()
 
 
 class SearchTab(QtGui.QWidget):
