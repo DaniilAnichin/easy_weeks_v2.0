@@ -90,7 +90,6 @@ class Ui_MainWindow(object):
 
 
 def main():
-    # lesson_set = [[randint(0, 2) for i in range(5)] for j in range(12)]
     session = connect_database()
     lesson_set = [[[Lessons.read(session, id=1)[0]
                     for i in range(len(Lessons.time_ids))]

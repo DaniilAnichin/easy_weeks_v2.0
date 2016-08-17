@@ -564,7 +564,7 @@ class Lessons(Base):
     id_week_day = Column(Integer, ForeignKey('week_days.id'))
     id_week = Column(Integer, ForeignKey('weeks.id'))
     is_temp = Column(Boolean, default=True)
-    is_empty = Column(Boolean, default=True)
+    is_empty = Column(Boolean, default=False)
     row_time = Column(Integer)
     translated = u'Заняття'
     week_ids = range(2, 4)
