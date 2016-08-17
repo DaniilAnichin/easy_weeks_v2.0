@@ -6,6 +6,7 @@ from PyQt4 import QtCore, QtGui
 from database import Logger
 from database.structure import *
 from database.start_db.New_db_startup import connect_database
+from database.select_table import get_table
 from gui.elements import EasyTab, WeekMenuBar
 from gui.translate import translate, fromUtf8
 logger = Logger()
@@ -92,10 +93,7 @@ class Ui_MainWindow(object):
 def main():
     # lesson_set = [[randint(0, 2) for i in range(5)] for j in range(12)]
     session = connect_database()
-    lesson_set = [[[Lessons.read(session, id=1)[0]
-                    for i in range(len(Lessons.time_ids))]
-                   for j in range(len(Lessons.day_ids))]
-                  for k in range(len(Lessons.week_ids))]
+    lesson_set = get_table(session, 'groups', 43)
 
     app = QtGui.QApplication(sys.argv)
     window = QtGui.QMainWindow()

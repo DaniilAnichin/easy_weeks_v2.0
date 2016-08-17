@@ -93,7 +93,7 @@ def main():
                                                                                              )[0]['id'],
                                                           groups=id_groups)[0]['id'],
                                    select_rooms(s, name=row['lesson_room'])[0].id,
-                                   int(row['lesson_number']) + (5 * (int(row['day_number'])-1)) + (30 * (int(
+                                   int(row['lesson_number'])-1 + (5 * (int(row['day_number'])-1)) + (30 * (int(
                                        row['lesson_week'])-1)))
     s.close_all()
 

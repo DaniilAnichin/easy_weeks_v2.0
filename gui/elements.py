@@ -146,6 +146,9 @@ class DragButton(QtGui.QPushButton):
         self.setSizePolicy(size_policy)
         self.setAcceptDrops(draggable)
         self.draggable = draggable
+        logger.debug('Lesson is: %s' % self.lesson)
+        if isinstance(self.lesson, list):
+            logger.debug('Lesson num is: %s' % len(self.lesson))
         self.setText(self.lesson.to_table(view_args))
         self.set_bg_color(
             self.lesson.lesson_plan.lesson_type.short_name

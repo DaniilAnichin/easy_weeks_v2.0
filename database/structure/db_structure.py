@@ -133,7 +133,7 @@ class Base(object):
                 # OK as parent select for lesson_plan and other will be modified
                 # work proper for all 'easy' classes
             else:
-                result.filter(getattr(cls, key) == kwargs[key])
+                result = result.filter(getattr(cls, key) == kwargs[key])
 
         return result.all()
 
