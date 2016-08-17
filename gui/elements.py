@@ -491,6 +491,9 @@ class AdminTab(QtGui.QWidget):
         from gui.dialogs import AdminEditor
         cls_name = db_structure.__all__[self.objects.currentIndex()]
         logger.info('Running create dialog for %s' % cls_name)
+        self.editor = AdminEditor(cls_name, self.session, empty=True)
+
+        self.editor.show()
         # elements = getattr(db_structure, cls_name).read(self.session, all_=True)
 
     def show_edit(self):
@@ -501,7 +504,10 @@ class AdminTab(QtGui.QWidget):
         logger.info('Running edit dialog for %s - %s' % (cls_name, name))
 
         element = self.items_list.viewed_items[index]
-        # self.edit_dial = AdminEditor()
+        logger.debug(type(element))
+
+        # self.editor = AdminEditor(cls_name, self.session, empty=True)
+        # self.edit_dial = AdminEditor()1
 
 
 class SearchTab(QtGui.QWidget):

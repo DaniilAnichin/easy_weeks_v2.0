@@ -91,7 +91,6 @@ class Ui_MainWindow(object):
 
 
 def main():
-    # lesson_set = [[randint(0, 2) for i in range(5)] for j in range(12)]
     session = connect_database()
     lesson_set = get_table(session, 'groups', 43)
 

@@ -84,7 +84,8 @@ class WeeksDialog(QtGui.QDialog):
         combo.values = [unicode(item) for item in choice_list]
         combo.addItems(combo.values)
         setattr(self, name, combo)
-        combo.setCurrentIndex(combo.values.index(unicode(selected)))
+        if selected:
+            combo.setCurrentIndex(combo.values.index(unicode(selected)))
         logger.info('Added combobox with name "%s"' % name)
         return combo
 
@@ -140,60 +141,90 @@ class AdminEditor(WeeksDialog):
     def __init__(self, element, session, empty=False, *args, **kwargs):
         super(AdminEditor, self).__init__(*args, **kwargs)
         self.session = session
-        self.cls = element if empty else type(element)
+        logger.debug('Element is %s' % element)
+        self.empty = empty
+        self.cls = getattr(db_structure, element) if empty else type(element)
         self.cls_name = self.cls.__name__
+        self.element = self.cls.read(self.session, id=1)[0] if empty else element
 
         if self.cls_name not in db_structure.__all__:
             logger.debug('Wrong params')
         else:
             logger.debug('All right')
-            for column in self.cls.columns():
+            for column in self.cls.fields():
                 if not column.startswith('id_'):
-                    column_value = getattr(element, column)
-                    logger.debug('Column {}, value {};'.format(column, column_value))
-                    column_label = QtGui.QLabel(column, self)
-                    value_label = QtGui.QLabel(fromUtf8(unicode(column_value)), self)
-                    self.column_box.addWidget(column_label, 1)
-                    self.values_box.addWidget(value_label, 1)
-            for column in self.cls.links():
-                column_value = getattr(element, column)
-                logger.debug('Column {}, value {};'.format(column, column_value))
-                column_label = QtGui.QLabel(column, self)
-                value_label = QtGui.QLabel(fromUtf8(unicode(column_value)), self)
-                self.column_box.addWidget(column_label, 1)
-                self.values_box.addWidget(value_label, 1)
-            for column in self.cls.associations():
-                column_value = getattr(element, column)
-                logger.debug('Column {}, value {};'.format(column, column_value))
-                column_label = QtGui.QLabel(column, self)
-                value_label = QtGui.QLabel(fromUtf8(unicode(column_value)), self)
-                self.column_box.addWidget(column_label, 1)
-                self.values_box.addWidget(value_label, 1)
+                    self.make_pair(column)
+            self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.save))
 
-    def make_pair(self, param, element=None):
-        if not element:
-            element = self.cls.read(self.session, id=1)[0]
-            empty = True
-        exp_result = getattr(element, param)
+    def make_pair(self, param):
+        exp_result = getattr(self.element, param)
+        if isinstance(exp_result, list):
+            self.default_list_pair(param)
+        elif isinstance(exp_result, db_structure.Base):
+            self.default_combo_pair(param)
+        elif isinstance(exp_result, int):
+            self.default_int_pair(param)
+        elif isinstance(exp_result, (str, unicode, QtCore.QString)):
+            self.default_str_pair(param)
+        elif isinstance(exp_result, bool):
+            self.default_bool_pair(param)
+        else:
+            logger.info("What is this - %s, man?" % exp_result)
+            logger.info("It is %s" % type(exp_result))
 
-
-    def default_combo_pair(self, param, lp=False):
-        getter = self.lp if lp else self.lesson
-        cls = type(getattr(getter, param))
+    def default_combo_pair(self, param):
+        cls = type(getattr(self.element, param))
         label = cls.translated
         values = cls.read(self.session, all_=True)
-        value = getattr(getter, param)
+        value = None if self.empty else getattr(self.element, param)
         name = cls.__tablename__
         self.set_combo_pair(label, values, name, value)
 
-    def default_list_pair(self, param, lp=False):
-        getter = self.lp if lp else self.lesson
-        cls = type(getattr(getter, param)[0])
+    def default_list_pair(self, param):
+        cls = type(getattr(self.element, param)[0])
         label = cls.translated
         values = cls.read(self.session, all_=True)
-        selected_values = getattr(getter, param)
+        selected_values = [] if self.empty else getattr(self.element, param)
         name = cls.__tablename__
         self.set_list_pair(label, selected_values, values, name)
+
+    def default_int_pair(self, param):
+        spin = QtGui.QSpinBox()
+        spin.setRange(1, 1000000)
+        if not self.empty:
+            spin.setValue(getattr(self.element, param))
+        setattr(self, param, spin)
+
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(QtGui.QLabel(param), 1)
+        hbox.addWidget(spin, 1)
+        self.vbox.addLayout(hbox, 1)
+
+    def default_str_pair(self, param):
+        line = QtGui.QLineEdit()
+        if not self.empty:
+            line.setText(getattr(self.element, param))
+        setattr(self, param, line)
+
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(QtGui.QLabel(param), 1)
+        hbox.addWidget(line, 1)
+        self.vbox.addLayout(hbox, 1)
+
+    def default_bool_pair(self, param):
+        check = QtGui.QCheckBox()
+        if not self.empty:
+            check.setChecked(getattr(self.element, param))
+        setattr(self, param, check)
+
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(QtGui.QLabel(param), 1)
+        hbox.addWidget(check, 1)
+        self.vbox.addLayout(hbox, 1)
+
+    def save(self):
+        logger.debug('Here must be editor saving')
+        self.close()
 
 
 class ShowLesson(WeeksDialog):
@@ -274,12 +305,12 @@ def main():
     show_button = QtGui.QPushButton('Login', window)
     session = connect_database()
     obj = Lessons.read(session, id=1)
-    # dialog = ShowObject(obj[0])
+    dialog = ShowObject(obj[0])
     # dialog = ShowLesson(obj[0])
     # dialog = EditLesson(obj[0], session)
 
-    users = Users.read(session, all_=True)
-    dialog = LoginDialog(users)
+    # users = Users.read(session, all_=True)
+    # dialog = LoginDialog(users)
     show_button.clicked.connect(dialog.show)
     window.show()
     sys.exit(app.exec_())
