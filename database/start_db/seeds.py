@@ -81,10 +81,19 @@ def create_common(session):
     return session
 
 
+def create_teachers(session, teacher_path):
+    pass
+
+
 def create_custom(session):
     # Complete this staff
     session.add_all([
         Departments(short_name=u'ТК', full_name=u'Техн')
     ])
     session.commit()
+
+    group_prefixes = [
+        'ia', 'ik', 'io', 'ip', 'is', 'it'
+    ]
+
     return session

@@ -39,7 +39,7 @@ def main():
     s = connect_database(os.path.join(DATABASE_DIR, DATABASE_NAME))
     with open(os.path.join(DATABASE_DIR, 'import_schedule', '_teachers.txt'), 'r') as f:
         for teacher in f:
-            teacher = teacher[:-2]
+            teacher = teacher[:-1]
             if get_teacher_id(s, teacher) != -1:
                 cur_url = lessons_url % get_teacher_id(s, teacher)
                 info = json.load(urllib.urlopen(cur_url))
@@ -76,11 +76,13 @@ def main():
                                         id_groups,
                                         [select_teachers(s, short_name=unicode(teacher[teacher.index(' ')+1:], 'utf-8'))
                                         [0]['id']],
-                                        1, lp['tf2w'], 0, 32 * len(lp['groups']), '')
+                                        lp['tf2w'], 0, 32 * len(lp['groups']), '')
                     for row in info['data']:
                         id_groups = []
                         for g in row['groups']:
                             id_groups.append(select_groups(s, name=g['group_full_name'])[0]['id'])
+
+                        # print select_rooms(s, name=row['lesson_room'])
                         new_lesson(s, select_lesson_plans(s, id_subject=select_subject(s,
                                                                                         full_name=
                                                                                         row['lesson_full_name']
@@ -90,7 +92,7 @@ def main():
                                                                                              row['lesson_type']
                                                                                              )[0]['id'],
                                                           groups=id_groups)[0]['id'],
-                                   select_rooms(s, name=row['lesson_room'])[0]['id'],
+                                   select_rooms(s, name=row['lesson_room'])[0].id,
                                    int(row['lesson_number']) + (5 * (int(row['day_number'])-1)) + (30 * (int(
                                        row['lesson_week'])-1)))
     s.close_all()

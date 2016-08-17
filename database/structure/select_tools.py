@@ -29,7 +29,7 @@ def select_universities(s, id_u=0, **kwargs):
 
     univers = s.query(Universities)
     for key in kwargs.keys():
-        if key in Universities.fields:
+        if key in Universities.fields():
             univers = univers.filter(getattr(Universities, key) == kwargs[key])
     univers_obj = univers.all()
     for u in univers_obj:
@@ -64,7 +64,7 @@ def select_faculties(s, id_f=0, **kwargs):
 
     faculty = s.query(Faculties)
     for key in kwargs.keys():
-        if key in Faculties.fields:
+        if key in Faculties.fields():
             faculty = faculty.filter(getattr(Faculties, key) == kwargs[key])
     faculties_obj = faculty.all()
     for f in faculties_obj:
@@ -101,7 +101,7 @@ def select_departments(s, id_d=0, **kwargs):
 
     dep = s.query(Departments)
     for key in kwargs.keys():
-        if key in Departments.fields:
+        if key in Departments.fields():
             dep = dep.filter(getattr(Faculties, key) == kwargs[key])
     dep_obj = dep.all()
     for d in dep_obj:
@@ -137,7 +137,7 @@ def select_groups(s, id_groups=[], **kwargs):
 
     groups = s.query(Groups)
     for key in kwargs.keys():
-        if key in Groups.fields:
+        if key in Groups.fields():
             groups = groups.filter(getattr(Groups, key) == kwargs[key])
     groups_obj = groups.all()
     for g in groups_obj:
@@ -171,7 +171,7 @@ def select_degrees(s, id_d=0, **kwargs):
 
     d = s.query(Degrees)
     for key in kwargs.keys():
-        if key in Degrees.fields:
+        if key in Degrees.fields():
             d = d.filter(getattr(Degrees, key) == kwargs[key])
     degrees_obj = d.all()
     for d in degrees_obj:
@@ -207,7 +207,7 @@ def select_teachers(s, id_t=0, **kwargs):
 
     t = s.query(Teachers)
     for key in kwargs.keys():
-        if key in Teachers.fields:
+        if key in Teachers.fields():
             t = t.filter(getattr(Teachers, key) == kwargs[key])
     teachers_obj = t.all()
     for t in teachers_obj:
@@ -249,7 +249,7 @@ def select_rooms(s, id_r=0, **kwargs):
 
     r = s.query(Rooms)
     for key in kwargs.keys():
-        if key in Rooms.fields:
+        if key in Rooms.fields():
             if key == 'departments':
                 r = r.filter(Rooms.departments.any(Departments.id.in_(kwargs[key])))
             r = r.filter(getattr(Rooms, key) == kwargs[key])
@@ -287,7 +287,7 @@ def select_subject(s, id_s=0, **kwargs):
 
     sub = s.query(Subjects)
     for key in kwargs.keys():
-        if key in Faculties.fields:
+        if key in Faculties.fields():
             sub = sub.filter(getattr(Subjects, key) == kwargs[key])
     sub_obj = sub.all()
     for sub in sub_obj:
@@ -320,7 +320,7 @@ def select_lesson_types(s, id_t=0, **kwargs):
 
     t = s.query(LessonTypes)
     for key in kwargs.keys():
-        if key in LessonTypes.fields:
+        if key in LessonTypes.fields():
             t = t.filter(getattr(LessonTypes, key) == kwargs[key])
     t_obj = t.all()
     for t in t_obj:
@@ -352,7 +352,7 @@ def select_lesson_times(s, id_t=0, **kwargs):
 
     t = s.query(LessonTimes)
     for key in kwargs.keys():
-        if key in LessonTimes.fields:
+        if key in LessonTimes.fields():
             t = t.filter(getattr(LessonTimes, key) == kwargs[key])
     t_obj = t.all()
     for t in t_obj:
@@ -384,7 +384,7 @@ def select_week_days(s, id_t=0, **kwargs):
 
     t = s.query(WeekDays)
     for key in kwargs.keys():
-        if key in WeekDays.fields:
+        if key in WeekDays.fields():
             t = t.filter(getattr(WeekDays, key) == kwargs[key])
     t_obj = t.all()
     for t in t_obj:
@@ -416,7 +416,7 @@ def select_weeks(s, id_t=0, **kwargs):
 
     t = s.query(Weeks)
     for key in kwargs.keys():
-        if key in Weeks.fields:
+        if key in Weeks.fields():
             t = t.filter(getattr(Weeks, key) == kwargs[key])
     t_obj = t.all()
     for t in t_obj:
@@ -454,7 +454,7 @@ def select_lesson_plans(s, id_lesson_plan=[], **kwargs):
             for g in lp.groups:
                 g_vect.append(select_groups(s, [g.id]))
             lp_dict = {'id': lp.id, 'id_subject': lp.id_subject, 'id_lesson_type': lp.id_lesson_type,
-                       'amount': lp.times_for_2_week, 'capacity': lp.capacity,
+                       'amount': lp.amount, 'capacity': lp.capacity,
                        'split_groups': lp.split_groups, 'param_checker': lp.param_checker, 'groups': g_vect,
                        'teachers': t_vect}
             les_plan_dict.append(lp_dict)
@@ -466,8 +466,10 @@ def select_lesson_plans(s, id_lesson_plan=[], **kwargs):
         if key == 'groups' or key == 'teachers':
             # for gt in kwargs[key]:
                 # lp = lp.filter(getattr(LessonPlans, key).any(getattr(LessonPlans, key) == gt))
-            lp = lp.filter(getattr(LessonPlans, key).any(
-                getattr(LessonPlans, key).in_(kwargs[key])))
+            if key == 'groups':
+                lp = lp.filter(getattr(LessonPlans, key).any(Groups.id.in_(kwargs[key])))
+            else:
+                lp = lp.filter(getattr(LessonPlans, key).any(Teachers.id.in_(kwargs[key])))
         elif getattr(LessonPlans, key):
             lp = lp.filter(getattr(LessonPlans, key) == kwargs[key])
     lp_obj = lp.all()
@@ -479,7 +481,7 @@ def select_lesson_plans(s, id_lesson_plan=[], **kwargs):
         for g in lp.groups:
             g_vect.append(select_groups(s, [g.id]))
         lp_dict = {'id': lp.id, 'id_subject': lp.id_subject, 'id_lesson_type': lp.id_lesson_type,
-                   'amount': lp.times_for_2_week, 'capacity': lp.capacity,
+                   'amount': lp.amount, 'capacity': lp.capacity,
                    'split_groups': lp.split_groups, 'param_checker': lp.param_checker, 'groups': g_vect,
                    'teachers': t_vect}
         les_plan_dict.append(lp_dict)
@@ -516,7 +518,7 @@ def select_lessons(s, id_les=[], **kwargs):
         if key == 'id_lesson_plan':
             lp_dict = [Lessons.id_lesson_plan == id_lp for id_lp in kwargs[key]]
             l = l.filter(or_(*lp_dict))
-        elif key in Lessons.fields:
+        elif key in Lessons.fields():
             l = l.filter(getattr(Lessons, key) == kwargs[key])
     l_obj = l.all()
     for l in l_obj:
