@@ -142,6 +142,7 @@ class AdminEditor(WeeksDialog):
         self.session = session
         self.cls = element if empty else type(element)
         self.cls_name = self.cls.__name__
+
         if self.cls_name not in db_structure.__all__:
             logger.debug('Wrong params')
         else:
@@ -170,7 +171,11 @@ class AdminEditor(WeeksDialog):
                 self.values_box.addWidget(value_label, 1)
 
     def make_pair(self, param, element=None):
-        pass
+        if not element:
+            element = self.cls.read(self.session, id=1)[0]
+            empty = True
+        exp_result = getattr(element, param)
+
 
     def default_combo_pair(self, param, lp=False):
         getter = self.lp if lp else self.lesson
@@ -270,11 +275,11 @@ def main():
     session = connect_database()
     obj = Lessons.read(session, id=1)
     # dialog = ShowObject(obj[0])
-    dialog = ShowLesson(obj[0])
-    dialog = EditLesson(obj[0], session)
+    # dialog = ShowLesson(obj[0])
+    # dialog = EditLesson(obj[0], session)
 
-    # users = Users.read(session, all_=True)
-    # dialog = LoginDialog(users)
+    users = Users.read(session, all_=True)
+    dialog = LoginDialog(users)
     show_button.clicked.connect(dialog.show)
     window.show()
     sys.exit(app.exec_())

@@ -112,7 +112,7 @@ def new_group(s, name='', id_dp=1):
     ).first()
     if exists_gr:
         print "This group %s already exist in department %s with id %d" % (name,
-                                                                           exists_gr.departments.short_name,
+                                                                           exists_gr.department.short_name,
                                                                            exists_gr.id)
 
         return -7
@@ -170,10 +170,10 @@ def new_teacher(s, full_name='', short_name='', id_dep=1, id_deg=1):
                                               Teachers.id_department == id_dep,
                                               Teachers.id_degree == id_deg)).first()
     if exists_te:
-        print "Teacher %s %s (%s) from %s is already exists with id %d" % (exists_te.degrees.short_name,
+        print "Teacher %s %s (%s) from %s is already exists with id %d" % (exists_te.degree.short_name,
                                                                            exists_te.full_name,
                                                                            exists_te.short_name,
-                                                                           exists_te.departments.short_name,
+                                                                           exists_te.department.short_name,
                                                                            exists_te.id)
 
         return -9
@@ -204,7 +204,7 @@ def new_room(s, name='', cap=32, stuff='', id_des=[1]):
     exist_ro = s.query(Rooms).filter(Rooms.name == name).first()
     if exist_ro:
         print "Room %s already exists in department %s with id %d" % (exist_ro.name,
-                                                                      exist_ro.departments.short_name,
+                                                                      exist_ro.departments[0].short_name,
                                                                       exist_ro.id)
 
         return -10
@@ -291,7 +291,7 @@ def new_lesson_plan(s, id_sub=0, id_les_type=1, id_grps=[], id_tes=[1],
 
     new_lesson_plan = LessonPlans(id_subject=id_sub,
                                   id_lesson_type=id_les_type,
-                                  times_for_2_week=times_for_2_week,
+                                  amount=times_for_2_week,
                                   needed_stuff=needed_stuff,
                                   capacity=capacity,
                                   split_groups=split_groups,
@@ -338,7 +338,7 @@ def new_lesson(s, id_lp, id_room, row_time):
         return -10
 
     exist_ls = s.query(Lessons).filter(Lessons.id_lesson_plan == id_lp).all()
-    if len(exist_ls) >= exist_lp.times_for_2_week:
+    if len(exist_ls) >= exist_lp.amount:
         print "Can't add new lesson (all lessons already handled) delete some to add new"
         return -15
     for g in s.query(LessonPlans).get(id_lp).groups:
