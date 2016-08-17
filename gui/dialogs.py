@@ -137,8 +137,58 @@ class ShowObject(QtGui.QDialog):
         
         
 class AdminEditor(WeeksDialog):
-    def __init__(self, element, *args, **kwargs):
+    def __init__(self, element, session, empty=False, *args, **kwargs):
         super(AdminEditor, self).__init__(*args, **kwargs)
+        self.session = session
+        self.cls = element if empty else type(element)
+        self.cls_name = self.cls.__name__
+        if self.cls_name not in db_structure.__all__:
+            logger.debug('Wrong params')
+        else:
+            logger.debug('All right')
+            for column in self.cls.columns():
+                if not column.startswith('id_'):
+                    column_value = getattr(element, column)
+                    logger.debug('Column {}, value {};'.format(column, column_value))
+                    column_label = QtGui.QLabel(column, self)
+                    value_label = QtGui.QLabel(fromUtf8(unicode(column_value)), self)
+                    self.column_box.addWidget(column_label, 1)
+                    self.values_box.addWidget(value_label, 1)
+            for column in self.cls.links():
+                column_value = getattr(element, column)
+                logger.debug('Column {}, value {};'.format(column, column_value))
+                column_label = QtGui.QLabel(column, self)
+                value_label = QtGui.QLabel(fromUtf8(unicode(column_value)), self)
+                self.column_box.addWidget(column_label, 1)
+                self.values_box.addWidget(value_label, 1)
+            for column in self.cls.associations():
+                column_value = getattr(element, column)
+                logger.debug('Column {}, value {};'.format(column, column_value))
+                column_label = QtGui.QLabel(column, self)
+                value_label = QtGui.QLabel(fromUtf8(unicode(column_value)), self)
+                self.column_box.addWidget(column_label, 1)
+                self.values_box.addWidget(value_label, 1)
+
+    def make_pair(self, param, element=None):
+        pass
+
+    def default_combo_pair(self, param, lp=False):
+        getter = self.lp if lp else self.lesson
+        cls = type(getattr(getter, param))
+        label = cls.translated
+        values = cls.read(self.session, all_=True)
+        value = getattr(getter, param)
+        name = cls.__tablename__
+        self.set_combo_pair(label, values, name, value)
+
+    def default_list_pair(self, param, lp=False):
+        getter = self.lp if lp else self.lesson
+        cls = type(getattr(getter, param)[0])
+        label = cls.translated
+        values = cls.read(self.session, all_=True)
+        selected_values = getattr(getter, param)
+        name = cls.__tablename__
+        self.set_list_pair(label, selected_values, values, name)
 
 
 class ShowLesson(WeeksDialog):
