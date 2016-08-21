@@ -53,7 +53,7 @@ class WeeksMenu(QtGui.QMainWindow):
         self.menubar = WeekMenuBar(self, menu_data=menu_data)
         self.setMenuBar(self.menubar)
 
-        default_data = [get_table(self.session, 'groups', 20), 'groups']
+        default_data = [get_table(self.session, 'groups', 136), 'groups']
         self.tabs.set_table(*default_data)
 
         self.retranslateUi()
