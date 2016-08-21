@@ -23,7 +23,7 @@ def create_empty(session):
             id_subject=1, id_lesson_type=1, amount=4, needed_stuff='',
             capacity=32, split_groups=0
         ),
-        Lessons(id_lesson_plan=1, id_room=1, is_empty=False,
+        Lessons(id_lesson_plan=1, id_room=1, is_empty=True,
                 id_lesson_time=2, id_week_day=2, id_week=2),
         Users(nickname=u'Test', status=u'method', password='password')
     ])
@@ -88,7 +88,21 @@ def create_teachers(session, teacher_path):
 def create_custom(session):
     # Complete this staff
     session.add_all([
-        Departments(short_name=u'ТК', full_name=u'Техн')
+        Universities(short_name=u'НТУУ «КПІ»',
+                     full_name=u'Національний технічний університет України '
+                               u'«Київський політехнічний інститут»'),
+
+        Faculties(id_university=2, short_name=u'ФІОТ',
+                  full_name=u'Інформатики та обчислюваної техніки'),
+
+        Departments(id_faculty=2, short_name=u'ТК',
+                    full_name=u'Технiчної кiбернетики'),
+        Departments(id_faculty=2, short_name=u'ОТ',
+                    full_name=u'Обчислювальної технiки'),
+        Departments(id_faculty=2, short_name=u'АУТС',
+                    full_name=u'Автоматики i управлiння в технiчних системах'),
+        Departments(id_faculty=2, short_name=u'АСОІУ',
+                    full_name=u'Автоматизованих систем обробки iнформацiї та управлiння'),
     ])
     session.commit()
 

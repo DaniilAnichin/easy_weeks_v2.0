@@ -71,18 +71,29 @@ def main():
                         id_groups = []
                         for g in lp['groups']:
                             id_groups.append(select_groups(s, name=g)[0]['id'])
+
+                        if not select_lesson_types(s, short_name=lp['lt']):
+                            lp['lt'] = u'Лек'
+
                         new_lesson_plan(s, select_subject(s, full_name=lp['ln'])[0]['id'],
                                         select_lesson_types(s, short_name=lp['lt'])[0]['id'],
                                         id_groups,
                                         [select_teachers(s, short_name=unicode(teacher[teacher.index(' ')+1:], 'utf-8'))
-                                        [0]['id']],
+                                         [0]['id']],
                                         lp['tf2w'], 0, 32 * len(lp['groups']), '')
+
                     for row in info['data']:
                         id_groups = []
                         for g in row['groups']:
                             id_groups.append(select_groups(s, name=g['group_full_name'])[0]['id'])
 
-                        # print select_rooms(s, name=row['lesson_room'])
+                        if isinstance(select_rooms(s, name=row['lesson_room']), int):
+                            print select_rooms(s, name=row['lesson_room'])
+                            continue
+
+                        if not select_lesson_types(s, short_name=row['lesson_type']):
+                            row['lesson_type'] = u'Лек'
+
                         new_lesson(s, select_lesson_plans(s, id_subject=select_subject(s,
                                                                                         full_name=
                                                                                         row['lesson_full_name']
@@ -93,8 +104,8 @@ def main():
                                                                                              )[0]['id'],
                                                           groups=id_groups)[0]['id'],
                                    select_rooms(s, name=row['lesson_room'])[0].id,
-                                   int(row['lesson_number'])-1 + (5 * (int(row['day_number'])-1)) + (30 * (int(
-                                       row['lesson_week'])-1)))
+                                   int(row['lesson_number']) - 1 + 5 * (int(row['day_number'])-1)) + 30 * (int(
+                                       row['lesson_week'])-1)
     s.close_all()
 
 

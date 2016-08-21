@@ -113,8 +113,8 @@ class Base(object):
         result = session.query(cls)
 
         if all_:
-            return result.all()
-            # return result.all()[1:]
+            # return result.all()
+            return result.all()[1:]
 
         # Global filter loop:
         for key in kwargs.keys():
@@ -439,7 +439,7 @@ class LessonTypes(Base):
     translated = u'Тип'
 
     def __unicode__(self):
-        return self.short_name
+        return self.full_name
 
     lesson_plans = relationship('LessonPlans', backref='lesson_type', cascade='all, delete-orphan')
 
@@ -574,8 +574,10 @@ class Lessons(Base):
 
     def __init__(self, *args, **kwargs):
         row_time = kwargs.get('row_time', '')
-        if row_time:
+
+        if row_time != '':
             kwargs.update(self.from_row(row_time))
+
         super(Lessons, self).__init__(*args, **kwargs)
         self.row_time = self.to_row(self.time())
         logger.info('Passed lesson init')
