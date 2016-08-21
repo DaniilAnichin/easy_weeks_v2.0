@@ -8,7 +8,6 @@ from gui.translate import fromUtf8
 logger = Logger()
 
 
-# color_start = 'background-color: '
 color_start = '''border: 1px solid #8f8f91;
     border-radius: 6px;
     background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
@@ -23,6 +22,9 @@ button_colors = {
     u'Лаб': ['ff7777', 'ff1111']
 }
 
+size_policy = QtGui.QSizePolicy(
+    QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum
+)
 
 class EditableList(QtGui.QListWidget):
     def __init__(self, parent, items_list, suggested_list, inner_name):
@@ -136,23 +138,14 @@ class CompleterCombo(QtGui.QComboBox):
 
 
 class DragButton(QtGui.QPushButton):
-    def __init__(self, lesson, view_args, draggable, *args):
+    def __init__(self, lesson, view_args, draggable, time, *args):
         super(DragButton, self).__init__(*args)
-        self.lesson = lesson
-        self.view_args = view_args
-        size_policy = QtGui.QSizePolicy(
-            QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum
-        )
-        self.setSizePolicy(size_policy)
-        self.setAcceptDrops(draggable)
         self.draggable = draggable
-        logger.debug('Lesson is: %s' % self.lesson)
-        if isinstance(self.lesson, list):
-            logger.debug('Lesson num is: %s' % len(self.lesson))
-        self.setText(self.lesson.to_table(view_args))
-        self.set_bg_color(
-            self.lesson.lesson_plan.lesson_type.short_name
-        )
+        self.view_args = view_args
+        self.setSizePolicy(size_policy)
+        self.setAcceptDrops(self.draggable)
+        self.set_time(time)
+        self.set_lesson(lesson)
 
     def mousePressEvent(self, QMouseEvent):
         QtGui.QPushButton.mousePressEvent(self, QMouseEvent)
@@ -162,11 +155,14 @@ class DragButton(QtGui.QPushButton):
             from gui.dialogs import ShowLesson, EditLesson
 
             if self.draggable:
+                if self.lesson.is_empty:
+                    pass
                 self.edit_dial = EditLesson(self.lesson, self.parent().session, time=False)
                 self.edit_dial.show()
             else:
-                self.show_dial = ShowLesson(self.lesson)
-                self.show_dial.show()
+                if not self.lesson.is_empty:
+                    self.show_dial = ShowLesson(self.lesson)
+                    self.show_dial.show()
             logger.info('Pressed: %s' % self.__str__())
 
     def mouseMoveEvent(self, e):
@@ -190,30 +186,23 @@ class DragButton(QtGui.QPushButton):
         drag.setHotSpot(e.pos())
 
         # start the drag operation
-        # exec_ will return the accepted action from dropEvent
         if drag.exec_(QtCore.Qt.CopyAction | QtCore.Qt.MoveAction) == QtCore.Qt.MoveAction:
-            print 'moved'
+            logger.debug('Moved: %s' % self)
         else:
-            print 'copied'
+            logger.debug('Copied: %s' % self)
 
     def dragEnterEvent(self, e):
         e.accept()
 
     def dropEvent(self, e):
-        # get the relative position from the mime data
-        mime = e.mimeData().text()
         if self != e.source():
             if e.keyboardModifiers() & QtCore.Qt.ShiftModifier:
-                # Do we need any other modes??
                 e.setDropAction(QtCore.Qt.CopyAction)
             else:
                 # Perform swap:
-                # Further add lesson swap
                 content = e.source().lesson
-                e.source().lesson = self.lesson
-                e.source().setText(self.text())
-                self.lesson = content
-                self.setText(content.to_table(self.view_args))
+                e.source().set_lesson(self.lesson)
+                self.set_lesson(content)
 
                 # tell the QDrag we accepted it
                 e.setDropAction(QtCore.Qt.MoveAction)
@@ -221,34 +210,39 @@ class DragButton(QtGui.QPushButton):
         else:
             e.ignore()
 
-    def set_bg_color(self, lesson_type):
-        # palette = self.palette()
-        # palette.setColor(
-        #     QtGui.QPalette.Button,
-        #     button_colors[lesson_type]
-        # )
-        # self.setAutoFillBackground(True)
-        # self.setPalette(palette)
-        # self.update()
+    def set_lesson(self, lesson):
+        self.lesson = lesson
+        self.set_bg_color(self.lesson.lesson_plan.lesson_type.short_name)
+        self.setText(self.lesson.to_table(self.view_args))
 
-        self.setStyleSheet(
-            # color_start + button_colors[lesson_type].name()
-            color_start.format(*button_colors[lesson_type])
-            # color_start.format(*button_colors[u'Лек'])
+    def set_bg_color(self, lesson_type):
+        self.setStyleSheet(color_start.format(*button_colors[lesson_type]))
+
+    def set_time(self, time):
+        self.time = dict(
+            id_week=db_structure.Lessons.week_ids[time[0]],
+            id_week_day=db_structure.Lessons.day_ids[time[1]],
+            id_lesson_time=db_structure.Lessons.time_ids[time[2]]
         )
 
 
 class ButtonGrid(QtGui.QGridLayout):
     def __init__(self, parent):
+        self.created = False
         super(ButtonGrid, self).__init__(parent)
         # self.parent_name = parent.objectName()
 
-    def set_table(self, lesson_set, view_args, drag_enabled=False):
+    def set_table(self, lesson_set, view_args, week, drag_enabled=False):
+        if self.created:
+            for child in self.children():
+                del child
         for i in range(len(lesson_set)):
             for j in range(len(lesson_set[i])):
+                time = [week, i, j]
                 self.addWidget(
-                    DragButton(lesson_set[i][j], view_args, drag_enabled),
+                    DragButton(lesson_set[i][j], view_args, drag_enabled, time),
                     j, i, 1, 1)
+        self.created = True
 
 
 class TempGrid(QtGui.QGridLayout):
@@ -284,19 +278,19 @@ class WeekTool(QtGui.QToolBox):
     def __init__(self, parent, session, *args, **kwargs):
         super(WeekTool, self).__init__(parent, *args, **kwargs)
         self.session = session
-        self.first = QtGui.QWidget(parent)
-        self.first.session = session
-        self.second = QtGui.QWidget(parent)
-        self.second.session = session
+        self.first_panel = QtGui.QWidget(parent)
+        self.first_panel.session = session
+        self.second_panel = QtGui.QWidget(parent)
+        self.second_panel.session = session
+        self.first_table = ButtonGrid(self.first_panel)
+        self.second_table = ButtonGrid(self.second_panel)
+        self.addItem(self.first_panel, '')
+        self.addItem(self.second_panel, '')
+        self.translateUI()
 
     def set_table(self, lesson_set, view_args, drag_enabled=False):
-        first_table = ButtonGrid(self.first)
-        first_table.set_table(lesson_set[0], view_args, drag_enabled)
-        second_table = ButtonGrid(self.second)
-        second_table.set_table(lesson_set[1], view_args, drag_enabled)
-        self.addItem(self.first, '')
-        self.addItem(self.second, '')
-        self.translateUI()
+        self.first_table.set_table(lesson_set[0], view_args, 0, drag_enabled)
+        self.second_table.set_table(lesson_set[1], view_args, 1, drag_enabled)
 
     def translateUI(self):
         self.setItemText(0, fromUtf8('Перший тиждень'))
@@ -307,10 +301,6 @@ class EasyTab(QtGui.QTabWidget):
     def __init__(self, parent, session):
         super(EasyTab, self).__init__(parent)
         self.session = session
-        # self.user =
-        # self.tabWidget.setTabEnabled(
-        #     self.tabWidget.indexOf(self.tab_admin), False
-        # )
         self.parent_name = parent.objectName()
         self.initUI()
 
@@ -332,6 +322,9 @@ class EasyTab(QtGui.QTabWidget):
         user_hbox.addWidget(self.user_table)
         self.tab_user.setLayout(user_hbox)
         self.method_table = WeekTool(self.tab_method, self.session)
+        method_hbox = QtGui.QHBoxLayout(self.tab_method)
+        method_hbox.addWidget(self.method_table, 1)
+        self.tab_method.setLayout(method_hbox)
 
         self.translateUI()
 
@@ -343,14 +336,7 @@ class EasyTab(QtGui.QTabWidget):
 
     def set_table(self, lesson_set, view_args):
         self.user_table.set_table(lesson_set, view_args)
-
         self.method_table.set_table(lesson_set, view_args, drag_enabled=True)
-        # self.temp_table = TempGrid(self.tab_method)
-        method_hbox = QtGui.QHBoxLayout(self.tab_method)
-        method_hbox.addWidget(self.method_table, 1)
-        # method_hbox.addLayout(self.temp_table, 1)
-        self.tab_method.setLayout(method_hbox)
-
 
 '''
         self.tabWidget = MyTab(self.centralwidget)
@@ -491,23 +477,18 @@ class AdminTab(QtGui.QWidget):
         from gui.dialogs import AdminEditor
         cls_name = db_structure.__all__[self.objects.currentIndex()]
         logger.info('Running create dialog for %s' % cls_name)
-        self.editor = AdminEditor(cls_name, self.session, empty=True)
 
+        self.editor = AdminEditor(cls_name, self.session, empty=True)
         self.editor.show()
-        # elements = getattr(db_structure, cls_name).read(self.session, all_=True)
 
     def show_edit(self):
         from gui.dialogs import AdminEditor
-        cls_name = db_structure.__all__[self.objects.currentIndex()]
         index = self.items_list.row(self.items_list.currentItem())
-        name = self.items_list.currentItem().text()
-        logger.info('Running edit dialog for %s - %s' % (cls_name, name))
-
         element = self.items_list.viewed_items[index]
-        logger.debug(type(element))
+        logger.info('Running edit dialog for %s' % unicode(element))
 
-        # self.editor = AdminEditor(cls_name, self.session, empty=True)
-        # self.edit_dial = AdminEditor()1
+        self.editor = AdminEditor(element, self.session)
+        self.editor.show()
 
 
 class SearchTab(QtGui.QWidget):
@@ -580,7 +561,6 @@ class SearchTab(QtGui.QWidget):
 
 class WeekMenuBar(QtGui.QMenuBar):
     def __init__(self, *args, **kwargs):
-        # self.menubar.setGeometry(QtCore.QRect(0, 0, 805, 19))
         self.menu_data = kwargs.pop('menu_data', [])
         super(WeekMenuBar, self).__init__(*args, **kwargs)
 

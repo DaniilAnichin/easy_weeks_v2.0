@@ -26,7 +26,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database import DATABASE_DIR, DATABASE_NAME
 from database.structure.db_structure import Base
-from database.start_db.seeds import create_empty, create_common
+from database.start_db.seeds import *
 
 
 def create_new_database(path=DATABASE_NAME):
@@ -60,6 +60,7 @@ def main():
     s = create_new_database(DATABASE_NAME)
     s = create_empty(s)
     s = create_common(s)
+    s = create_custom(s)
     return 0
 
 

@@ -44,12 +44,14 @@ class LoginDialog(QtGui.QDialog):
     def accept(self):
         login = unicode(self.login_input.text())
         password = unicode(self.password_input.text())
+        self.user = None
 
         login_users = [user for user in self.users if user.nickname == login]
 
         if login_users:
             if login_users[0].authenticate(password):
                 logger.info('Auth passed')
+                self.user = login_users[0]
                 super(LoginDialog, self).accept()
             else:
                 self.login_input.setText(fromUtf8('Невірний пароль!'))
@@ -152,7 +154,7 @@ class AdminEditor(WeeksDialog):
         else:
             logger.debug('All right')
             for column in self.cls.fields():
-                if not column.startswith('id_'):
+                if not column.startswith('id_') and not column == 'id':
                     self.make_pair(column)
             self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.save))
 
@@ -294,6 +296,30 @@ class EditLesson(WeeksDialog):
     def save(self):
         logger.debug('Here must be editor saving')
         self.close()
+
+
+class TableChoosingDialog(WeeksDialog):
+    def __init__(self, session, *args, **kwargs):
+        super(TableChoosingDialog, self).__init__(*args, **kwargs)
+        self.session = session
+        self.data_types = [Teachers, Groups, Rooms]
+        find_choices = [item.translated for item in self.data_types]
+        self.set_combo_pair(fromUtf8('What to find: '), find_choices, 'data_type')
+        self.data_type.currentIndexChanged.connect(self.set_list)
+        self.set_combo_pair(fromUtf8('Name of data: '), [], 'data_choice')
+        self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.accept))
+
+    def set_list(self):
+        self.data_type = self.data_types[self.data_type.currentIndex()]
+        self.values = self.data_type.read(self.session, all_=True)
+        self.values.sort(key=lambda a: unicode(a))
+        self.data_choice.addItems([unicode(item) for item in self.values])
+
+    def accept(self):
+        logger.debug('Here must be editor saving')
+        self.data_type = self.data_type.__tablename__
+        self.data_id = self.values[self.data_choice.currentIndex()].id
+        super(TableChoosingDialog, self).accept()
 
 
 def main():
