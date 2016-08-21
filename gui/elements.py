@@ -211,7 +211,10 @@ class DragButton(QtGui.QPushButton):
             e.ignore()
 
     def set_lesson(self, lesson):
-        self.lesson = lesson
+        if lesson.is_temp:
+            self.lesson = lesson
+        else:
+            self.lesson = lesson.make_temp(self.parent().session)
         self.set_bg_color(self.lesson.lesson_plan.lesson_type.short_name)
         self.setText(self.lesson.to_table(self.view_args))
 

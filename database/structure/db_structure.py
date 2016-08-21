@@ -44,6 +44,7 @@ class Base(object):
     _columns = ['id']
     _links = []
     _associations = []
+    id = Column(Integer, primary_key=True)
 
     def __init__(self, *args, **kwargs):
         logger.info('DB model init call invokes')   # Never called..
@@ -57,11 +58,9 @@ class Base(object):
     @classmethod
     def single(cls):
         if cls.__tablename__ in ['faculties', 'universities']:
-            return cls.__tablename__[:-2].lower() + 'y'
+            return cls.__tablename__[:-2] + 'y'
         else:
-            return cls.__tablename__[:-1].lower()
-
-    id = Column(Integer, primary_key=True)
+            return cls.__tablename__[:-1]
 
     @classmethod
     def links(cls):
@@ -97,10 +96,6 @@ class Base(object):
         elif result:
             return db_codes['exists']
         else:
-            # for c in cls._columns:
-            #     for l in cls._links:
-            #         if c[3:]==l:
-            #
             session.add(cls(**kwargs))
 
         return db_codes['success']
@@ -121,14 +116,6 @@ class Base(object):
             if key not in cls.fields():
                 return db_codes['wrong']
             elif isinstance(kwargs[key], list):
-                # More lists
-                # elements = getattr(result.all()[0], key)
-                # if isinstance(elements, list) and False:
-                #     result.filter(or_(
-                #         element.in_(kwargs[key]) for element in getattr(cls, key)
-                #     ))
-                # else:
-                #     result.filter(cls.id.in_(kwargs[key]))
                 result = result.filter(getattr(cls, key).in_(kwargs[key]))
                 # OK as parent select for lesson_plan and other will be modified
                 # work proper for all 'easy' classes
@@ -528,8 +515,8 @@ class LessonPlans(Base):
         result = session.query(cls)
 
         if all_:
-            return result.all()
-            # return result.all()[1:]
+            # return result.all()
+            return result.all()[1:]
 
         # Global filter loop:
         for key in kwargs.keys():
@@ -633,13 +620,14 @@ class Lessons(Base):
             defaults.pop('rooms')
             defaults.update({'rooms': kwargs['rooms']})
 
-        lesson_plan = LessonPlans(defaults, )
         if set(kwargs.keys()) < set(cls.fields()):
             return Lessons(is_temp=True, is_empty=True)
         else:
             return Lessons(is_temp=True, id_empty=True, **kwargs)
 
-    def make_temp(self, session, time):
+    def make_temp(self, session, time=None):
+        if not time:
+            time = self.time()
         lessons = Lessons.read(session, all_=True)
         temp_lesson = Lessons.create(session, is_temp=True, id_room=self.id_room, **time)
         if temp_lesson != db_codes['success']:

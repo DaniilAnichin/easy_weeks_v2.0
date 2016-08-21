@@ -248,6 +248,7 @@ class ShowLesson(WeeksDialog):
         self.set_pair(Weeks.translated, self.lesson.week)
         self.set_pair(WeekDays.translated, self.lesson.week_day)
         self.set_pair(LessonTimes.translated, self.lesson.lesson_time)
+        logger.debug('This lesson %s temp' % ('is' if self.lesson.is_temp else 'isn\'t'))
 
 
 class EditLesson(WeeksDialog):
