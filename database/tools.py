@@ -9,8 +9,8 @@ def swap_local(first, second):
     first_time = first.time()
     second_time = second.time()
     logger.info('Local lessons swap started')
-    logger.debug('First time: %d' % first.raw_time)
-    logger.debug('Second time: %d' % second.raw_time)
+    logger.debug('First time: %d' % first.row_time)
+    logger.debug('Second time: %d' % second.row_time)
 
     first.set_time(second_time)
     second.set_time(first_time)

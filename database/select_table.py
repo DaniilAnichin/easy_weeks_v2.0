@@ -1,5 +1,7 @@
 from database import *
 from structure import *
+logger = Logger()
+
 
 def get_table(session, data_type, data):
     if isinstance(session, int):
@@ -10,7 +12,7 @@ def get_table(session, data_type, data):
                   for i in range(len(Lessons.time_ids))]
                   for j in range(len(Lessons.day_ids))]
                   for k in range(len(Lessons.week_ids))]
-    if data_type == 'room':
+    if data_type == 'rooms':
         for w in Lessons.week_ids:
             for d in Lessons.day_ids:
                 for t in Lessons.time_ids:
