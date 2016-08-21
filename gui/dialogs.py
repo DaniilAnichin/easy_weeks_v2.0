@@ -275,6 +275,7 @@ class EditLesson(WeeksDialog):
             self.default_combo_pair(elem)
 
         self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.save))
+        logger.debug('This lesson %s temp' % ('is' if self.lesson.is_temp else 'isn\'t'))
 
     def default_combo_pair(self, param, lp=False):
         getter = self.lp if lp else self.lesson

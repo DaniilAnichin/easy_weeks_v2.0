@@ -48,7 +48,7 @@ def main():
                     for row in info['data']:
                         for g in row['groups']:
                             new_group(s, g['group_full_name'])
-                        new_room(s, row['lesson_room'], 32 * len(row['groups']))
+                        new_room(s, row['lesson_room'], 40 * len(row['groups']))
                         new_subject(s, row['lesson_name'], row['lesson_full_name'])
                     for row in info['data']:
                         core_info = {'ln': row['lesson_full_name'],

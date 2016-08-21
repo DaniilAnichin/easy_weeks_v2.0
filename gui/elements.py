@@ -138,14 +138,13 @@ class CompleterCombo(QtGui.QComboBox):
 
 
 class DragButton(QtGui.QPushButton):
-    def __init__(self, lesson, view_args, draggable, time, *args):
+    def __init__(self, view_args, draggable, time, *args):
         super(DragButton, self).__init__(*args)
         self.draggable = draggable
         self.view_args = view_args
         self.setSizePolicy(size_policy)
         self.setAcceptDrops(self.draggable)
         self.set_time(time)
-        self.set_lesson(lesson)
 
     def mousePressEvent(self, QMouseEvent):
         QtGui.QPushButton.mousePressEvent(self, QMouseEvent)
@@ -211,7 +210,7 @@ class DragButton(QtGui.QPushButton):
             e.ignore()
 
     def set_lesson(self, lesson):
-        if lesson.is_temp:
+        if lesson.is_temp or lesson.is_empty or not self.draggable:
             self.lesson = lesson
         else:
             self.lesson = lesson.make_temp(self.parent().session)
@@ -242,9 +241,9 @@ class ButtonGrid(QtGui.QGridLayout):
         for i in range(len(lesson_set)):
             for j in range(len(lesson_set[i])):
                 time = [week, i, j]
-                self.addWidget(
-                    DragButton(lesson_set[i][j], view_args, drag_enabled, time),
-                    j, i, 1, 1)
+                lesson_button = DragButton(view_args, drag_enabled, time)
+                self.addWidget(lesson_button, j, i, 1, 1)
+                lesson_button.set_lesson(lesson_set[i][j])
         self.created = True
 
 

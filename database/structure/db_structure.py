@@ -86,7 +86,7 @@ class Base(object):
     def create(cls, session, **kwargs):
         # looks like it's working
         # Add fields and associations?
-        if set(kwargs.keys()) < set(cls.columns()):
+        if not set(kwargs.keys()) < set(cls.columns()):
             return db_codes['wrong']
 
         result = cls.read(session, **kwargs)
@@ -550,7 +550,7 @@ class Lessons(Base):
     id_lesson_time = Column(Integer, ForeignKey('lesson_times.id'))
     id_week_day = Column(Integer, ForeignKey('week_days.id'))
     id_week = Column(Integer, ForeignKey('weeks.id'))
-    is_temp = Column(Boolean, default=True)
+    is_temp = Column(Boolean, default=False)
     is_empty = Column(Boolean, default=False)
     row_time = Column(Integer)
     translated = u'Заняття'
@@ -628,9 +628,14 @@ class Lessons(Base):
     def make_temp(self, session, time=None):
         if not time:
             time = self.time()
+        logger.debug(time)
         lessons = Lessons.read(session, all_=True)
-        temp_lesson = Lessons.create(session, is_temp=True, id_room=self.id_room, **time)
-        if temp_lesson != db_codes['success']:
+        temp_lesson = Lessons.create(session, id_lesson_plan=self.id_lesson_plan,
+                                     is_temp=True, id_room=self.id_room, **time)
+        if temp_lesson == db_codes['exists']:
+            return Lessons.read(session, id_lesson_plan=self.id_lesson_plan,
+                                is_temp=True, id_room=self.id_room, **time)[0]
+        elif temp_lesson != db_codes['success']:
             return temp_lesson
 
         new_lessons = Lessons.read(session, all_=True)
@@ -671,9 +676,46 @@ class Lessons(Base):
         return result
 
     _columns = ['id', 'id_lesson_plan', 'id_room', 'id_lesson_time',
-                'id_week_day', 'id_week', 'row_time']
+                'id_week_day', 'id_week', 'row_time', 'is_temp', 'is_empty']
     _links = ['lesson_plan', 'room', 'lesson_time', 'week_day', 'week']
     # error = db_codes['lessons']
+
+    @classmethod
+    def read(cls, session, all_=False, **kwargs):
+        # if 'is_temp' not in kwargs.keys():
+        #     kwargs.update(dict(is_temp=False))
+        return super(Lessons, cls).read(session, all_=all_, **kwargs)
+
+    @classmethod
+    def create(cls, session, **kwargs):
+        if not set(kwargs.keys()) < set(cls.columns()):
+            return db_codes['wrong']
+        if 'row_time' not in kwargs.keys():
+            kwargs.update(row_time=cls.to_row(kwargs))
+            logger.debug('No row_time passed')
+
+        result = cls.read(session, **kwargs)
+
+        if isinstance(result, int):
+            return result
+        elif result:
+            return db_codes['exists']
+
+        if not kwargs.get('is_temp', True):
+            cur_lp = LessonPlans.read(session, id=kwargs['id_lesson_plan'])[0]
+            if kwargs['row_time'] < 0 or kwargs['row_time'] > cls.table_size:
+                return db_codes['time']
+            if cur_lp.amount <= len(Lessons.read(session, id_lesson_plan=kwargs['id_lesson_plan'])):
+                return db_codes['wrong']
+
+            exists = cls.exists(session, **kwargs)
+            if exists:
+                return exists
+
+        session.add(Lessons(**kwargs))
+        session.commit()
+
+        return db_codes['success']
 
     @classmethod
     def update(cls, session, main_id, **kwargs):
@@ -706,41 +748,6 @@ class Lessons(Base):
                 setattr(result, key, kwargs[key])
 
         result.row_time = cls.to_row(result.time())
-        session.commit()
-
-        return db_codes['success']
-
-    @classmethod
-    def create(cls, session, **kwargs):
-        if set(kwargs.keys()) < set(cls.columns()):
-            return db_codes['wrong']
-        if 'row_time' not in kwargs.keys():
-            kwargs.update(row_time=cls.to_row(kwargs))
-            logger.debug('No row_time passed')
-
-        result = cls.read(session, **kwargs)
-
-        if isinstance(result, int):
-            return result
-        elif result:
-            return db_codes['exists']
-
-        if not kwargs.get('is_temp', True):
-            cur_lp = LessonPlans.read(session, id=kwargs['id_lesson_plan'])[0]
-            if kwargs['row_time'] < 0 or kwargs['row_time'] > cls.table_size:
-                return db_codes['time']
-            if cur_lp.amount <= len(Lessons.read(session, id_lesson_plan=kwargs['id_lesson_plan'])):
-                return db_codes['wrong']
-
-            exists = cls.exists(session, **kwargs)
-            if exists:
-                return exists
-
-        session.add(Lessons(
-            id_lesson_plan=kwargs['id_lesson_plan'],
-            id_room=kwargs['id_room'],
-            row_time=kwargs['row_time']
-        ))
         session.commit()
 
         return db_codes['success']
