@@ -226,7 +226,8 @@ def select_rooms(s, id_r=0, **kwargs):
     if kwargs.get('name', '') == '' and not kwargs.get('capacity', 0) and kwargs.get('additional_stuff', '') == '' \
             and not kwargs.get('departments', []) and not id_r:
         print "Must be one of the parameters"
-        return -1
+        return Rooms.read(s, id=1)
+        # return -1
     if type(s) is int:
         print "No session"
         return -2
@@ -327,7 +328,11 @@ def select_lesson_types(s, id_t=0, **kwargs):
         t_dict = {'id': t.id, 'short_name': t.short_name, 'full_name': t.full_name}
         type_dict.append(t_dict)
 
-    return type_dict
+    if type_dict:
+        return type_dict
+    else:
+        t = s.query(LessonTypes).get(1)
+        return [{'id': t.id, 'short_name': t.short_name, 'full_name': t.full_name}]
 
 
 def select_lesson_times(s, id_t=0, **kwargs):

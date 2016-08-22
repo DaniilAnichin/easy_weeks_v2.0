@@ -359,12 +359,12 @@ def new_lesson(s, id_lp, id_room, row_time):
             print "Invalid time"
 
             return -14
-    if id_room != 1:
+    if not (id_room == 1 or exist_rm.capacity >= 256):
         for room_checker in s.query(Lessons).filter(Lessons.row_time == row_time).all():
             if room_checker.id_room == id_room:
                 print "This room is busy at this time"
                 return -16
-    if exist_lp.capacity > s.query(Rooms).get(id_room).capacity:
+    if exist_lp.capacity > exist_rm.capacity:
         print "Too small room for this lesson"
         return -10
     if exist_lp.needed_stuff != exist_rm.additional_stuff or exist_lp.needed_stuff != '':
@@ -374,9 +374,9 @@ def new_lesson(s, id_lp, id_room, row_time):
     s.add(Lessons(id_lesson_plan=id_lp,
                   id_room=id_room,
                   row_time=row_time,
-                  id_week=int(row_time / 30) + 1,
-                  id_week_day=int(row_time % 30 / 6) + 1,
-                  id_lesson_time=int(row_time % 5) + 1
+                  id_week=int(row_time / 30) + 2,
+                  id_week_day=int(row_time % 30 / 6) + 2,
+                  id_lesson_time=int(row_time % 5) + 2
                   ))
     s.commit()
 
