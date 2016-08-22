@@ -96,9 +96,10 @@ class Base(object):
         elif result:
             return db_codes['exists']
         else:
-            session.add(cls(**kwargs))
+            elem = cls(**kwargs)
+            session.add(elem)
 
-        return db_codes['success']
+        return elem
 
     @classmethod
     def read(cls, session, all_=False, **kwargs):
@@ -168,6 +169,8 @@ class Base(object):
             return db_codes['absent']
         if isinstance(result, int):
             return result
+
+        result = result[0]
 
         # Reset links:
         for link in cls.links():
@@ -581,7 +584,7 @@ class Lessons(Base):
 
     def set_time(self, time):
         for key in time.keys():
-            setattr(self, key, time(key))
+            setattr(self, key, time[key])
         self.row_time = self.to_row(time)
 
     @classmethod
@@ -628,35 +631,28 @@ class Lessons(Base):
     def make_temp(self, session, time=None):
         if not time:
             time = self.time()
-        logger.debug(time)
-        lessons = Lessons.read(session, all_=True)
         temp_lesson = Lessons.create(session, id_lesson_plan=self.id_lesson_plan,
                                      is_temp=True, id_room=self.id_room, **time)
         if temp_lesson == db_codes['exists']:
             return Lessons.read(session, id_lesson_plan=self.id_lesson_plan,
                                 is_temp=True, id_room=self.id_room, **time)[0]
-        elif temp_lesson != db_codes['success']:
+        elif isinstance(temp_lesson, int):
             return temp_lesson
 
-        new_lessons = Lessons.read(session, all_=True)
-
-        return list(set(new_lessons) - set(lessons))[0]
+        return temp_lesson
 
     @classmethod
     def get_plan(cls, session, **data):
         needed_keys = list(set(data.keys()) & set(LessonPlans.fields()))
-        lesson_plans = LessonPlans.read(session, all_=True)
         exists = LessonPlans.read(session, **{key: data[key] for key in needed_keys})
         if isinstance(exists, list):
             return exists[0]
 
         lesson_plan = LessonPlans.create(session, **{key: data[key] for key in needed_keys})
-        if lesson_plan != db_codes['success']:
+        if isinstance(lesson_plan, int):
             return lesson_plan
 
-        new_plans = Lessons.read(session, all_=True)
-
-        return list(set(new_plans) - set(lesson_plans))[0]
+        return lesson_plan
 
     def to_table(self, *args):
         # Make lesson to string to view it on the table
@@ -682,8 +678,8 @@ class Lessons(Base):
 
     @classmethod
     def read(cls, session, all_=False, **kwargs):
-        # if 'is_temp' not in kwargs.keys():
-        #     kwargs.update(dict(is_temp=False))
+        if 'is_temp' not in kwargs.keys() and 'id' not in kwargs.keys():
+            kwargs.update(dict(is_temp=False))
         return super(Lessons, cls).read(session, all_=all_, **kwargs)
 
     @classmethod
@@ -712,10 +708,11 @@ class Lessons(Base):
             if exists:
                 return exists
 
-        session.add(Lessons(**kwargs))
+        lesson = Lessons(**kwargs)
+        session.add(lesson)
         session.commit()
 
-        return db_codes['success']
+        return lesson
 
     @classmethod
     def update(cls, session, main_id, **kwargs):

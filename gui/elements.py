@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from functools import partial
-from database import Logger
+from database import Logger, db_codes_output
 from database.structure import db_structure
 from PyQt4 import QtGui, QtCore
 from gui.translate import fromUtf8
@@ -26,16 +26,23 @@ size_policy = QtGui.QSizePolicy(
     QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum
 )
 
+
 class EditableList(QtGui.QListWidget):
     def __init__(self, parent, items_list, suggested_list, inner_name):
         super(EditableList, self).__init__(parent)
-        self.addItems(items_list)
-        self.added_items = items_list
-        self.suggested_list = suggested_list
+        self.view_items = items_list
+        self.view_items.sort(key=lambda a: unicode(a))
+        self.suggested_items = suggested_list
+        self.suggested_items.sort(key=lambda a: unicode(a))
+        self.addItems([unicode(item) for item in self.view_items])
+        self.blocked = False
         setattr(self.parent(), inner_name, self)
 
     def mousePressEvent(self, QMouseEvent):
         QtGui.QListWidget.mousePressEvent(self, QMouseEvent)
+
+        if self.blocked:
+            return
 
         if not (QMouseEvent.modifiers() & QtCore.Qt.ShiftModifier):
             # Only Shift click performing
@@ -43,37 +50,44 @@ class EditableList(QtGui.QListWidget):
 
         if QMouseEvent.button() == QtCore.Qt.RightButton:
             # Right button for delete
-            self.removeItemWidget(self.currentItem())
+            index = self.row(self.currentItem())
+            self.takeItem(index)
             logger.debug('Here should be delete')
+            self.blocked = True
+            self.time = QtCore.QTimer.singleShot(500, self.unblock)
         elif QMouseEvent.button() == QtCore.Qt.LeftButton:
             # Left button to add
             self.show_completer()
 
+    def unblock(self):
+        self.blocked = False
+
     def addItem(self, *__args):
         logger.debug(__args)
 
-        if unicode(__args[0]) not in self.suggested_list:
+        if __args[0] not in self.suggested_items:
+            logger.info('Wrong item')
             return
 
-        super(EditableList, self).addItem(*__args[:1])
-        # Save to this list, to be able to subtract
-        self.added_items += [unicode(__args[0])]
+        self.view_items += [__args[0]]
+        self.view_items.sort(key=lambda a: unicode(a))
+        index = self.view_items.index(__args[0])
+        self.insertItem(index, unicode(__args[0]))
+        # super(EditableList, self).addItem(unicode(__args[0]))
         logger.info('Added item "%s"' % __args[:1])
 
-    def removeItemWidget(self, listWidgetItem):
-        try:
-            index = self.added_items.index(listWidgetItem.text())
-        except AttributeError:
-            logger.info('Already deleted')
-            return
-        self.added_items.pop(index)
-        logger.info('Deleted item "%s"' % listWidgetItem.text())
-        self.takeItem(self.row(listWidgetItem))
+    def takeItem(self, p_int):
+        logger.info('Deleted item "%s"' % unicode(self.view_items[p_int]))
+        self.view_items.pop(p_int)
+        super(EditableList, self).takeItem(p_int)
 
     def show_completer(self):
         # Create completer combobox:
         completer = CompleterCombo(self)
-        completer.addItems(list(set(self.suggested_list) - set(self.added_items)))
+        self.completer_items = list(set(self.suggested_items) - set(self.view_items))
+        self.completer_items.sort(key=lambda a: unicode(a))
+        completer.addItems([unicode(item) for item in self.completer_items])
+        completer.setCurrentIndex(1)
 
         # Create modal window
         self.dialog = QtGui.QDialog()
@@ -82,7 +96,10 @@ class EditableList(QtGui.QListWidget):
         # Create button, connect
         submit = QtGui.QPushButton(fromUtf8('Додати'))
         # logger.debug(completer.currentText())
-        submit.clicked.connect(partial(self.addItem, completer.currentText()))
+        submit.clicked.connect(partial(
+            self.addItem,
+            self.completer_items[completer.currentIndex()]
+        ))
         submit.clicked.connect(self.dialog.close)
 
         # Add to layout
@@ -92,7 +109,7 @@ class EditableList(QtGui.QListWidget):
 
         # show
         logger.info('Raised completer window')
-        self.dialog.show()
+        self.dialog.exec_()
 
 
 class CompleterCombo(QtGui.QComboBox):
@@ -155,13 +172,14 @@ class DragButton(QtGui.QPushButton):
 
             if self.draggable:
                 if self.lesson.is_empty:
-                    pass
-                self.edit_dial = EditLesson(self.lesson, self.parent().session, time=False)
-                self.edit_dial.show()
+                    return
+                # self.edit_dial = EditLesson(self.lesson, self.parent().session, time=False)
+                self.edit_dial = EditLesson(self.lesson, self.parent().session)
+                self.edit_dial.exec_()
             else:
                 if not self.lesson.is_empty:
                     self.show_dial = ShowLesson(self.lesson)
-                    self.show_dial.show()
+                    self.show_dial.exec_()
             logger.info('Pressed: %s' % self.__str__())
 
     def mouseMoveEvent(self, e):
@@ -216,6 +234,9 @@ class DragButton(QtGui.QPushButton):
             self.lesson = lesson.make_temp(self.parent().session)
         self.set_bg_color(self.lesson.lesson_plan.lesson_type.short_name)
         self.setText(self.lesson.to_table(self.view_args))
+        if self.draggable and not self.lesson.is_empty:
+            type(self.lesson).update(self.parent().session, main_id=self.lesson.id, **self.time)
+        # self.lesson.set_time(self.time)
 
     def set_bg_color(self, lesson_type):
         self.setStyleSheet(color_start.format(*button_colors[lesson_type]))
@@ -227,6 +248,10 @@ class DragButton(QtGui.QPushButton):
             id_lesson_time=db_structure.Lessons.time_ids[time[2]]
         )
 
+    def before_close(self):
+        if self.lesson.is_temp:
+            type(self.lesson).delete(self.parent().session, self.lesson.id)
+
 
 class ButtonGrid(QtGui.QGridLayout):
     def __init__(self, parent):
@@ -235,9 +260,6 @@ class ButtonGrid(QtGui.QGridLayout):
         # self.parent_name = parent.objectName()
 
     def set_table(self, lesson_set, view_args, week, drag_enabled=False):
-        if self.created:
-            for child in self.children():
-                del child
         for i in range(len(lesson_set)):
             for j in range(len(lesson_set[i])):
                 time = [week, i, j]
@@ -291,12 +313,27 @@ class WeekTool(QtGui.QToolBox):
         self.translateUI()
 
     def set_table(self, lesson_set, view_args, drag_enabled=False):
+        self.clear_table()
         self.first_table.set_table(lesson_set[0], view_args, 0, drag_enabled)
         self.second_table.set_table(lesson_set[1], view_args, 1, drag_enabled)
+
+    def clear_table(self):
+        for child in self.first_panel.children():
+            if isinstance(child, DragButton):
+                child.before_close()
+                del child
+        for child in self.second_panel.children():
+            if isinstance(child, DragButton):
+                child.before_close()
+                del child
 
     def translateUI(self):
         self.setItemText(0, fromUtf8('Перший тиждень'))
         self.setItemText(1, fromUtf8('Другий тиждень'))
+
+    def before_close(self):
+        self.clear_table()
+        logger.debug('We\'re going to close')
 
 
 class EasyTab(QtGui.QTabWidget):
@@ -409,88 +446,107 @@ class EasyTab(QtGui.QTabWidget):
 '''
 
 
-class AdminList(QtGui.QListWidget):
-    def __init__(self, *args, **kwargs):
-        super(AdminList, self).__init__(*args, **kwargs)
-
-    def addItem(self, *__args):
-        logger.info('Item %s added', __args[0])
-        super(AdminList, self).addItem(*__args[1:])
-
-    def takeItem(self):
-        logger.info('Item %s deleted' % self.currentItem().text())
-        self.viewed_items.pop(self.row(self.currentItem()))
-        super(AdminList, self).takeItem(self.row(self.currentItem()))
-
-
 class AdminTab(QtGui.QWidget):
     def __init__(self, parent, session):
         super(AdminTab, self).__init__(parent)
         self.session = session
         self.setObjectName('admin_tab')
-        self.initUI()
 
-    def initUI(self):
         self.vbox = QtGui.QVBoxLayout(self)
         self.hbox = QtGui.QHBoxLayout()
-        self.objects = CompleterCombo(self)
-        self.objects.currentIndexChanged.connect(self.set_list)
 
+        self.objects = CompleterCombo(self)
+        self.objects.items = []
+        self.objects.currentIndexChanged.connect(self.set_list)
+        self.objects.setCurrentIndex(1)
         self.hbox.addWidget(self.objects)
+
         spacer = QtGui.QSpacerItem(
             40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum
         )
         self.hbox.addItem(spacer)
 
-        self.items_list = AdminList(self)
-
         self.addButton = QtGui.QPushButton(self)
         self.addButton.clicked.connect(self.show_add)
+        self.hbox.addWidget(self.addButton)
+
         self.deleteButton = QtGui.QPushButton(self)
-        self.deleteButton.clicked.connect(partial(self.items_list.takeItem))
+        self.deleteButton.clicked.connect(self.show_delete)
+        self.hbox.addWidget(self.deleteButton)
+
         self.editButton = QtGui.QPushButton(self)
         self.editButton.clicked.connect(self.show_edit)
-        self.hbox.addWidget(self.addButton)
-        self.hbox.addWidget(self.deleteButton)
         self.hbox.addWidget(self.editButton)
 
         self.vbox.addLayout(self.hbox)
+
+        self.items_list = QtGui.QListWidget(self)
+        self.view_items = []
         self.vbox.addWidget(self.items_list)
         self.translateUI()
+        self.set_objects()
 
     def translateUI(self):
-        self.objects.addItems(
-            [getattr(db_structure, elem).translated for elem in db_structure.__all__]
-        )
-
         self.addButton.setText(fromUtf8('Додати'))
         self.deleteButton.setText(fromUtf8('Видалити'))
         self.editButton.setText(fromUtf8('Редагувати'))
 
+    def set_objects(self):
+        self.objects.items = [getattr(db_structure, item) for item in db_structure.__all__]
+        self.objects.items.sort(key=lambda a: a.translated)
+        self.objects.addItems([item.translated for item in self.objects.items])
+
     def set_list(self):
-        cls_name = db_structure.__all__[self.objects.currentIndex()]
-        logger.info('Setting admin list for %s' % cls_name)
-        elements = getattr(db_structure, cls_name).read(self.session, all_=True)
+        cls = self.objects.items[self.objects.currentIndex()]
+        logger.info('Setting admin list for %s' % cls.__name__)
         self.items_list.clear()
-        self.items_list.viewed_items = elements
-        self.items_list.addItems([unicode(elem) for elem in elements])
+        self.view_items = cls.read(self.session, all_=True)
+        self.view_items.sort(key=lambda a: unicode(a))
+        self.items_list.addItems([unicode(item) for item in self.view_items])
 
     def show_add(self):
         from gui.dialogs import AdminEditor
-        cls_name = db_structure.__all__[self.objects.currentIndex()]
-        logger.info('Running create dialog for %s' % cls_name)
+        cls = self.objects.items[self.objects.currentIndex()]
+        logger.info('Running create dialog for %s' % cls.__name__)
 
-        self.editor = AdminEditor(cls_name, self.session, empty=True)
-        self.editor.show()
+        self.editor = AdminEditor(cls, self.session, empty=True)
+        if self.editor.exec_() == AdminEditor.Accepted:
+            logger.info('Adding accepted')
+            # Perform DB call
+            # Perform add calld
+
+    def show_delete(self):
+        from gui.dialogs import RUSureDelete
+        # cls_name = db_structure.__all__[self.objects.currentIndex()]
+        # logger.info('Running create dialog for %s' % cls_name)
+        #
+        # self.editor = AdminEditor(cls_name, self.session, empty=True)
+        # self.editor.show()
+        index = self.items_list.row(self.items_list.currentItem())
+        if index < 0 or index > self.view_items.__len__():
+            return
+        element = self.view_items[index]
+        cls = type(element)
+        self.warning = RUSureDelete(element)
+        if self.warning.exec_() == QtGui.QMessageBox.Yes:
+            logger.info('Item %s deleted' % unicode(self.items_list.currentItem().text()))
+            self.items_list.takeItem(index)
+            logger.info(db_codes_output[cls.delete(self.session, main_id=element.id)])
+            # Perform db call
 
     def show_edit(self):
         from gui.dialogs import AdminEditor
         index = self.items_list.row(self.items_list.currentItem())
-        element = self.items_list.viewed_items[index]
+        if index < 0 or index > self.view_items.__len__():
+            return
+        element = self.view_items[index]
         logger.info('Running edit dialog for %s' % unicode(element))
 
         self.editor = AdminEditor(element, self.session)
-        self.editor.show()
+        if self.editor.exec_() == AdminEditor.Accepted:
+            logger.info('Editing accepted')
+            # Perform DB call
+            # Perform add calld
 
 
 class SearchTab(QtGui.QWidget):

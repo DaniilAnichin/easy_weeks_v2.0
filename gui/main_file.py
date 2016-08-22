@@ -115,6 +115,7 @@ def main():
     app = QtGui.QApplication(sys.argv)
 
     window = WeeksMenu(session)
+    app.aboutToQuit.connect(window.tabs.method_table.before_close)
     window.show()
     sys.exit(app.exec_())
 

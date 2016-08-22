@@ -83,21 +83,19 @@ class WeeksDialog(QtGui.QDialog):
 
     def make_combo(self, choice_list, selected, name):
         combo = elements.CompleterCombo()
-        combo.values = [unicode(item) for item in choice_list]
-        combo.addItems(combo.values)
+        combo.items = choice_list
+        combo.items.sort(key=lambda a: unicode(a))
+        combo.addItems([unicode(item) for item in combo.items])
         setattr(self, name, combo)
         if selected:
-            combo.setCurrentIndex(combo.values.index(unicode(selected)))
-        logger.info('Added combobox with name "%s"' % name)
+            combo.setCurrentIndex(combo.items.index(selected))
+        # logger.info('Added combobox with name "%s"' % name)
         return combo
 
     def make_list(self, values_list, choice_list, name):
-        text_values_list = [unicode(value) for value in values_list]
-        text_choice_list = [unicode(value) for value in choice_list]
-        items_list = elements.EditableList(self, text_values_list, text_choice_list, name)
-        logger.info('Added list widget with name "%s"' % name)
+        items_list = elements.EditableList(self, values_list, choice_list, name)
+        # logger.info('Added list widget with name "%s"' % name)
         return items_list
-        # Something else?
 
     def set_pair(self, first_data, second_data):
         hbox = QtGui.QHBoxLayout()
@@ -145,7 +143,7 @@ class AdminEditor(WeeksDialog):
         self.session = session
         logger.debug('Element is %s' % element)
         self.empty = empty
-        self.cls = getattr(db_structure, element) if empty else type(element)
+        self.cls = element if empty else type(element)
         self.cls_name = self.cls.__name__
         self.element = self.cls.read(self.session, id=1)[0] if empty else element
 
@@ -156,7 +154,7 @@ class AdminEditor(WeeksDialog):
             for column in self.cls.fields():
                 if not column.startswith('id_') and not column == 'id':
                     self.make_pair(column)
-            self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.save))
+            self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.accept))
 
     def make_pair(self, param):
         exp_result = getattr(self.element, param)
@@ -224,9 +222,9 @@ class AdminEditor(WeeksDialog):
         hbox.addWidget(check, 1)
         self.vbox.addLayout(hbox, 1)
 
-    def save(self):
+    def accept(self):
         logger.debug('Here must be editor saving')
-        self.close()
+        super(AdminEditor, self).accept()
 
 
 class ShowLesson(WeeksDialog):
@@ -269,13 +267,12 @@ class EditLesson(WeeksDialog):
         for elem in ['groups', 'teachers']:
             self.default_list_pair(elem, lp=True)
         self.default_combo_pair('subject', lp=True)
-        # field_list = ['room'] + (['week', 'week_day', 'lesson_time'] if True else [])
         field_list = ['room'] + (['week', 'week_day', 'lesson_time'] if time else [])
+        # field_list = ['room', 'week', 'week_day', 'lesson_time']
         for elem in field_list:
             self.default_combo_pair(elem)
 
-        self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.save))
-        logger.debug('This lesson %s temp' % ('is' if self.lesson.is_temp else 'isn\'t'))
+        self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.accept))
 
     def default_combo_pair(self, param, lp=False):
         getter = self.lp if lp else self.lesson
@@ -295,9 +292,9 @@ class EditLesson(WeeksDialog):
         name = cls.__tablename__
         self.set_list_pair(label, selected_values, values, name)
 
-    def save(self):
+    def accept(self):
         logger.debug('Here must be editor saving')
-        self.close()
+        super(EditLesson, self).accept()
 
 
 class TableChoosingDialog(WeeksDialog):
@@ -322,6 +319,18 @@ class TableChoosingDialog(WeeksDialog):
         self.data_type = self.data_type.__tablename__
         self.data_id = self.values[self.data_choice.currentIndex()].id
         super(TableChoosingDialog, self).accept()
+
+
+class RUSureDelete(QtGui.QMessageBox):
+    def __init__(self, element):
+        super(RUSureDelete, self).__init__()
+        self.setIcon(QtGui.QMessageBox.Warning)
+        info = u'Ви збираєтеся видилити елемент типу %s,' % element.translated
+        info += u'\nа саме: %s' % unicode(element)
+        self.setInformativeText(fromUtf8(info))
+        self.setWindowTitle(fromUtf8('Видалення елемента'))
+        self.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+        self.setDefaultButton(QtGui.QMessageBox.Yes)
 
 
 def main():
