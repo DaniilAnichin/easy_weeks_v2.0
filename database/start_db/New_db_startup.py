@@ -31,7 +31,10 @@ from database.start_db.seeds import *
 
 def create_new_database(path=DATABASE_NAME):
     # Temporary deleting:
-    os.remove(os.path.join(DATABASE_DIR, path))
+    try:
+        os.remove(os.path.join(DATABASE_DIR, path))
+    except OSError:
+        pass
     full_path = os.path.join(DATABASE_DIR, path)
     if os.path.isfile(full_path):
         print "Data base with same name already exits"

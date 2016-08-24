@@ -5,6 +5,10 @@ from database import Logger
 from database.structure import db_structure
 from PyQt4 import QtGui, QtCore
 from gui.translate import fromUtf8
+from database.import_schedule import GetCurTimetable
+import os
+from database.start_db import *
+
 logger = Logger()
 
 
@@ -581,3 +585,35 @@ class WeekMenuBar(QtGui.QMenuBar):
             self.addAction(menu_element.menuAction())
 
         self.parent().setMenuBar(self)
+
+
+class ImportDialog(QtGui.QWidget):
+    def __init__(self, parent=None):
+        super(ImportDialog, self).__init__(parent)
+
+        self.layout = QtGui.QGridLayout(self)
+        self.import_all_button = QtGui.QPushButton(u'Повне оновлення', self)
+        self.layout.addWidget(self.import_all_button, 0, 0)
+        self.import_all_button.clicked.connect(self.updatedb)
+        self.setLayout(self.layout)
+
+    def updatedb(self):
+        # temporary deleting:
+        pro_bar = QtGui.QProgressBar(self)
+        self.layout.addWidget(pro_bar, 1, 0)
+        pro_bar.show()
+        os.remove(os.path.join(DATABASE_DIR, DATABASE_NAME))
+        s = create_new_database(os.path.join(DATABASE_DIR, DATABASE_NAME))
+        s = create_empty(s)
+        s = create_common(s)
+        with open(os.path.join(DATABASE_DIR, 'import_schedule', '_teachers.txt'), 'r') as f:
+            i = 0
+            max_t = len(f.readlines())
+            f.seek(0)
+            for teacher in f:
+                i += 1
+                pro_bar.setValue(int(100*i/max_t))
+                pro_bar.update()
+                teacher = teacher[:-1]
+                GetCurTimetable.teacher_update(s, teacher)
+                QtCore.QCoreApplication.processEvents()
