@@ -587,20 +587,25 @@ class WeekMenuBar(QtGui.QMenuBar):
         self.parent().setMenuBar(self)
 
 
-class ImportDialog(QtGui.QWidget):
-    def __init__(self, parent=None):
+class ImportDialog(QtGui.QDialog):
+    def __init__(self, s, parent=None):
         super(ImportDialog, self).__init__(parent)
 
         self.layout = QtGui.QGridLayout(self)
         self.import_all_button = QtGui.QPushButton(u'Повне оновлення', self)
         self.layout.addWidget(self.import_all_button, 0, 0)
         self.import_all_button.clicked.connect(self.updatedb)
+        self.import_dep_button = QtGui.QPushButton(u'Оновлення викладачів\nкафедри')
+        self.layout.addWidget(self.import_dep_button, 0, 1)
+        self.import_dep_button.clicked.connect(self.updateDepDb)
         self.setLayout(self.layout)
+        self.session = s
 
     def updatedb(self):
         # temporary deleting:
         pro_bar = QtGui.QProgressBar(self)
         self.layout.addWidget(pro_bar, 1, 0)
+        pro_bar.setValue(0)
         pro_bar.show()
         os.remove(os.path.join(DATABASE_DIR, DATABASE_NAME))
         s = create_new_database(os.path.join(DATABASE_DIR, DATABASE_NAME))
@@ -617,3 +622,34 @@ class ImportDialog(QtGui.QWidget):
                 teacher = teacher[:-1]
                 GetCurTimetable.teacher_update(s, teacher)
                 QtCore.QCoreApplication.processEvents()
+        self.deleteLater()
+
+    def updateDepDb(self):
+        pro_bar = QtGui.QProgressBar(self)
+        self.layout.addWidget(pro_bar, 1, 2)
+        pro_bar.setValue(0)
+        pro_bar.show()
+        s = self.session
+
+        dep_id = get_dep()
+        j = 0
+        max_t = len(Teachers.read(s, id_department=dep_id))
+        for t in Teachers.read(s, id_department=dep_id):
+            teacher = Degrees.read(s, id=t.id_degree)[0].short_name+u' '+t.short_name
+            t_lessons = Lessons.read(s, id_lesson_plan=[i.id for i in LessonPlans.read(s, teachers=t.id)])
+            if t.id == 1:
+                continue
+            for lesson in t_lessons:
+                lesson.delete(s, lesson.id)
+            for lp in LessonPlans.read(s, teachers=t.id):
+                lp.delete(s, lp.id)
+            GetCurTimetable.teacher_update(s, teacher, False)
+            pro_bar.setValue(int(100 * j / max_t))
+            pro_bar.update()
+            QtCore.QCoreApplication.processEvents()
+            j += 1
+        self.deleteLater()
+
+
+def get_dep():
+    return 1

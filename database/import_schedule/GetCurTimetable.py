@@ -15,10 +15,12 @@ teachers_url = "http://api.rozklad.org.ua/v2/teachers/?search={'query': '%s'}"
 
 
 def get_teacher_id(s, cur_teacher, add_teacher=True):
+    if isinstance(cur_teacher, unicode):
+        cur_teacher = cur_teacher.encode('utf-8')
     cur_teacher_soname = cur_teacher[cur_teacher.index(' ') + 1:cur_teacher.index(' ', cur_teacher.index(' ') + 1)]
 
     curURL = teachers_url % cur_teacher_soname
-    #    webbrowser.open(curURL)
+    # webbrowser.open(curURL)
     info = json.load(urllib.urlopen(curURL))
     if info["statusCode"] == 200:
         for row in info['data']:
@@ -32,15 +34,17 @@ def get_teacher_id(s, cur_teacher, add_teacher=True):
     return -1
 
 
-def teacher_update(s, teacher):
+def teacher_update(s, teacher, add_t=True):
     # # temporary deleting:
     # # os.remove(os.path.join(DATABASE_DIR, DATABASE_NAME))
     # # s = create_new_database(os.path.join(DATABASE_DIR, DATABASE_NAME))
     # s = connect_database(os.path.join(DATABASE_DIR, DATABASE_NAME))
     # with open(os.path.join(DATABASE_DIR, 'import_schedule', '_teachers.txt'), 'r') as f:
     #     for teacher in f:
-    if get_teacher_id(s, teacher) != -1:
-        cur_url = lessons_url % get_teacher_id(s, teacher)
+    if isinstance(teacher, unicode):
+        teacher = teacher.encode('utf-8')
+    if get_teacher_id(s, teacher, add_t) != -1:
+        cur_url = lessons_url % get_teacher_id(s, teacher, add_t)
         info = json.load(urllib.urlopen(cur_url))
         if info["statusCode"] == 200:
             lp_dict = []

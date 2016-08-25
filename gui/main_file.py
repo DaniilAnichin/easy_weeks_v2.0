@@ -103,7 +103,7 @@ class WeeksMenu(QtGui.QMainWindow):
     def load_database(self):
         logger.info('Started database uploading function')
 
-        self.update = ImportDialog()
+        self.update = ImportDialog(self.session)
         self.update.show()
 
     def check_database(self):
