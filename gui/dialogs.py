@@ -83,7 +83,7 @@ class WeeksDialog(QtGui.QDialog):
 
     def make_combo(self, choice_list, selected, name):
         combo = elements.CompleterCombo()
-        combo.items = choice_list
+        combo.items = choice_list[:]
         combo.items.sort(key=lambda a: unicode(a))
         combo.addItems([unicode(item) for item in combo.items])
         setattr(self, name, combo)

@@ -30,9 +30,9 @@ size_policy = QtGui.QSizePolicy(
 class EditableList(QtGui.QListWidget):
     def __init__(self, parent, items_list, suggested_list, inner_name):
         super(EditableList, self).__init__(parent)
-        self.view_items = items_list
+        self.view_items = items_list[:]
         self.view_items.sort(key=lambda a: unicode(a))
-        self.suggested_items = suggested_list
+        self.suggested_items = suggested_list[:]
         self.suggested_items.sort(key=lambda a: unicode(a))
         self.addItems([unicode(item) for item in self.view_items])
         self.blocked = False
@@ -70,11 +70,11 @@ class EditableList(QtGui.QListWidget):
             return
 
         self.view_items += [__args[0]]
-        self.view_items.sort(key=lambda a: unicode(a))
-        index = self.view_items.index(__args[0])
-        self.insertItem(index, unicode(__args[0]))
-        # super(EditableList, self).addItem(unicode(__args[0]))
-        logger.info('Added item "%s"' % __args[:1])
+        # self.view_items.sort(key=lambda a: unicode(a))
+        # index = self.view_items.index(__args[0])
+        # self.insertItem(index, unicode(__args[0]))
+        super(EditableList, self).addItem(unicode(__args[0]))
+        logger.info('Added item "%s"' % unicode(__args[0]))
 
     def takeItem(self, p_int):
         logger.info('Deleted item "%s"' % unicode(self.view_items[p_int]))
@@ -87,7 +87,7 @@ class EditableList(QtGui.QListWidget):
         self.completer_items = list(set(self.suggested_items) - set(self.view_items))
         self.completer_items.sort(key=lambda a: unicode(a))
         completer.addItems([unicode(item) for item in self.completer_items])
-        completer.setCurrentIndex(1)
+        # completer.setCurrentIndex(1)
 
         # Create modal window
         self.dialog = QtGui.QDialog()
@@ -250,7 +250,8 @@ class DragButton(QtGui.QPushButton):
 
     def before_close(self):
         if self.lesson.is_temp:
-            type(self.lesson).delete(self.parent().session, self.lesson.id)
+            ret = type(self.lesson).delete(self.parent().session, self.lesson.id)
+            logger.debug(db_codes_output[ret])
 
 
 class ButtonGrid(QtGui.QGridLayout):

@@ -634,6 +634,7 @@ class Lessons(Base):
         temp_lesson = Lessons.create(session, id_lesson_plan=self.id_lesson_plan,
                                      is_temp=True, id_room=self.id_room, **time)
         if temp_lesson == db_codes['exists']:
+            logger.debug('RLY?')
             return Lessons.read(session, id_lesson_plan=self.id_lesson_plan,
                                 is_temp=True, id_room=self.id_room, **time)[0]
         elif isinstance(temp_lesson, int):
@@ -694,7 +695,7 @@ class Lessons(Base):
 
         if isinstance(result, int):
             return result
-        elif result:
+        elif result and not kwargs.get('is_temp', True):
             return db_codes['exists']
 
         if not kwargs.get('is_temp', True):
