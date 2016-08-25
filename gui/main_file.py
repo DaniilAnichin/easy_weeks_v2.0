@@ -7,7 +7,7 @@ from database.structure import *
 from database.start_db.New_db_startup import connect_database
 from database.select_table import get_table
 from gui.dialogs import LoginDialog, TableChoosingDialog
-from gui.elements import EasyTab, WeekMenuBar
+from gui.elements import EasyTab, WeekMenuBar, ImportDialog
 from gui.translate import fromUtf8
 logger = Logger()
 
@@ -53,7 +53,7 @@ class WeeksMenu(QtGui.QMainWindow):
         self.menubar = WeekMenuBar(self, menu_data=menu_data)
         self.setMenuBar(self.menubar)
 
-        default_data = [get_table(self.session, 'groups', 136), 'groups']
+        default_data = [get_table(self.session, 'groups', 140), 'groups']
         self.tabs.set_table(*default_data)
 
         self.retranslateUi()
@@ -102,6 +102,9 @@ class WeeksMenu(QtGui.QMainWindow):
 
     def load_database(self):
         logger.info('Started database uploading function')
+
+        self.update = ImportDialog(self.session)
+        self.update.show()
 
     def check_database(self):
         logger.info('Started database check function')
