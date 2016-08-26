@@ -81,11 +81,11 @@ class WeeksDialog(QtGui.QDialog):
         this_button.clicked.connect(partial(callback, *args, **kwargs))
         return this_button
 
-    def make_combo(self, choice_list, selected, name):
+    def make_combo(self, choice_list, selected, name, sort_key):
         combo = elements.CompleterCombo()
         combo.items = choice_list[:]
-        combo.items.sort(key=lambda a: unicode(a))
-        combo.addItems([unicode(item) for item in combo.items])
+        combo.items.sort(key=sort_key)
+        combo.addItems([sort_key(item) for item in combo.items])
         setattr(self, name, combo)
         if selected:
             combo.setCurrentIndex(combo.items.index(selected))
@@ -103,10 +103,10 @@ class WeeksDialog(QtGui.QDialog):
         hbox.addWidget(QtGui.QLabel(self.make_text(second_data)), 1)
         self.vbox.addLayout(hbox, 1)
 
-    def set_combo_pair(self, first_data, second_data, name, selected=None):
+    def set_combo_pair(self, first_data, second_data, name, key=lambda a: unicode(a), selected=None):
         hbox = QtGui.QHBoxLayout()
         hbox.addWidget(QtGui.QLabel(self.make_text(first_data)), 1)
-        hbox.addWidget(self.make_combo(second_data, selected, name), 1)
+        hbox.addWidget(self.make_combo(second_data, selected, name, key), 1)
         self.vbox.addLayout(hbox, 1)
 
     def set_list_pair(self, first_data, second_data, third_data, name):
@@ -302,20 +302,20 @@ class TableChoosingDialog(WeeksDialog):
         super(TableChoosingDialog, self).__init__(*args, **kwargs)
         self.session = session
         self.data_types = [Teachers, Groups, Rooms]
-        find_choices = [item.translated for item in self.data_types]
-        self.set_combo_pair(fromUtf8('What to find: '), find_choices, 'data_type')
-        self.data_type.currentIndexChanged.connect(self.set_list)
-        self.set_combo_pair(fromUtf8('Name of data: '), [], 'data_choice')
+        self.set_combo_pair(fromUtf8('Для кого розклад: '), self.data_types, 'type', lambda a: a.translated)
+        self.type.currentIndexChanged.connect(self.set_list)
+        self.set_combo_pair(fromUtf8('Ім\'я: '), [], 'data_choice')
+        self.set_list()
         self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.accept))
 
     def set_list(self):
-        self.data_type = self.data_types[self.data_type.currentIndex()]
-        self.values = self.data_type.read(self.session, all_=True)
+        self.data_type = self.type.items[self.type.currentIndex()]
+        self.values = self.data_type.read(self.session, all_=True)[:]
         self.values.sort(key=lambda a: unicode(a))
+        self.data_choice.clear()
         self.data_choice.addItems([unicode(item) for item in self.values])
 
     def accept(self):
-        logger.debug('Here must be editor saving')
         self.data_type = self.data_type.__tablename__
         self.data_id = self.values[self.data_choice.currentIndex()].id
         super(TableChoosingDialog, self).accept()

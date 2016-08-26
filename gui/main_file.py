@@ -41,8 +41,8 @@ class WeeksMenu(QtGui.QMainWindow):
             ]
         ]
         self.tabs = EasyTab(self.center, self.session)
-        # self.set_user(Users.read(self.session, nickname='Admin')[0])
-        self.set_user()
+        self.set_user(Users.read(self.session, nickname='Admin')[0])
+        # self.set_user()
 
         self.hbox.addWidget(self.tabs)
         self.setCentralWidget(self.center)
@@ -53,7 +53,7 @@ class WeeksMenu(QtGui.QMainWindow):
         self.menubar = WeekMenuBar(self, menu_data=menu_data)
         self.setMenuBar(self.menubar)
 
-        default_data = [get_table(self.session, 'groups', 140), 'groups']
+        default_data = [get_table(self.session, 'groups', 42), 'groups']
         self.tabs.set_table(*default_data)
 
         self.retranslateUi()

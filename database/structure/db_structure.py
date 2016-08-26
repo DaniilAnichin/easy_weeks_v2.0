@@ -162,7 +162,7 @@ class Base(object):
         if main_id == 1:
             return db_codes['reserved']
 
-        result = cls.read(session, id=main_id)[0]
+        result = cls.read(session, id=main_id)
 
         # Check for existence:
         if not result:
