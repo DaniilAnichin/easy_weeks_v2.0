@@ -7,13 +7,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="efba25a3-c94c-4dd7-acb7-a88090d3e1b2" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/database/structure/model_fields.py" afterPath="" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/database/structure/all.py" afterPath="$PROJECT_DIR$/gui/multy_combo.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/structure/db_structure.py" afterPath="$PROJECT_DIR$/database/structure/db_structure.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gui/dialogs.py" afterPath="$PROJECT_DIR$/gui/dialogs.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gui/elements.py" afterPath="$PROJECT_DIR$/gui/elements.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/select_table.py" afterPath="$PROJECT_DIR$/database/select_table.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gui/main_file.py" afterPath="$PROJECT_DIR$/gui/main_file.py" />
     </list>
     <ignored path="easy_weeks.iws" />
@@ -36,11 +31,11 @@
     <splitter split-orientation="horizontal" split-proportion="0.5">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="main_file.py" pinned="false" current-in-tab="false">
+          <file leaf-file-name="main_file.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/gui/main_file.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="252">
-                  <caret line="14" column="35" selection-start-line="14" selection-start-column="35" selection-end-line="14" selection-end-column="35" />
+                <state relative-caret-position="1913">
+                  <caret line="120" column="21" selection-start-line="120" selection-start-column="21" selection-end-line="120" selection-end-column="21" />
                   <folding>
                     <element signature="e#44#54#0" expanded="true" />
                   </folding>
@@ -90,11 +85,11 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="dialogs.py" pinned="false" current-in-tab="true">
+          <file leaf-file-name="dialogs.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/gui/dialogs.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="307">
-                  <caret line="210" column="31" selection-start-line="210" selection-start-column="31" selection-end-line="210" selection-end-column="31" />
+                <state relative-caret-position="271">
+                  <caret line="208" column="0" selection-start-line="208" selection-start-column="0" selection-end-line="208" selection-end-column="0" />
                   <folding>
                     <element signature="e#44#73#0" expanded="true" />
                   </folding>
@@ -206,11 +201,11 @@
         <option value="$PROJECT_DIR$/database/select_table.py" />
         <option value="$PROJECT_DIR$/database/tools.py" />
         <option value="$PROJECT_DIR$/database/import_schedule/GetCurTimetable.py" />
-        <option value="$PROJECT_DIR$/gui/main_file.py" />
         <option value="$PROJECT_DIR$/gui/multy_combo.py" />
         <option value="$PROJECT_DIR$/gui/elements.py" />
         <option value="$PROJECT_DIR$/database/structure/db_structure.py" />
         <option value="$PROJECT_DIR$/gui/dialogs.py" />
+        <option value="$PROJECT_DIR$/gui/main_file.py" />
       </list>
     </option>
   </component>
@@ -925,16 +920,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/gui/main_file.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="252">
-          <caret line="14" column="35" selection-start-line="14" selection-start-column="35" selection-end-line="14" selection-end-column="35" />
-          <folding>
-            <element signature="e#44#54#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/database/structure/model_fields.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="162">
@@ -1011,23 +996,32 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/gui/dialogs.py">
+    <entry file="file://$PROJECT_DIR$/gui/elements.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="401">
-          <caret line="231" column="0" selection-start-line="231" selection-start-column="0" selection-end-line="231" selection-end-column="0" />
+        <state relative-caret-position="104">
+          <caret line="391" column="46" selection-start-line="391" selection-start-column="46" selection-end-line="391" selection-end-column="46" />
           <folding>
-            <element signature="e#44#73#0" expanded="true" />
-            <marker date="1472296420028" expanded="false" signature="10122:11069" ph="..." />
+            <element signature="e#42#71#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/gui/elements.py">
+    <entry file="file://$PROJECT_DIR$/gui/dialogs.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="437">
-          <caret line="505" column="67" selection-start-line="505" selection-start-column="67" selection-end-line="505" selection-end-column="67" />
+        <state relative-caret-position="271">
+          <caret line="208" column="0" selection-start-line="208" selection-start-column="0" selection-end-line="208" selection-end-column="0" />
           <folding>
-            <element signature="e#42#71#0" expanded="true" />
+            <element signature="e#44#73#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gui/main_file.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1913">
+          <caret line="120" column="21" selection-start-line="120" selection-start-column="21" selection-end-line="120" selection-end-column="21" />
+          <folding>
+            <element signature="e#44#54#0" expanded="true" />
           </folding>
         </state>
       </provider>

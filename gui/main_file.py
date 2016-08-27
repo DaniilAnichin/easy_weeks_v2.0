@@ -5,7 +5,7 @@ from PyQt4 import QtCore, QtGui
 from database import Logger
 from database.structure import *
 from database.start_db.New_db_startup import connect_database
-from database.select_table import get_table
+from database.select_table import get_table, check_data
 from gui.dialogs import LoginDialog, TableChoosingDialog, ImportDialog
 from gui.elements import EasyTab, WeekMenuBar
 from gui.translate import fromUtf8
@@ -108,6 +108,7 @@ class WeeksMenu(QtGui.QMainWindow):
 
     def check_database(self):
         logger.info('Started database check function')
+        check_data(self.session)
 
     def save_database(self):
         logger.info('Started database saving function')
