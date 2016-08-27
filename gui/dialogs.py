@@ -153,7 +153,7 @@ class AdminEditor(WeeksDialog):
         else:
             logger.debug('All right')
             for column in self.cls.fields():
-                if not column.startswith('id_') and not column == 'id':
+                if not (column.startswith('id_') or column == 'id' or column == 'row_time'):
                     self.make_pair(column)
             self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.accept))
             if self.empty:
@@ -209,7 +209,7 @@ class AdminEditor(WeeksDialog):
 
     def default_int_pair(self, param):
         spin = QtGui.QSpinBox()
-        spin.setRange(1, 1000000)
+        spin.setRange(0, 1000000)
         if not self.empty:
             spin.setValue(getattr(self.element, param))
         setattr(self, param, spin)
@@ -245,7 +245,7 @@ class AdminEditor(WeeksDialog):
         logger.debug('Here must be editor saving')
         logger.debug('Values are:')
         for column in self.cls.fields():
-            if not column.startswith('id_') and not column == 'id':
+            if not (column.startswith('id_') or column == 'id' or column == 'row_time'):
                 logger.debug('%s - "%s"' % (column, self.make_text(self.get_pair(column))))
         super(AdminEditor, self).accept()
 

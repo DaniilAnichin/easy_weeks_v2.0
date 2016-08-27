@@ -396,6 +396,7 @@ class EasyTab(QtGui.QTabWidget):
         self.user_table.set_table(lesson_set, view_args)
         self.method_table.set_table(lesson_set, view_args, drag_enabled=True)
 
+
 class AdminTab(QtGui.QWidget):
     def __init__(self, parent, session):
         super(AdminTab, self).__init__(parent)
@@ -467,8 +468,14 @@ class AdminTab(QtGui.QWidget):
         self.editor = AdminEditor(cls, self.session, empty=True)
         if self.editor.exec_() == AdminEditor.Accepted:
             logger.info('Adding accepted')
-            # Perform DB call
-            # Perform add calld
+            fields = [elem for elem in cls.fields() if not (elem.startswith('id_') or elem == 'id' or elem == 'row_time')]
+            values = {key: self.editor.get_pair(key) for key in fields}
+            result = cls.create(self.session, **values)
+            logger.debug('Result: "%s"' % unicode(result))
+            self.view_items.append(result)
+            self.view_items.sort(key=lambda a: unicode(a))
+            new_index = self.view_items.index(result)
+            self.items_list.insertItem(new_index, unicode(result))
 
     def show_delete(self):
         from gui.dialogs import RUSureDelete
@@ -495,7 +502,7 @@ class AdminTab(QtGui.QWidget):
         self.editor = AdminEditor(element, self.session)
         if self.editor.exec_() == AdminEditor.Accepted:
             logger.info('Editing accepted')
-            fields = [elem for elem in type(element).fields() if not (elem.startswith('id_') or elem == 'id')]
+            fields = [elem for elem in type(element).fields() if not (elem.startswith('id_') or elem == 'id' or elem == 'row_time')]
             values = {key: self.editor.get_pair(key) for key in fields}
             logger.debug(db_codes_output[type(element).update(
                 self.session, main_id=element.id, **values

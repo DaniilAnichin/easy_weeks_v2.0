@@ -1,6 +1,6 @@
 """
-	This widget is a Python port of QxtCheckComboBox from http://dev.libqxt.org/libqxt/src
-	(published under public license, but not specifically GPL)
+    This widget is a Python port of QxtCheckComboBox from http://dev.libqxt.org/libqxt/src
+    (published under public license, but not specifically GPL)
 """
 import utils
 from PyQt4 import QtCore, QtGui

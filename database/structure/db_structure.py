@@ -86,7 +86,7 @@ class Base(object):
     def create(cls, session, **kwargs):
         # looks like it's working
         # Add fields and associations?
-        if not set(kwargs.keys()) < set(cls.columns()):
+        if not set(kwargs.keys()) < set(cls.fields()):
             return db_codes['wrong']
 
         result = cls.read(session, **kwargs)
@@ -154,8 +154,8 @@ class Base(object):
         for key in kwargs.keys():
             if key not in cls.fields():
                 return db_codes['wrong']
-            else:
-                setattr(result, key, kwargs[key])
+        for key in kwargs.keys():
+            setattr(result, key, kwargs[key])
 
         session.commit()
 
@@ -529,7 +529,7 @@ class LessonPlans(Base):
 
         # Global filter loop:
         for key in kwargs.keys():
-            if key not in cls.fields() and key not in cls.associations():
+            if key not in cls.fields():
                 return db_codes['wrong']
             elif isinstance(kwargs[key], list):
                 if key == 'groups':
@@ -608,10 +608,16 @@ class Lessons(Base):
 
     @classmethod
     def to_row(cls, time):
-        row_time = cls.time_ids.index(time['id_lesson_time'])
-        row_time += cls.day_ids.index(time['id_week_day']) * len(cls.time_ids)
-        row_time += cls.week_ids.index(time['id_week']) * \
-                    len(cls.day_ids) * len(cls.time_ids)
+        try:
+            row_time = cls.time_ids.index(time['id_lesson_time'])
+            row_time += cls.day_ids.index(time['id_week_day']) * len(cls.time_ids)
+            row_time += cls.week_ids.index(time['id_week']) * \
+                        len(cls.day_ids) * len(cls.time_ids)
+        except KeyError:
+            row_time = cls.time_ids.index(time['lesson_time'].id)
+            row_time += cls.day_ids.index(time['week_day'].id) * len(cls.time_ids)
+            row_time += cls.week_ids.index(time['week'].id) * \
+                        len(cls.day_ids) * len(cls.time_ids)
         return row_time
 
     @classmethod
@@ -691,7 +697,7 @@ class Lessons(Base):
 
     @classmethod
     def create(cls, session, **kwargs):
-        if not set(kwargs.keys()) < set(cls.columns()):
+        if not set(kwargs.keys()) < set(cls.fields()):
             return db_codes['wrong']
         if 'row_time' not in kwargs.keys():
             kwargs.update(row_time=cls.to_row(kwargs))
@@ -705,10 +711,16 @@ class Lessons(Base):
             return db_codes['exists']
 
         if not kwargs.get('is_temp', True):
-            cur_lp = LessonPlans.read(session, id=kwargs['id_lesson_plan'])[0]
+            try:
+                cur_lp = kwargs['lesson_plan']
+                lesson_num = Lessons.read(session, lesson_plan=kwargs['lesson_plan'])
+            except KeyError:
+                cur_lp = LessonPlans.read(session, id=kwargs['id_lesson_plan'])[0]
+                lesson_num = Lessons.read(session, id_lesson_plan=kwargs['id_lesson_plan'])
+
             if kwargs['row_time'] < 0 or kwargs['row_time'] > cls.table_size:
                 return db_codes['time']
-            if cur_lp.amount <= len(Lessons.read(session, id_lesson_plan=kwargs['id_lesson_plan'])):
+            if cur_lp.amount <= lesson_num:
                 return db_codes['wrong']
 
             exists = cls.exists(session, **kwargs)
