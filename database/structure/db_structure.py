@@ -109,15 +109,21 @@ class Base(object):
         result = session.query(cls)
 
         if all_:
-            # return result.all()
-            return result.all()[1:]
+            return result.all()
+            # return result.all()[1:]
 
         # Global filter loop:
         for key in kwargs.keys():
             if key not in cls.fields():
                 return db_codes['wrong']
             elif isinstance(kwargs[key], list):
-                result = result.filter(getattr(cls, key).in_(kwargs[key]))
+                example = cls.read(session, id=1)[0]
+                if isinstance(getattr(example, key), list):
+                    for item in kwargs[key]:
+                        logger.debug('item - "%s"' % item)
+                        result = result.filter(getattr(cls, key).contains(item))
+                else:
+                    result = result.filter(getattr(cls, key).in_(kwargs[key]))
                 # OK as parent select for lesson_plan and other will be modified
                 # work proper for all 'easy' classes
             else:
@@ -146,7 +152,7 @@ class Base(object):
 
         # Global filter loop:
         for key in kwargs.keys():
-            if key not in cls.columns():
+            if key not in cls.fields():
                 return db_codes['wrong']
             else:
                 setattr(result, key, kwargs[key])
@@ -366,7 +372,7 @@ class Degrees(Base):
     translated = u'Ступінь'
 
     def __unicode__(self):
-        return self.short_name
+        return self.full_name
 
     teachers = relationship('Teachers', backref='degree', cascade='all, delete-orphan')
 
@@ -383,7 +389,7 @@ class Teachers(Base):
     translated = u'Викладач'
 
     def __unicode__(self):
-        return self.short_name
+        return self.full_name
 
     _columns = ['id', 'full_name', 'short_name', 'id_department', 'id_degree']
     _links = ['department', 'degree']
@@ -397,7 +403,7 @@ class Subjects(Base):
     translated = u'Предмет'
 
     def __unicode__(self):
-        return self.short_name
+        return self.full_name
 
     lesson_plans = relationship('LessonPlans', backref='subject', cascade='all, delete-orphan')
 
@@ -489,7 +495,7 @@ class LessonPlans(Base):
     translated = u'Навчальній план'
 
     def __unicode__(self):
-        return u'%s with %s' % (unicode(self.subject), unicode(self.groups[0]))
+        return u'%s з %s' % (unicode(self.subject), unicode(self.groups[0]))
 
     amount = Column(Integer, default=2)
     needed_stuff = Column(String, default='')
@@ -573,7 +579,7 @@ class Lessons(Base):
         logger.info('Passed lesson init')
 
     def __unicode__(self):
-        return u'%s at %s' % (unicode(self.lesson_plan), unicode(self.row_time))
+        return u'%s у %s' % (unicode(self.lesson_plan), unicode(self.row_time))
 
     def time(self):
         return dict(

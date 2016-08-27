@@ -145,6 +145,7 @@ class AdminEditor(WeeksDialog):
         self.empty = empty
         self.cls = element if empty else type(element)
         self.cls_name = self.cls.__name__
+        self.example_element = self.cls.read(self.session, id=1)[0]
         self.element = self.cls.read(self.session, id=1)[0] if empty else element
 
         if self.cls_name not in db_structure.__all__:
@@ -155,9 +156,13 @@ class AdminEditor(WeeksDialog):
                 if not column.startswith('id_') and not column == 'id':
                     self.make_pair(column)
             self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.accept))
+            if self.empty:
+                self.setWindowTitle(fromUtf8('Створення елементу'))
+            else:
+                self.setWindowTitle(fromUtf8('Редагування елементу'))
 
     def make_pair(self, param):
-        exp_result = getattr(self.element, param)
+        exp_result = getattr(self.example_element, param)
         if isinstance(exp_result, list):
             self.default_list_pair(param)
         elif isinstance(exp_result, db_structure.Base):
@@ -172,21 +177,35 @@ class AdminEditor(WeeksDialog):
             logger.info("What is this - %s, man?" % exp_result)
             logger.info("It is %s" % type(exp_result))
 
+    def get_pair(self, param):
+        exp_result = getattr(self.example_element, param)
+        if isinstance(exp_result, list):
+            return getattr(self, param).view_items
+        elif isinstance(exp_result, db_structure.Base):
+            return getattr(self, param).items[getattr(self, param).currentIndex()]
+        elif isinstance(exp_result, int):
+            return int(getattr(self, param).value())
+        elif isinstance(exp_result, (str, unicode, QtCore.QString)):
+            return unicode(getattr(self, param).text())
+        elif isinstance(exp_result, bool):
+            return getattr(self, param).isChecked()
+        else:
+            logger.info("What is this - %s, man?" % exp_result)
+            logger.info("It is %s" % type(exp_result))
+
     def default_combo_pair(self, param):
-        cls = type(getattr(self.element, param))
+        cls = type(getattr(self.example_element, param))
         label = cls.translated
         values = cls.read(self.session, all_=True)
         value = None if self.empty else getattr(self.element, param)
-        name = cls.__tablename__
-        self.set_combo_pair(label, values, name, value)
+        self.set_combo_pair(label, values, param, selected=value)
 
     def default_list_pair(self, param):
-        cls = type(getattr(self.element, param)[0])
+        cls = type(getattr(self.example_element, param)[0])
         label = cls.translated
         values = cls.read(self.session, all_=True)
         selected_values = [] if self.empty else getattr(self.element, param)
-        name = cls.__tablename__
-        self.set_list_pair(label, selected_values, values, name)
+        self.set_list_pair(label, selected_values, values, param)
 
     def default_int_pair(self, param):
         spin = QtGui.QSpinBox()
@@ -224,6 +243,10 @@ class AdminEditor(WeeksDialog):
 
     def accept(self):
         logger.debug('Here must be editor saving')
+        logger.debug('Values are:')
+        for column in self.cls.fields():
+            if not column.startswith('id_') and not column == 'id':
+                logger.debug('%s - "%s"' % (column, self.make_text(self.get_pair(column))))
         super(AdminEditor, self).accept()
 
 
@@ -247,6 +270,7 @@ class ShowLesson(WeeksDialog):
         self.set_pair(WeekDays.translated, self.lesson.week_day)
         self.set_pair(LessonTimes.translated, self.lesson.lesson_time)
         logger.debug('This lesson %s temp' % ('is' if self.lesson.is_temp else 'isn\'t'))
+        self.setWindowTitle(fromUtf8('Заняття'))
 
 
 class EditLesson(WeeksDialog):
@@ -262,17 +286,15 @@ class EditLesson(WeeksDialog):
         logger.info('Setting lesson data')
         self.lesson = element
         self.lp = self.lesson.lesson_plan
-        # self.set_pair(Teachers.translated, self.lp.teachers)
-        # self.set_pair(Groups.translated, self.lp.groups)
         for elem in ['groups', 'teachers']:
             self.default_list_pair(elem, lp=True)
         self.default_combo_pair('subject', lp=True)
         field_list = ['room'] + (['week', 'week_day', 'lesson_time'] if time else [])
-        # field_list = ['room', 'week', 'week_day', 'lesson_time']
         for elem in field_list:
             self.default_combo_pair(elem)
 
         self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.accept))
+        self.setWindowTitle(fromUtf8('Редагування заняття'))
 
     def default_combo_pair(self, param, lp=False):
         getter = self.lp if lp else self.lesson
@@ -281,7 +303,7 @@ class EditLesson(WeeksDialog):
         values = cls.read(self.session, all_=True)
         value = getattr(getter, param)
         name = cls.__tablename__
-        self.set_combo_pair(label, values, name, value)
+        self.set_combo_pair(label, values, name, selected=value)
 
     def default_list_pair(self, param, lp=False):
         getter = self.lp if lp else self.lesson
@@ -304,9 +326,10 @@ class TableChoosingDialog(WeeksDialog):
         self.data_types = [Teachers, Groups, Rooms]
         self.set_combo_pair(fromUtf8('Для кого розклад: '), self.data_types, 'type', lambda a: a.translated)
         self.type.currentIndexChanged.connect(self.set_list)
-        self.set_combo_pair(fromUtf8('Ім\'я: '), [], 'data_choice')
+        self.set_combo_pair(fromUtf8('Назва / Ім\'я: '), [], 'data_choice')
         self.set_list()
         self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.accept))
+        self.setWindowTitle(fromUtf8('Вибір розкладу'))
 
     def set_list(self):
         self.data_type = self.type.items[self.type.currentIndex()]
@@ -331,6 +354,94 @@ class RUSureDelete(QtGui.QMessageBox):
         self.setWindowTitle(fromUtf8('Видалення елемента'))
         self.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
         self.setDefaultButton(QtGui.QMessageBox.Yes)
+        self.translateUI()
+
+    def translateUI(self):
+        self.setButtonText(QtGui.QMessageBox.Yes, fromUtf8('Так'))
+        self.setButtonText(QtGui.QMessageBox.No, fromUtf8("Ні"))
+        self.setWindowTitle(fromUtf8('Попередження'))
+
+
+class RUSureChangeTable(QtGui.QMessageBox):
+    def __init__(self):
+        super(RUSureChangeTable, self).__init__()
+        self.setIcon(QtGui.QMessageBox.Warning)
+        # info = u'Ви збираєтеся видилити елемент типу %s,' % element.translated
+        # info += u'\nа саме: %s' % unicode(element)
+        # self.setInformativeText(fromUtf8(info))
+        self.setWindowTitle(fromUtf8('Зміна розкладу'))
+        self.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+        self.setDefaultButton(QtGui.QMessageBox.Yes)
+
+        self.setWindowTitle(fromUtf8('Попередження'))
+
+
+class ImportDialog(QtGui.QDialog):
+    def __init__(self, s, parent=None):
+        super(ImportDialog, self).__init__(parent)
+
+        self.layout = QtGui.QGridLayout(self)
+        self.import_all_button = QtGui.QPushButton(fromUtf8('Повне оновлення'), self)
+        self.layout.addWidget(self.import_all_button, 0, 0)
+        self.import_all_button.clicked.connect(self.updatedb)
+        self.import_dep_button = QtGui.QPushButton(fromUtf8('Оновлення викладачів\nкафедри'))
+        self.layout.addWidget(self.import_dep_button, 0, 1)
+        self.import_dep_button.clicked.connect(self.updateDepDb)
+        self.setWindowTitle(fromUtf8('Оновлення бази'))
+        self.setLayout(self.layout)
+        self.session = s
+
+    def updatedb(self):
+        import os
+        from database import DATABASE_NAME, DATABASE_DIR
+        from database.import_schedule.GetCurTimetable import teacher_update
+        from database.start_db import create_new_database, create_empty, create_common
+
+        pro_bar = QtGui.QProgressBar(self)
+        self.layout.addWidget(pro_bar, 1, 0)
+        pro_bar.setValue(0)
+        pro_bar.show()
+        os.remove(os.path.join(DATABASE_DIR, DATABASE_NAME))
+        s = create_new_database(os.path.join(DATABASE_DIR, DATABASE_NAME))
+        s = create_empty(s)
+        s = create_common(s)
+        with open(os.path.join(DATABASE_DIR, 'import_schedule', '_teachers.txt'), 'r') as f:
+            i = 0
+            max_t = len(f.readlines())
+            f.seek(0)
+            for teacher in f:
+                i += 1
+                pro_bar.setValue(int(100*i/max_t))
+                pro_bar.update()
+                teacher = teacher[:-1]
+                teacher_update(s, teacher)
+                QtCore.QCoreApplication.processEvents()
+        self.deleteLater()
+
+    def updateDepDb(self, dep_id):
+        from database.import_schedule.GetCurTimetable import teacher_update
+        pro_bar = QtGui.QProgressBar(self)
+        self.layout.addWidget(pro_bar, 1, 2)
+        pro_bar.setValue(0)
+        pro_bar.show()
+        s = self.session
+        j = 0
+        max_t = len(Teachers.read(s, id_department=dep_id))
+        for t in Teachers.read(s, id_department=dep_id):
+            teacher = Degrees.read(s, id=t.id_degree)[0].short_name+u' '+t.short_name
+            t_lessons = Lessons.read(s, id_lesson_plan=[i.id for i in LessonPlans.read(s, teachers=t.id)])
+            if t.id == 1:
+                continue
+            for lesson in t_lessons:
+                lesson.delete(s, lesson.id)
+            for lp in LessonPlans.read(s, teachers=t.id):
+                lp.delete(s, lp.id)
+            teacher_update(s, teacher, False)
+            pro_bar.setValue(int(100 * j / max_t))
+            pro_bar.update()
+            QtCore.QCoreApplication.processEvents()
+            j += 1
+        self.deleteLater()
 
 
 def main():

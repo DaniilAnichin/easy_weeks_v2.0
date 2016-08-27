@@ -32,13 +32,14 @@ size_policy = QtGui.QSizePolicy(
 
 
 class EditableList(QtGui.QListWidget):
-    def __init__(self, parent, items_list, suggested_list, inner_name):
+    def __init__(self, parent, items_list, suggested_list, inner_name, sort_key=lambda a: unicode(a)):
         super(EditableList, self).__init__(parent)
+        self.sort_key = sort_key
         self.view_items = items_list[:]
-        self.view_items.sort(key=lambda a: unicode(a))
+        self.view_items.sort(key=self.sort_key)
         self.suggested_items = suggested_list[:]
-        self.suggested_items.sort(key=lambda a: unicode(a))
-        self.addItems([unicode(item) for item in self.view_items])
+        self.suggested_items.sort(key=self.sort_key)
+        self.addItems([self.sort_key(item) for item in self.view_items])
         self.blocked = False
         setattr(self.parent(), inner_name, self)
 
@@ -46,6 +47,7 @@ class EditableList(QtGui.QListWidget):
         QtGui.QListWidget.mousePressEvent(self, QMouseEvent)
 
         if self.blocked:
+            # Pause to prevent multiple deleting
             return
 
         if not (QMouseEvent.modifiers() & QtCore.Qt.ShiftModifier):
@@ -56,7 +58,6 @@ class EditableList(QtGui.QListWidget):
             # Right button for delete
             index = self.row(self.currentItem())
             self.takeItem(index)
-            logger.debug('Here should be delete')
             self.blocked = True
             self.time = QtCore.QTimer.singleShot(500, self.unblock)
         elif QMouseEvent.button() == QtCore.Qt.LeftButton:
@@ -77,21 +78,37 @@ class EditableList(QtGui.QListWidget):
         # self.view_items.sort(key=lambda a: unicode(a))
         # index = self.view_items.index(__args[0])
         # self.insertItem(index, unicode(__args[0]))
-        super(EditableList, self).addItem(unicode(__args[0]))
-        logger.info('Added item "%s"' % unicode(__args[0]))
+        super(EditableList, self).addItem(self.sort_key(__args[0]))
+        logger.info('Added item "%s"' % self.sort_key(__args[0]))
+
+    def addItemByIndex(self):
+        p_int = self.completer.currentIndex()
+        logger.debug(self.sort_key(p_int))
+
+        if p_int >= len(self.suggested_items):
+            logger.info('Wrong item')
+            return
+
+        item = self.completer_items[p_int]
+        # self.view_items += [__args[0]]
+        self.view_items += [item]
+        self.view_items.sort(key=self.sort_key)
+        index = self.view_items.index(item)
+        self.insertItem(index, self.sort_key(item))
+        # super(EditableList, self).addItem(self.sort_key(item))
+        logger.info('Added item "%s"' % self.sort_key(item))
 
     def takeItem(self, p_int):
-        logger.info('Deleted item "%s"' % unicode(self.view_items[p_int]))
+        logger.info('Deleted item "%s"' % self.sort_key(self.view_items[p_int]))
         self.view_items.pop(p_int)
         super(EditableList, self).takeItem(p_int)
 
     def show_completer(self):
         # Create completer combobox:
-        completer = CompleterCombo(self)
+        self.completer = CompleterCombo(self)
         self.completer_items = list(set(self.suggested_items) - set(self.view_items))
-        self.completer_items.sort(key=lambda a: unicode(a))
-        completer.addItems([unicode(item) for item in self.completer_items])
-        # completer.setCurrentIndex(1)
+        self.completer_items.sort(key=self.sort_key)
+        self.completer.addItems([self.sort_key(item) for item in self.completer_items])
 
         # Create modal window
         self.dialog = QtGui.QDialog()
@@ -100,20 +117,17 @@ class EditableList(QtGui.QListWidget):
         # Create button, connect
         submit = QtGui.QPushButton(fromUtf8('Додати'))
         # logger.debug(completer.currentText())
-        submit.clicked.connect(partial(
-            self.addItem,
-            self.completer_items[completer.currentIndex()]
-        ))
+        submit.clicked.connect(self.addItemByIndex)
         submit.clicked.connect(self.dialog.close)
 
         # Add to layout
         vbox = QtGui.QVBoxLayout(self.dialog)
-        vbox.addWidget(completer, 1)
+        vbox.addWidget(self.completer, 1)
         vbox.addWidget(submit, 1)
 
         # show
         logger.info('Raised completer window')
-        self.dialog.exec_()
+        self.dialog.show()
 
 
 class CompleterCombo(QtGui.QComboBox):
@@ -274,33 +288,33 @@ class ButtonGrid(QtGui.QGridLayout):
         self.created = True
 
 
-class TempGrid(QtGui.QGridLayout):
-    def __init__(self, parent, table_height=5):
-        super(TempGrid, self).__init__(parent)
-        self.table_height = table_height
-        self.buttons = []
-
-        button = DragButton(parent)
-        self.buttons.append(button)
-        self.addWidget(button, 0, 0, 1, 1)
-
-        self.translateUI()
-
-    def add_button(self):
-        button = DragButton(self.parent(), self.empty_text)
-        self.buttons.append(button)
-        x = (len(self.buttons) + 1) / self.table_height
-        y = (len(self.buttons) + 1) % self.table_height
-        self.addWidget(button, x, y, 1, 1)
-
-    def remove_button(self, button):
-        self.buttons.remove(button)
-        self.removeWidget(button)
-        del button
-
-    def translateUI(self):
-        self.empty_text = fromUtf8('Перетягніть\nзаняття сюди')
-        self.buttons[-1].setText(self.empty_text)
+# class TempGrid(QtGui.QGridLayout):
+#     def __init__(self, parent, table_height=5):
+#         super(TempGrid, self).__init__(parent)
+#         self.table_height = table_height
+#         self.buttons = []
+#
+#         button = DragButton(parent)
+#         self.buttons.append(button)
+#         self.addWidget(button, 0, 0, 1, 1)
+#
+#         self.translateUI()
+#
+#     def add_button(self):
+#         button = DragButton(self.parent(), self.empty_text)
+#         self.buttons.append(button)
+#         x = (len(self.buttons) + 1) / self.table_height
+#         y = (len(self.buttons) + 1) % self.table_height
+#         self.addWidget(button, x, y, 1, 1)
+#
+#     def remove_button(self, button):
+#         self.buttons.remove(button)
+#         self.removeWidget(button)
+#         del button
+#
+#     def translateUI(self):
+#         self.empty_text = fromUtf8('Перетягніть\nзаняття сюди')
+#         self.buttons[-1].setText(self.empty_text)
 
 
 class WeekTool(QtGui.QToolBox):
@@ -382,75 +396,6 @@ class EasyTab(QtGui.QTabWidget):
         self.user_table.set_table(lesson_set, view_args)
         self.method_table.set_table(lesson_set, view_args, drag_enabled=True)
 
-'''
-        self.tabWidget = MyTab(self.centralwidget)
-        self.tabWidget.setObjectName(fromUtf8("tabWidget"))
-        self.tab_user = QtGui.QWidget()
-        self.tab_user.setObjectName(fromUtf8("tab_user"))
-
-        self.gridLayout = QtGui.QGridLayout(self.tab_user)
-        self.gridLayout.setObjectName(fromUtf8("gridLayout"))
-        self.toolBox_2 = WeekTool(self.gridLayout.parent())
-        self.toolBox_2.set_table(lesson_set)
-        self.gridLayout.addWidget(self.toolBox_2)
-        self.tabWidget.addTab(self.tab_user, fromUtf8(""))
-        self.tab_method = QtGui.QWidget()
-        self.tab_method.setObjectName(fromUtf8("tab_method"))
-        self.horizontalLayout_3 = QtGui.QHBoxLayout(self.tab_method)
-        self.horizontalLayout_3.setObjectName(fromUtf8("horizontalLayout_3"))
-        self.toolBox = WeekTool(self.horizontalLayout_3.parent())
-        self.toolBox.set_table(lesson_set, drag_enabled=True)
-        self.horizontalLayout_3.addWidget(self.toolBox)
-        self.verticalLayout = QtGui.QVBoxLayout()
-        self.verticalLayout.setObjectName(fromUtf8("verticalLayout"))
-        self.pushButton_142 = QtGui.QPushButton(self.tab_method)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum,
-                                       QtGui.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.pushButton_142.sizePolicy().hasHeightForWidth())
-        self.pushButton_142.setSizePolicy(sizePolicy)
-        self.pushButton_142.setAcceptDrops(True)
-        self.pushButton_142.setObjectName(fromUtf8("pushButton_142"))
-        self.verticalLayout.addWidget(self.pushButton_142)
-        self.pushButton_193 = QtGui.QPushButton(self.tab_method)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum,
-                                       QtGui.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.pushButton_193.sizePolicy().hasHeightForWidth())
-        self.pushButton_193.setSizePolicy(sizePolicy)
-        self.pushButton_193.setAcceptDrops(True)
-        self.pushButton_193.setObjectName(fromUtf8("pushButton_193"))
-        self.verticalLayout.addWidget(self.pushButton_193)
-        self.pushButton_140 = QtGui.QPushButton(self.tab_method)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum,
-                                       QtGui.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.pushButton_140.sizePolicy().hasHeightForWidth())
-        self.pushButton_140.setSizePolicy(sizePolicy)
-        self.pushButton_140.setAcceptDrops(True)
-        self.pushButton_140.setObjectName(fromUtf8("pushButton_140"))
-        self.verticalLayout.addWidget(self.pushButton_140)
-        self.pushButton_141 = QtGui.QPushButton(self.tab_method)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum,
-                                       QtGui.QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(
-            self.pushButton_141.sizePolicy().hasHeightForWidth())
-        self.pushButton_141.setSizePolicy(sizePolicy)
-        self.pushButton_141.setAcceptDrops(True)
-        self.pushButton_141.setObjectName(fromUtf8("pushButton_141"))
-        self.verticalLayout.addWidget(self.pushButton_141)
-        self.horizontalLayout_3.addLayout(self.verticalLayout)
-'''
-
-
 class AdminTab(QtGui.QWidget):
     def __init__(self, parent, session):
         super(AdminTab, self).__init__(parent)
@@ -498,6 +443,11 @@ class AdminTab(QtGui.QWidget):
 
     def set_objects(self):
         self.objects.items = [getattr(db_structure, item) for item in db_structure.__all__]
+        for item in self.objects.items:
+            columns = item.columns()
+            if len(columns) == 2 and columns[0][:3] == columns[1][:3] == 'id_':
+                self.objects.items.pop(self.objects.items.index(item))
+
         self.objects.items.sort(key=lambda a: a.translated)
         self.objects.addItems([item.translated for item in self.objects.items])
 
@@ -522,11 +472,6 @@ class AdminTab(QtGui.QWidget):
 
     def show_delete(self):
         from gui.dialogs import RUSureDelete
-        # cls_name = db_structure.__all__[self.objects.currentIndex()]
-        # logger.info('Running create dialog for %s' % cls_name)
-        #
-        # self.editor = AdminEditor(cls_name, self.session, empty=True)
-        # self.editor.show()
         index = self.items_list.row(self.items_list.currentItem())
         if index < 0 or index > self.view_items.__len__():
             return
@@ -536,8 +481,8 @@ class AdminTab(QtGui.QWidget):
         if self.warning.exec_() == QtGui.QMessageBox.Yes:
             logger.info('Item %s deleted' % unicode(self.items_list.currentItem().text()))
             self.items_list.takeItem(index)
+            self.view_items.pop(index)
             logger.info(db_codes_output[cls.delete(self.session, main_id=element.id)])
-            # Perform db call
 
     def show_edit(self):
         from gui.dialogs import AdminEditor
@@ -550,8 +495,15 @@ class AdminTab(QtGui.QWidget):
         self.editor = AdminEditor(element, self.session)
         if self.editor.exec_() == AdminEditor.Accepted:
             logger.info('Editing accepted')
-            # Perform DB call
-            # Perform add calld
+            fields = [elem for elem in type(element).fields() if not (elem.startswith('id_') or elem == 'id')]
+            values = {key: self.editor.get_pair(key) for key in fields}
+            logger.debug(db_codes_output[type(element).update(
+                self.session, main_id=element.id, **values
+            )])
+            self.view_items.sort(key=lambda a: unicode(a))
+            new_index = self.view_items.index(element)
+            self.items_list.takeItem(index)
+            self.items_list.insertItem(new_index, unicode(element))
 
 
 class SearchTab(QtGui.QWidget):
@@ -642,71 +594,3 @@ class WeekMenuBar(QtGui.QMenuBar):
             self.addAction(menu_element.menuAction())
 
         self.parent().setMenuBar(self)
-
-
-class ImportDialog(QtGui.QDialog):
-    def __init__(self, s, parent=None):
-        super(ImportDialog, self).__init__(parent)
-
-        self.layout = QtGui.QGridLayout(self)
-        self.import_all_button = QtGui.QPushButton(u'Повне оновлення', self)
-        self.layout.addWidget(self.import_all_button, 0, 0)
-        self.import_all_button.clicked.connect(self.updatedb)
-        self.import_dep_button = QtGui.QPushButton(u'Оновлення викладачів\nкафедри')
-        self.layout.addWidget(self.import_dep_button, 0, 1)
-        self.import_dep_button.clicked.connect(self.updateDepDb)
-        self.setLayout(self.layout)
-        self.session = s
-
-    def updatedb(self):
-        # temporary deleting:
-        pro_bar = QtGui.QProgressBar(self)
-        self.layout.addWidget(pro_bar, 1, 0)
-        pro_bar.setValue(0)
-        pro_bar.show()
-        os.remove(os.path.join(DATABASE_DIR, DATABASE_NAME))
-        s = create_new_database(os.path.join(DATABASE_DIR, DATABASE_NAME))
-        s = create_empty(s)
-        s = create_common(s)
-        with open(os.path.join(DATABASE_DIR, 'import_schedule', '_teachers.txt'), 'r') as f:
-            i = 0
-            max_t = len(f.readlines())
-            f.seek(0)
-            for teacher in f:
-                i += 1
-                pro_bar.setValue(int(100*i/max_t))
-                pro_bar.update()
-                teacher = teacher[:-1]
-                GetCurTimetable.teacher_update(s, teacher)
-                QtCore.QCoreApplication.processEvents()
-        self.deleteLater()
-
-    def updateDepDb(self):
-        pro_bar = QtGui.QProgressBar(self)
-        self.layout.addWidget(pro_bar, 1, 2)
-        pro_bar.setValue(0)
-        pro_bar.show()
-        s = self.session
-
-        dep_id = get_dep()
-        j = 0
-        max_t = len(Teachers.read(s, id_department=dep_id))
-        for t in Teachers.read(s, id_department=dep_id):
-            teacher = Degrees.read(s, id=t.id_degree)[0].short_name+u' '+t.short_name
-            t_lessons = Lessons.read(s, id_lesson_plan=[i.id for i in LessonPlans.read(s, teachers=t.id)])
-            if t.id == 1:
-                continue
-            for lesson in t_lessons:
-                lesson.delete(s, lesson.id)
-            for lp in LessonPlans.read(s, teachers=t.id):
-                lp.delete(s, lp.id)
-            GetCurTimetable.teacher_update(s, teacher, False)
-            pro_bar.setValue(int(100 * j / max_t))
-            pro_bar.update()
-            QtCore.QCoreApplication.processEvents()
-            j += 1
-        self.deleteLater()
-
-
-def get_dep():
-    return 1
