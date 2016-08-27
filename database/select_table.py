@@ -6,6 +6,7 @@ logger = Logger()
 def get_table(session, data_type, data):
     if isinstance(session, int):
         return db_codes['session']
+    logger.debug('Data type: "%s", data: "%s"' % (data_type, data))
     # check data_type and data
 
     rettable = [[[None
@@ -62,7 +63,7 @@ def check_data(session):
         for lesson in Lessons.read(session, id_lesson_plan=[lp.id for lp in group.lesson_plans]):
             if lesson.row_time in lessons_dict:
                 # do something
-                logger.info('Problem with %s at %s' % (group.name, lesson.to_row(lesson.row_time)))
+                logger.info('Problem with %s at %s' % (group.name, lesson.row_time))
                 return
             lessons_dict.append(lesson.row_time)
     for teach in Teachers.read(session, True):
@@ -70,7 +71,7 @@ def check_data(session):
         for lesson in Lessons.read(session, id_lesson_plan=[lp.id for lp in teach.lesson_plans]):
             if lesson.row_time in lessons_dict:
                 # do something
-                logger.info('Problem with %s at %s' % (teach.short_name, lesson.to_row(lesson.row_time)))
+                logger.info('Problem with %s at %s' % (teach.short_name, lesson.row_time))
                 return
             lessons_dict.append(lesson.row_time)
     for room in Rooms.read(session, True):
@@ -80,7 +81,7 @@ def check_data(session):
         for lesson in Lessons.read(session, id_room=room.id):
             if lesson.row_time in lessons_dict:
                 # do something
-                logger.info('Problem with %s at %s' % (room.name, lesson.to_row(lesson.row_time)))
+                logger.info('Problem with %s at %s' % (room.name, lesson.row_time))
                 return
             lessons_dict.append(lesson.row_time)
 
@@ -89,3 +90,24 @@ def check_data(session):
     logger.info('Database is correct')
 
     return db_codes['success']
+
+
+def is_free(session, cls, main_id, **kwargs):
+    lesson_plans = LessonPlans.read(session, **{cls.__tablename__: main_id})
+
+    for lesson_plan in lesson_plans:
+        lessons = Lessons.read(session, lesson_plan=lesson_plan, **kwargs)
+        if lessons:
+            logger.debug('Lesson are: "%s"' % lessons)
+            return False
+    return True
+
+
+def find_free(session, cls, **kwargs):
+    classmates = cls.read(session, all_=True)
+
+    for classmate in classmates:
+        if not is_free(session, cls, classmate.id, **kwargs):
+            classmates.pop(classmates.index(classmate))
+
+    return classmates

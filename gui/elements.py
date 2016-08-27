@@ -527,19 +527,19 @@ class SearchTab(QtGui.QWidget):
         self.form.setObjectName('search_tab_form')
 
         self.object_label = QtGui.QLabel(self)
-        self.object_choice = QtGui.QComboBox(self)
+        self.object_choice = CompleterCombo(self)
         self.form.addRow(self.object_label, self.object_choice)
 
         self.week_label = QtGui.QLabel(self)
-        self.week_choice = QtGui.QComboBox(self)
+        self.week_choice = CompleterCombo(self)
         self.form.addRow(self.week_label, self.week_choice)
 
         self.day_label = QtGui.QLabel(self)
-        self.day_choice = QtGui.QComboBox(self)
+        self.day_choice = CompleterCombo(self)
         self.form.addRow(self.day_label, self.day_choice)
 
         self.time_label = QtGui.QLabel(self)
-        self.time_choice = QtGui.QComboBox(self)
+        self.time_choice = CompleterCombo(self)
         self.form.addRow(self.time_label, self.time_choice)
 
         spacer = QtGui.QSpacerItem(
@@ -557,28 +557,41 @@ class SearchTab(QtGui.QWidget):
 
     def translateUI(self):
         self.object_label.setText(fromUtf8('Що знайти: '))
-        self.object_choice.addItem(fromUtf8('Кімната'))
-        self.object_choice.addItem(fromUtf8('Викладач'))
+        self.object_choice.items = [db_structure.Teachers, db_structure.Weeks]
+        self.object_choice.addItems([item.translated for item in self.object_choice.items])
 
-        self.week_label.setText(fromUtf8('Тиждень: '))
-        self.week_choice.addItems(
-            [unicode(week) for week in db_structure.Weeks.read(self.session, all_=True)]
-        )
+        self.week_label.setText(db_structure.Weeks.translated + u':')
+        self.week_choice.items = db_structure.Weeks.read(self.session, all_=True)
+        self.week_choice.addItems([unicode(week) for week in self.week_choice.items])
 
-        self.day_label.setText(fromUtf8('День: '))
-        self.day_choice.addItems(
-            [unicode(day) for day in db_structure.WeekDays.read(self.session, all_=True)]
-        )
+        self.day_label.setText(db_structure.WeekDays.translated + u':')
+        self.day_choice.items = db_structure.WeekDays.read(self.session, all_=True)
+        self.day_choice.addItems([unicode(day) for day in self.day_choice.items])
 
-        self.time_label.setText(fromUtf8('Час: '))
-        self.time_choice.addItems(
-            [unicode(time) for time in db_structure.LessonTimes.read(self.session, all_=True)]
-        )
+        self.time_label.setText(db_structure.LessonTimes.translated + u':')
+        self.time_choice.items = db_structure.LessonTimes.read(self.session, all_=True)
+        self.time_choice.addItems([unicode(time) for time in self.time_choice.items])
 
         self.submit_button.setText(fromUtf8('Знайти'))
 
+    def get_values(self):
+        return dict(
+            lesson_time=self.time_choice.items[self.time_choice.currentIndex()],
+            week_day=self.day_choice.items[self.day_choice.currentIndex()],
+            week=self.week_choice.items[self.week_choice.currentIndex()],
+        )
+
     def search(self):
+        from database.select_table import is_free, find_free
+        time = self.get_values()
+        logger.debug(time)
         logger.debug('Here should be search')
+        cls = self.object_choice.items[self.object_choice.currentIndex()]
+
+        logger.info('is %d free: %s' % (45, is_free(self.session, cls, 45, **time)))
+
+        logger.debug('Number of free: "%d"' % len(find_free(self.session, cls, **time)))
+        logger.debug('Total number: "%d"' % len(cls.read(self.session, all_=True)))
 
 
 class WeekMenuBar(QtGui.QMenuBar):

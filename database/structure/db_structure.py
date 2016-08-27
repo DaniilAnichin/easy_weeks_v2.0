@@ -109,8 +109,8 @@ class Base(object):
         result = session.query(cls)
 
         if all_:
-            return result.all()
-            # return result.all()[1:]
+            # return result.all()
+            return result.all()[1:]
 
         # Global filter loop:
         for key in kwargs.keys():
@@ -611,13 +611,11 @@ class Lessons(Base):
         try:
             row_time = cls.time_ids.index(time['id_lesson_time'])
             row_time += cls.day_ids.index(time['id_week_day']) * len(cls.time_ids)
-            row_time += cls.week_ids.index(time['id_week']) * \
-                        len(cls.day_ids) * len(cls.time_ids)
+            row_time += cls.week_ids.index(time['id_week']) * len(cls.day_ids) * len(cls.time_ids)
         except KeyError:
             row_time = cls.time_ids.index(time['lesson_time'].id)
             row_time += cls.day_ids.index(time['week_day'].id) * len(cls.time_ids)
-            row_time += cls.week_ids.index(time['week'].id) * \
-                        len(cls.day_ids) * len(cls.time_ids)
+            row_time += cls.week_ids.index(time['week'].id) * len(cls.day_ids) * len(cls.time_ids)
         return row_time
 
     @classmethod
