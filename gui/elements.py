@@ -354,6 +354,9 @@ class WeekTool(QtGui.QToolBox):
         self.clear_table()
         logger.debug('We\'re going to close')
 
+    def dragEnterEvent(self, e):
+        e.accept()
+
 
 class EasyTab(QtGui.QTabWidget):
     def __init__(self, parent, session):

@@ -499,7 +499,7 @@ class LessonPlans(Base):
 
     amount = Column(Integer, default=2)
     needed_stuff = Column(String, default='')
-    capacity = Column(Integer, default=25)
+    capacity = Column(Integer, default=32)
     split_groups = Column(Integer)
 
     param_checker = Column(String)
@@ -515,6 +515,34 @@ class LessonPlans(Base):
     _links = ['subject', 'lesson_type', 'lessons']
     _associations = ['groups', 'teachers']
     # error = db_codes['lesson_plan']
+
+    @classmethod
+    def create(cls, session, **kwargs):
+        # looks like it's working
+        # Add fields and associations?
+        if not set(kwargs.keys()) < set(cls.fields()):
+            return db_codes['wrong']
+
+        result = cls.read(session, **kwargs)
+
+        if isinstance(result, int):
+            return result
+        elif result:
+            return db_codes['exists']
+        else:
+            elem = cls(**kwargs)
+            t_checker = u''
+            g_checker = u''
+            for t in kwargs['teachers']:
+                t_checker += unicode(t)+u','
+            for g in kwargs['groups']:
+                g_checker += unicode(g) + u','
+            elem.param_checker = u'%d,%d,%s%s%d,%d,%d' % (kwargs['id_subject'], kwargs['id_lesson_type'],
+                                                          g_checker, t_checker, kwargs['amount'],
+                                                          kwargs['split_groups'], kwargs['capacity'])
+            session.add(elem)
+
+        return elem
 
     @classmethod
     def read(cls, session, all_=False, **kwargs):

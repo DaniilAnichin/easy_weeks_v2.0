@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
 import sys
+import os
 from PyQt4 import QtCore, QtGui
 from database import Logger
 from database.structure import *
@@ -115,9 +116,20 @@ class WeeksMenu(QtGui.QMainWindow):
 
 
 def main():
-    session = connect_database()
+    # from database.start_db.New_db_startup import DATABASE_NAME
+    # from PyQt4.QtCore import QString
     app = QtGui.QApplication(sys.argv)
+    #
+    # path = QtGui.QFileDialog.getOpenFileName(directory=QString('/home'))
+    # path = unicode(path)
+    # f = open(path, 'r')
+    # data = f.readlines()
+    # f.close()
+    # f = open(DATABASE_NAME, 'w')
+    # f.writelines(data)
+    # f.close()
 
+    session = connect_database()
     window = WeeksMenu(session)
     app.aboutToQuit.connect(window.tabs.method_table.before_close)
     window.show()
