@@ -30,7 +30,7 @@ def new_university(s, full_name='', short_name=''):
     return 0
 
 
-def new_faculty(s, full_name='', short_name='', id_un=1):
+def new_faculty(s, full_name='', short_name='', id_un=2):
     if full_name == '' and short_name == '':
         print "Must be one of the name"
         return -1
@@ -61,7 +61,7 @@ def new_faculty(s, full_name='', short_name='', id_un=1):
     return 0
 
 
-def new_department(s, full_name='', short_name='', id_fa=1):
+def new_department(s, full_name='', short_name='', id_fa=2):
     if full_name == '' and short_name == '':
         print "Must be one of the name"
         return -1
@@ -93,7 +93,7 @@ def new_department(s, full_name='', short_name='', id_fa=1):
     return 0
 
 
-def new_group(s, name='', id_dp=1):
+def new_group(s, name='', id_dp=2):
     if name == '':
         print "Name must be"
         return -1
@@ -145,7 +145,7 @@ def new_degree(s, full_name='', short_name=''):
     return 0
 
 
-def new_teacher(s, full_name='', short_name='', id_dep=1, id_deg=1):
+def new_teacher(s, full_name='', short_name='', id_dep=2, id_deg=1):
     if full_name == '' and short_name == '':
         print "Must be one of the name"
         return -1

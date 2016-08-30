@@ -51,8 +51,8 @@ class Base(object):
         super(Base, self).__init__(*args, **kwargs)
 
     @declared_attr
-    def __tablename__(cls):
-        s1 = first_cap_re.sub(r'\1_\2', cls.__name__)
+    def __tablename__(self):
+        s1 = first_cap_re.sub(r'\1_\2', self.__name__)
         return all_cap_re.sub(r'\1_\2', s1).lower()
 
     @classmethod
@@ -120,7 +120,6 @@ class Base(object):
                 example = cls.read(session, id=1)[0]
                 if isinstance(getattr(example, key), list):
                     for item in kwargs[key]:
-                        logger.debug('item - "%s"' % item)
                         result = result.filter(getattr(cls, key).contains(item))
                 else:
                     result = result.filter(getattr(cls, key).in_(kwargs[key]))
@@ -145,10 +144,16 @@ class Base(object):
             return db_codes['absent']
         if isinstance(result, int):
             return result
-        if cls.read(session, **kwargs):
+        result = result[0]
+
+        data = {}
+        for field in cls.fields():
+            data.update({field: getattr(result, field)})
+        for key in kwargs.keys():
+            data.update({key: kwargs[key]})
+        if cls.read(session, **data):
             return db_codes['exists']
 
-        result = result[0]
 
         # Global filter loop:
         for key in kwargs.keys():
@@ -180,12 +185,18 @@ class Base(object):
 
         # Reset links:
         for link in cls.links():
+            default_id = 1
             linked = getattr(result, link)
             if isinstance(linked, list):
+                try:
+                    if isinstance(linked[0], Departments):
+                        default_id = 2
+                except:
+                    pass
                 for element in linked:
                     setattr(element, 'id_' + cls.single(), 1)
-            else:
-                setattr(linked, 'id_' + cls.single(), 1)
+            # else:
+            #     setattr(linked, 'id_' + cls.single(), 1)
         for association in cls.associations():
             linked = getattr(result, association)
             for element in linked:
@@ -531,15 +542,17 @@ class LessonPlans(Base):
             return db_codes['exists']
         else:
             elem = cls(**kwargs)
-            t_checker = u''
-            g_checker = u''
-            for t in kwargs['teachers']:
-                t_checker += unicode(t)+u','
-            for g in kwargs['groups']:
-                g_checker += unicode(g) + u','
-            elem.param_checker = u'%d,%d,%s%s%d,%d,%d' % (kwargs['id_subject'], kwargs['id_lesson_type'],
-                                                          g_checker, t_checker, kwargs['amount'],
-                                                          kwargs['split_groups'], kwargs['capacity'])
+            # t_checker = u''
+            # g_checker = u''
+            # for t in kwargs['teachers']:
+            #     t_checker += unicode(t)+u','
+            # for g in kwargs['groups']:
+            #     g_checker += unicode(g) + u','
+            t_checker = u','.join(kwargs.get('teachers', []))
+            g_checker = u','.join(kwargs.get('groups', []))
+            elem.param_checker = u'%d,%d,%s,%s,%d,%d,%d' % (kwargs['id_subject'], kwargs['id_lesson_type'],
+                                                            g_checker, t_checker, kwargs['amount'],
+                                                            kwargs['split_groups'], kwargs['capacity'])
             session.add(elem)
 
         return elem

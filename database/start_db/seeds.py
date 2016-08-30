@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import bcrypt
+from database import Logger, db_codes_output
+from database.structure import db_structure
 from database.structure.db_structure import *
+logger = Logger()
 
 
 def create_empty(session):
@@ -43,6 +45,11 @@ def create_empty(session):
 def create_common(session):
     # Adding week days, degrees, times, etc
     session.add_all([
+        Universities(short_name=u'Невизначено', full_name=u'Невизначено'),
+        Faculties(short_name=u'Невизначено', full_name=u'Невизначено', id_university=2),
+        Departments(short_name=u'Невизначено', full_name=u'Невизначено', id_faculty=2),
+        Rooms(name=u'Невизначено', capacity=320, additional_stuff=''),
+
         Degrees(short_name=u'ас.', full_name=u'асистент'),
         Degrees(short_name=u'вик.', full_name=u'викладач'),
         Degrees(short_name=u'доц.', full_name=u'доцент'),
@@ -81,10 +88,6 @@ def create_common(session):
     return session
 
 
-def create_teachers(session, teacher_path):
-    pass
-
-
 def create_custom(session):
     # Complete this staff
     session.add_all([
@@ -92,16 +95,16 @@ def create_custom(session):
                      full_name=u'Національний технічний університет України '
                                u'«Київський політехнічний інститут»'),
 
-        Faculties(id_university=2, short_name=u'ФІОТ',
+        Faculties(id_university=3, short_name=u'ФІОТ',
                   full_name=u'Інформатики та обчислюваної техніки'),
 
-        Departments(id_faculty=2, short_name=u'ТК',
+        Departments(id_faculty=3, short_name=u'ТК',
                     full_name=u'Технiчної кiбернетики'),
-        Departments(id_faculty=2, short_name=u'ОТ',
+        Departments(id_faculty=3, short_name=u'ОТ',
                     full_name=u'Обчислювальної технiки'),
-        Departments(id_faculty=2, short_name=u'АУТС',
+        Departments(id_faculty=3, short_name=u'АУТС',
                     full_name=u'Автоматики i управлiння в технiчних системах'),
-        Departments(id_faculty=2, short_name=u'АСОІУ',
+        Departments(id_faculty=3, short_name=u'АСОІУ',
                     full_name=u'Автоматизованих систем обробки iнформацiї та управлiння'),
     ])
     session.commit()
@@ -111,3 +114,25 @@ def create_custom(session):
     ]
 
     return session
+
+
+def update_departments(session, cls_name, **data):
+    for dept_name in data.keys():
+        department = Departments.read(session, short_name=dept_name)[0]
+        cls = getattr(db_structure, cls_name)
+        for element_name in data[dept_name]:
+            param = 'full_name' if cls_name == 'Teachers' else 'name'
+            element = cls.read(session, **{param: element_name})[0]
+            logger.debug('Element: %s' % unicode(element))
+            logger.debug('Department: %s' % unicode(department))
+            try:
+                element.departments
+                logger.debug('Association')
+                logger.debug(db_codes_output[cls.update(session, main_id=element.id, departments=[department])])
+            except AttributeError:
+                logger.debug(db_codes_output[cls.update(session, main_id=element.id, department=department)])
+                logger.debug('Link')
+
+
+if __name__ == "__main__":
+    pass

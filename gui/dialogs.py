@@ -395,7 +395,7 @@ class ImportDialog(QtGui.QDialog):
         import os
         from database import DATABASE_NAME, DATABASE_DIR
         from database.import_schedule.GetCurTimetable import teacher_update
-        from database.start_db import create_new_database, create_empty, create_common
+        from database.start_db import create_new_database, create_empty, create_common, create_custom
 
         pro_bar = QtGui.QProgressBar(self)
         self.layout.addWidget(pro_bar, 1, 0)
@@ -405,6 +405,7 @@ class ImportDialog(QtGui.QDialog):
         s = create_new_database(os.path.join(DATABASE_DIR, DATABASE_NAME))
         s = create_empty(s)
         s = create_common(s)
+        s = create_custom(s)
         with open(os.path.join(DATABASE_DIR, 'import_schedule', '_teachers.txt'), 'r') as f:
             i = 0
             max_t = len(f.readlines())

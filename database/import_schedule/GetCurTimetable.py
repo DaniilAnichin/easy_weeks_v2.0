@@ -27,7 +27,7 @@ def get_teacher_id(s, cur_teacher, add_teacher=True):
             if row['teacher_short_name'] == unicode(cur_teacher, 'utf-8'):
                 cur_teacher_id = str(row['teacher_id'])
                 if add_teacher:
-                    new_teacher(s, row['teacher_name'], unicode(cur_teacher[cur_teacher.index(' ') + 1:], 'utf-8'), 1,
+                    new_teacher(s, row['teacher_name'], unicode(cur_teacher[cur_teacher.index(' ') + 1:], 'utf-8'), 2,
                                 select_degrees(s, short_name=unicode(cur_teacher[:cur_teacher.index(' ')], 'utf-8'))[0]\
                                 ['id'])
                 return cur_teacher_id

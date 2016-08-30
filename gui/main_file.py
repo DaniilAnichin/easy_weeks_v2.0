@@ -54,6 +54,8 @@ class WeeksMenu(QtGui.QMainWindow):
         self.menubar = WeekMenuBar(self, menu_data=menu_data)
         self.setMenuBar(self.menubar)
 
+        # self.load_database()
+
         default_data = [get_table(self.session, 'groups', 42), 'groups']
         self.tabs.set_table(*default_data)
 
@@ -73,15 +75,15 @@ class WeeksMenu(QtGui.QMainWindow):
             logger.debug('%s - %s' % (data_type, data_id))
             self.tabs.set_table(get_table(self.session, data_type, data_id), data_type)
 
-    def make_account_query(self):
-        logger.info('Started account query sending function')
-
     def login(self):
         logger.info('Started user login function')
         self.login = LoginDialog(Users.read(self.session, all_=True))
         if self.login.exec_() == QtGui.QDialog.Accepted:
             self.set_user(self.login.user)
             logger.info("Logged in as %s" % self.user.nickname)
+
+    def make_account_query(self):
+        logger.info('Started account query sending function')
 
     def set_user(self, user=None):
         self.user = user

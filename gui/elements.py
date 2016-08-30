@@ -529,32 +529,22 @@ class SearchTab(QtGui.QWidget):
         self.form = QtGui.QFormLayout()
         self.form.setObjectName('search_tab_form')
 
-        self.object_label = QtGui.QLabel(self)
-        self.object_choice = CompleterCombo(self)
-        self.form.addRow(self.object_label, self.object_choice)
-
-        self.week_label = QtGui.QLabel(self)
-        self.week_choice = CompleterCombo(self)
-        self.form.addRow(self.week_label, self.week_choice)
-
-        self.day_label = QtGui.QLabel(self)
-        self.day_choice = CompleterCombo(self)
-        self.form.addRow(self.day_label, self.day_choice)
-
-        self.time_label = QtGui.QLabel(self)
-        self.time_choice = CompleterCombo(self)
-        self.form.addRow(self.time_label, self.time_choice)
+        for text in ['object', 'department', 'week', 'day', 'time']:
+            setattr(self, text + '_label', QtGui.QLabel())
+            setattr(self, text + '_choice', CompleterCombo())
+            self.form.addRow(getattr(self, text + '_label'), getattr(self, text + '_choice'))
 
         spacer = QtGui.QSpacerItem(
             QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Minimum
         )
         self.submit_button = QtGui.QPushButton(self)
         self.submit_button.clicked.connect(self.search)
-        self.form.setItem(4, QtGui.QFormLayout.LabelRole, spacer)
-        self.form.setWidget(4, QtGui.QFormLayout.FieldRole, self.submit_button)
+        self.form.setItem(5, QtGui.QFormLayout.LabelRole, spacer)
+        self.form.setWidget(5, QtGui.QFormLayout.FieldRole, self.submit_button)
 
         self.hbox.addLayout(self.form)
-        self.search_list = QtGui.QListView(self)
+        self.search_list = QtGui.QListWidget(self)
+        self.search_list.itemDoubleClicked.connect(self.set_table_by_item)
         self.hbox.addWidget(self.search_list)
         self.translateUI()
 
@@ -562,6 +552,10 @@ class SearchTab(QtGui.QWidget):
         self.object_label.setText(fromUtf8('Що знайти: '))
         self.object_choice.items = [db_structure.Teachers, db_structure.Weeks]
         self.object_choice.addItems([item.translated for item in self.object_choice.items])
+
+        self.department_label.setText(db_structure.Departments.translated + u':')
+        self.department_choice.items = db_structure.Departments.read(self.session, all_=True)
+        self.department_choice.addItems([unicode(time) for time in self.department_choice.items])
 
         self.week_label.setText(db_structure.Weeks.translated + u':')
         self.week_choice.items = db_structure.Weeks.read(self.session, all_=True)
@@ -577,24 +571,40 @@ class SearchTab(QtGui.QWidget):
 
         self.submit_button.setText(fromUtf8('Знайти'))
 
-    def get_values(self):
+    def get_time(self):
         return dict(
             lesson_time=self.time_choice.items[self.time_choice.currentIndex()],
             week_day=self.day_choice.items[self.day_choice.currentIndex()],
             week=self.week_choice.items[self.week_choice.currentIndex()],
         )
 
+    def department(self):
+        return dict(department=self.department_choice.items[self.department_choice.currentIndex()])
+
     def search(self):
-        from database.select_table import is_free, find_free
-        time = self.get_values()
-        logger.debug(time)
-        logger.debug('Here should be search')
+        from database.select_table import find_free
+        params = self.get_time()
+        params.update(self.department())
         cls = self.object_choice.items[self.object_choice.currentIndex()]
+        result = find_free(self.session, cls, **params)
+        logger.debug('Number of free: "%d"' % len(result))
+        self.show_results(result)
 
-        logger.info('is %d free: %s' % (45, is_free(self.session, cls, 45, **time)))
+    def show_results(self, values):
+        self.search_list.clear()
+        self.search_list.view_items = values
+        self.search_list.addItems([unicode(value) for value in values])
+        if not self.search_list.view_items:
+            self.search_list.addItem(fromUtf8('На жаль, усі(усе) зайнято'))
 
-        logger.debug('Number of free: "%d"' % len(find_free(self.session, cls, **time)))
-        logger.debug('Total number: "%d"' % len(cls.read(self.session, all_=True)))
+    def set_table_by_item(self, *args):
+        from database.select_table import get_table
+        logger.debug(', '.join([str(arg) for arg in args]))
+        logger.debug('%s' % args[0].text())
+        logger.debug('%s' % self.search_list.row(args[0]))
+        item = self.search_list.view_items[self.search_list.row(args[0])]
+        cls_name = type(item).__tablename__
+        self.parent().parent().set_table(get_table(self.session, cls_name, item.id), cls_name)
 
 
 class WeekMenuBar(QtGui.QMenuBar):

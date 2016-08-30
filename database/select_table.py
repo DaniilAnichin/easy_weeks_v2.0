@@ -98,16 +98,22 @@ def is_free(session, cls, main_id, **kwargs):
     for lesson_plan in lesson_plans:
         lessons = Lessons.read(session, lesson_plan=lesson_plan, **kwargs)
         if lessons:
-            logger.debug('Lesson are: "%s"' % lessons)
             return False
     return True
 
 
 def find_free(session, cls, **kwargs):
     classmates = cls.read(session, all_=True)
+    result = []
+    department = kwargs.pop('department', None)
 
     for classmate in classmates:
-        if not is_free(session, cls, classmate.id, **kwargs):
-            classmates.pop(classmates.index(classmate))
+        try:
+            departments = classmate.departments
+        except AttributeError:
+            departments = [classmate.department]
 
-    return classmates
+        if department in departments and is_free(session, cls, classmate.id, **kwargs):
+            result.append(classmate)
+
+    return result
