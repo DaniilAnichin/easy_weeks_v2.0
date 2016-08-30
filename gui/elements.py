@@ -193,7 +193,8 @@ class DragButton(QtGui.QPushButton):
                     return
                 # self.edit_dial = EditLesson(self.lesson, self.parent().session, time=False)
                 self.edit_dial = EditLesson(self.lesson, self.parent().session)
-                self.edit_dial.exec_()
+                if self.edit_dial.exec_() == EditLesson.Accepted:
+                    self.save_changes()
             else:
                 if not self.lesson.is_empty:
                     self.show_dial = ShowLesson(self.lesson)
@@ -267,14 +268,19 @@ class DragButton(QtGui.QPushButton):
         )
 
     def before_close(self):
-        if self.lesson.is_temp:
+        if self.lesson.is_temp and not self.lesson.is_empty:
+            # logger.debug('Lesson: %s' % unicode(self.lesson))
             ret = type(self.lesson).delete(self.parent().session, self.lesson.id)
-            logger.debug(db_codes_output[ret])
+            # logger.debug(db_codes_output[ret])
+            self.deleteLater()
+
+    def save_changes(self):
+        logger.debug('Here must be editor saving - button')
+        self.parent().parent().edited = True
 
 
 class ButtonGrid(QtGui.QGridLayout):
     def __init__(self, parent):
-        self.created = False
         super(ButtonGrid, self).__init__(parent)
         # self.parent_name = parent.objectName()
 
@@ -285,7 +291,6 @@ class ButtonGrid(QtGui.QGridLayout):
                 lesson_button = DragButton(view_args, drag_enabled, time)
                 self.addWidget(lesson_button, j, i, 1, 1)
                 lesson_button.set_lesson(lesson_set[i][j])
-        self.created = True
 
 
 # class TempGrid(QtGui.QGridLayout):
@@ -321,20 +326,39 @@ class WeekTool(QtGui.QToolBox):
     def __init__(self, parent, session, *args, **kwargs):
         super(WeekTool, self).__init__(parent, *args, **kwargs)
         self.session = session
-        self.first_panel = QtGui.QWidget(parent)
+        self.first_panel = QtGui.QWidget(self)
         self.first_panel.session = session
-        self.second_panel = QtGui.QWidget(parent)
+        self.second_panel = QtGui.QWidget(self)
         self.second_panel.session = session
         self.first_table = ButtonGrid(self.first_panel)
         self.second_table = ButtonGrid(self.second_panel)
         self.addItem(self.first_panel, '')
         self.addItem(self.second_panel, '')
         self.translateUI()
+        self.edited = False
 
     def set_table(self, lesson_set, view_args, drag_enabled=False):
-        self.clear_table()
+        if self.check_and_clear_table():
+            return 1
+        self.edited = False
         self.first_table.set_table(lesson_set[0], view_args, 0, drag_enabled)
         self.second_table.set_table(lesson_set[1], view_args, 1, drag_enabled)
+        return 0
+
+    def check_and_clear_table(self):
+        if self.edited:
+            logger.debug('Asking')
+            from gui.dialogs import RUSureChangeTable
+            self.rusure = RUSureChangeTable()
+            if self.rusure.exec_() == RUSureChangeTable.Yes:
+                self.clear_table()
+                return 0
+            else:
+                return 1
+        else:
+            logger.debug('Not edited')
+            self.clear_table()
+            return 0
 
     def clear_table(self):
         for child in self.first_panel.children():
@@ -351,8 +375,8 @@ class WeekTool(QtGui.QToolBox):
         self.setItemText(1, fromUtf8('Другий тиждень'))
 
     def before_close(self):
-        self.clear_table()
         logger.debug('We\'re going to close')
+        return self.check_and_clear_table()
 
     def dragEnterEvent(self, e):
         e.accept()
@@ -396,8 +420,11 @@ class EasyTab(QtGui.QTabWidget):
         self.addTab(self.tab_search, fromUtf8('Пошук'))
 
     def set_table(self, lesson_set, view_args):
-        self.user_table.set_table(lesson_set, view_args)
-        self.method_table.set_table(lesson_set, view_args, drag_enabled=True)
+        result = self.method_table.set_table(lesson_set, view_args, drag_enabled=True)
+        if result:
+            return
+        else:
+            self.user_table.set_table(lesson_set, view_args)
 
 
 class AdminTab(QtGui.QWidget):

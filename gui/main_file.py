@@ -7,7 +7,8 @@ from database import Logger
 from database.structure import *
 from database.start_db.New_db_startup import connect_database
 from database.select_table import get_table, check_data
-from gui.dialogs import LoginDialog, TableChoosingDialog, ImportDialog
+from gui.dialogs import LoginDialog, TableChoosingDialog, ImportDialog, \
+    AccountQuery
 from gui.elements import EasyTab, WeekMenuBar
 from gui.translate import fromUtf8
 logger = Logger()
@@ -84,6 +85,8 @@ class WeeksMenu(QtGui.QMainWindow):
 
     def make_account_query(self):
         logger.info('Started account query sending function')
+        self.query = AccountQuery(self.session)
+        self.query.exec_()
 
     def set_user(self, user=None):
         self.user = user
@@ -116,6 +119,13 @@ class WeeksMenu(QtGui.QMainWindow):
     def save_database(self):
         logger.info('Started database saving function')
 
+    def closeEvent(self, event):
+        result = self.tabs.method_table.before_close()
+        if result:
+            event.ignore()
+        else:
+            event.accept()
+
 
 def main():
     # from database.start_db.New_db_startup import DATABASE_NAME
@@ -133,7 +143,6 @@ def main():
 
     session = connect_database()
     window = WeeksMenu(session)
-    app.aboutToQuit.connect(window.tabs.method_table.before_close)
     window.show()
     sys.exit(app.exec_())
 

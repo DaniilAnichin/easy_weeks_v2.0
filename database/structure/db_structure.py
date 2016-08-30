@@ -215,7 +215,20 @@ class Users(Base):
     message = Column(String)   # Message when giving an methodist request
     translated = u'Користувач'
 
-    def __init__(self, *args, **kwargs):
+    # def __init__(self, *args, **kwargs):
+    #     password = kwargs.pop('password', '')
+    #
+    #     if not password:
+    #         logger.error('No password passed')
+    #         raise ValueError('No password passed')
+    #     hashed = bcrypt.hashpw(password, bcrypt.gensalt())
+    #
+    #     kwargs.update(hashed_password=hashed)
+    #     super(Users, self).__init__(*args, **kwargs)
+    #     logger.info('Hashed user %s password' % self.nickname)
+
+    @classmethod
+    def create(cls, session, **kwargs):
         password = kwargs.pop('password', '')
         if not password:
             logger.error('No password passed')
@@ -223,8 +236,7 @@ class Users(Base):
         hashed = bcrypt.hashpw(password, bcrypt.gensalt())
 
         kwargs.update(hashed_password=hashed)
-        super(Users, self).__init__(*args, **kwargs)
-        logger.info('Hashed user %s password' % self.nickname)
+        return super(Users, cls).create(session, **kwargs)
 
     def __unicode__(self):
         return self.nickname
@@ -241,7 +253,7 @@ class Users(Base):
         'Departments', secondary='user_departments', backref='users'
     )
 
-    _columns = ['id', 'nickname', 'hashed_password']
+    _columns = ['id', 'nickname', 'hashed_password', 'message', 'status']
     _associations = ['departments']
     # error = db_codes['user']
 
@@ -617,7 +629,7 @@ class Lessons(Base):
 
         super(Lessons, self).__init__(*args, **kwargs)
         self.row_time = self.to_row(self.time())
-        logger.info('Passed lesson init')
+        # logger.info('Passed lesson init')
 
     def __unicode__(self):
         return u'%s у %s' % (unicode(self.lesson_plan), unicode(self.row_time))
@@ -740,7 +752,7 @@ class Lessons(Base):
             return db_codes['wrong']
         if 'row_time' not in kwargs.keys():
             kwargs.update(row_time=cls.to_row(kwargs))
-            logger.debug('No row_time passed')
+            # logger.debug('No row_time passed')
 
         result = cls.read(session, **kwargs)
 
