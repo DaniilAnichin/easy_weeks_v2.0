@@ -173,8 +173,9 @@ class CompleterCombo(QtGui.QComboBox):
 
 
 class DragButton(QtGui.QPushButton):
-    def __init__(self, view_args, draggable, time, *args):
+    def __init__(self, weekToolRef, view_args, draggable, time, *args):
         super(DragButton, self).__init__(*args)
+        self.weekToolRef = weekToolRef
         self.draggable = draggable
         self.view_args = view_args
         self.setSizePolicy(size_policy)
@@ -226,6 +227,24 @@ class DragButton(QtGui.QPushButton):
             logger.debug('Moved: %s' % self)
         else:
             logger.debug('Copied: %s' % self)
+
+    def dragMoveEvent(self, e):
+        absp0 = self.weekToolRef.mapToGlobal(self.weekToolRef.tabButtons[0].pos())
+        absp1 = self.weekToolRef.mapToGlobal(self.weekToolRef.tabButtons[1].pos())
+        r0 = self.weekToolRef.tabButtons[0].rect()
+        r1 = self.weekToolRef.tabButtons[1].rect()
+        ucorrector = QtCore.QPoint(0, 30)
+        dcorrector = QtCore.QPoint(0, 60)
+        absr0 = QtCore.QRect(r0.topLeft()+absp0, r0.bottomRight()+absp0+dcorrector)
+        absr1 = QtCore.QRect(r1.topLeft()+absp1-ucorrector, r1.bottomRight()+absp1)
+        # curMousePos = self.weekToolRef.mapFromGlobal(QtGui.QCursor.pos())
+        curMousePos = QtGui.QCursor.pos()
+        if self.weekToolRef.currentIndex() == 0:
+            if absr1.contains(curMousePos):
+                self.weekToolRef.setCurrentIndex(1)
+        else:
+            if absr0.contains(curMousePos):
+                self.weekToolRef.setCurrentIndex(0)
 
     def dragEnterEvent(self, e):
         e.accept()
@@ -280,15 +299,16 @@ class DragButton(QtGui.QPushButton):
 
 
 class ButtonGrid(QtGui.QGridLayout):
-    def __init__(self, parent):
+    def __init__(self, parent, weekToolRef):
         super(ButtonGrid, self).__init__(parent)
+        self.weekToolRef = weekToolRef
         # self.parent_name = parent.objectName()
 
     def set_table(self, lesson_set, view_args, week, drag_enabled=False):
         for i in range(len(lesson_set)):
             for j in range(len(lesson_set[i])):
                 time = [week, i, j]
-                lesson_button = DragButton(view_args, drag_enabled, time)
+                lesson_button = DragButton(self.weekToolRef, view_args, drag_enabled, time)
                 self.addWidget(lesson_button, j, i, 1, 1)
                 lesson_button.set_lesson(lesson_set[i][j])
 
@@ -327,15 +347,22 @@ class WeekTool(QtGui.QToolBox):
         super(WeekTool, self).__init__(parent, *args, **kwargs)
         self.session = session
         self.first_panel = QtGui.QWidget(self)
+        self.first_panel.acceptDrops()
         self.first_panel.session = session
         self.second_panel = QtGui.QWidget(self)
+        self.second_panel.acceptDrops()
         self.second_panel.session = session
-        self.first_table = ButtonGrid(self.first_panel)
-        self.second_table = ButtonGrid(self.second_panel)
+        self.first_table = ButtonGrid(self.first_panel, self)
+        self.second_table = ButtonGrid(self.second_panel, self)
         self.addItem(self.first_panel, '')
         self.addItem(self.second_panel, '')
         self.translateUI()
         self.edited = False
+        self.setMouseTracking(True)
+        self.tabButtons = self.findChildren(QtGui.QAbstractButton)
+        for b in self.tabButtons:
+            b.setToolTip(QtCore.QString(unicode(self.mapFromParent(b.pos()))))
+            b.setMouseTracking(True)
 
     def set_table(self, lesson_set, view_args, drag_enabled=False):
         if self.check_and_clear_table():
