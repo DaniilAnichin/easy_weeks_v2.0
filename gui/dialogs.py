@@ -358,7 +358,7 @@ class RUSureDelete(QtGui.QMessageBox):
 
     def translateUI(self):
         self.setButtonText(QtGui.QMessageBox.Yes, fromUtf8('Так'))
-        self.setButtonText(QtGui.QMessageBox.No, fromUtf8("Ні"))
+        self.setButtonText(QtGui.QMessageBox.No, fromUtf8('Ні'))
         self.setWindowTitle(fromUtf8('Попередження'))
 
 
@@ -376,7 +376,7 @@ class RUSureChangeTable(QtGui.QMessageBox):
 
     def translateUI(self):
         self.setButtonText(QtGui.QMessageBox.Yes, fromUtf8('Так'))
-        self.setButtonText(QtGui.QMessageBox.No, fromUtf8("Ні"))
+        self.setButtonText(QtGui.QMessageBox.No, fromUtf8('Ні'))
         self.setWindowTitle(fromUtf8('Попередження'))
 
 
@@ -429,9 +429,7 @@ class AccountQuery(QtGui.QDialog):
                 message=message, status=u'method', departments=[department]
             )
             if isinstance(result, int):
-                logger.debug(result)
-            # Users.create(self.session, nickname=login, status=u'method',
-            #              password=password, message=message, departments=[department])
+                logger.debug(db_codes_output[result])
             super(AccountQuery, self).accept()
         else:
             self.login_input.setText(fromUtf8('Логін вже існує!'))

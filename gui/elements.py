@@ -5,9 +5,6 @@ from database import Logger, db_codes_output
 from database.structure import db_structure
 from PyQt4 import QtGui, QtCore
 from gui.translate import fromUtf8
-from database.import_schedule import GetCurTimetable
-import os
-from database.start_db import *
 
 logger = Logger()
 
@@ -288,14 +285,12 @@ class DragButton(QtGui.QPushButton):
 
     def before_close(self):
         if self.lesson.is_temp and not self.lesson.is_empty:
-            # logger.debug('Lesson: %s' % unicode(self.lesson))
             ret = type(self.lesson).delete(self.parent().session, self.lesson.id)
-            # logger.debug(db_codes_output[ret])
             self.deleteLater()
 
     def save_changes(self):
         logger.debug('Here must be editor saving - button')
-        self.parent().parent().edited = True
+        self.parent().edited = True
 
 
 class ButtonGrid(QtGui.QGridLayout):
@@ -346,35 +341,49 @@ class WeekTool(QtGui.QToolBox):
     def __init__(self, parent, session, *args, **kwargs):
         super(WeekTool, self).__init__(parent, *args, **kwargs)
         self.session = session
+        self.initUI()
+
+    def initUI(self):
         self.first_panel = QtGui.QWidget(self)
         self.first_panel.acceptDrops()
-        self.first_panel.session = session
+        self.first_panel.session = self.session
+        self.addItem(self.first_panel, '')
+        self.first_table = ButtonGrid(self.first_panel, self)
+
         self.second_panel = QtGui.QWidget(self)
         self.second_panel.acceptDrops()
-        self.second_panel.session = session
-        self.first_table = ButtonGrid(self.first_panel, self)
-        self.second_table = ButtonGrid(self.second_panel, self)
-        self.addItem(self.first_panel, '')
+        self.second_panel.session = self.session
         self.addItem(self.second_panel, '')
-        self.translateUI()
-        self.edited = False
+        self.second_table = ButtonGrid(self.second_panel, self)
+
+        self.set_edited(False)
+
         self.setMouseTracking(True)
         self.tabButtons = self.findChildren(QtGui.QAbstractButton)
-        for b in self.tabButtons:
-            b.setToolTip(QtCore.QString(unicode(self.mapFromParent(b.pos()))))
-            b.setMouseTracking(True)
+        for button in self.tabButtons:
+            button.setToolTip(QtCore.QString(unicode(self.mapFromParent(button.pos()))))
+            button.setMouseTracking(True)
+
+        self.translateUI()
 
     def set_table(self, lesson_set, view_args, drag_enabled=False):
         if self.check_and_clear_table():
             return 1
-        self.edited = False
+        self.set_edited(False)
         self.first_table.set_table(lesson_set[0], view_args, 0, drag_enabled)
         self.second_table.set_table(lesson_set[1], view_args, 1, drag_enabled)
         return 0
 
+    def set_edited(self, boolean):
+        self.first_panel.edited = boolean
+        self.second_panel.edited = boolean
+
+    def edited(self):
+        return self.first_panel.edited or self.second_panel.edited
+
     def check_and_clear_table(self):
-        if self.edited:
-            logger.debug('Asking')
+        if self.edited():
+            logger.debug('Show dialog asking about table change')
             from gui.dialogs import RUSureChangeTable
             self.rusure = RUSureChangeTable()
             if self.rusure.exec_() == RUSureChangeTable.Yes:
@@ -383,27 +392,21 @@ class WeekTool(QtGui.QToolBox):
             else:
                 return 1
         else:
-            logger.debug('Not edited')
+            logger.debug('Clearing table - not edited')
             self.clear_table()
             return 0
 
     def clear_table(self):
-        for child in self.first_panel.children():
-            if isinstance(child, DragButton):
-                child.before_close()
-                del child
-        for child in self.second_panel.children():
-            if isinstance(child, DragButton):
-                child.before_close()
-                del child
+        for child in self.first_panel.findChildren(DragButton):
+            child.before_close()
+            del child
+        for child in self.second_panel.findChildren(DragButton):
+            child.before_close()
+            del child
 
     def translateUI(self):
         self.setItemText(0, fromUtf8('Перший тиждень'))
         self.setItemText(1, fromUtf8('Другий тиждень'))
-
-    def before_close(self):
-        logger.debug('We\'re going to close')
-        return self.check_and_clear_table()
 
     def dragEnterEvent(self, e):
         e.accept()
@@ -433,6 +436,7 @@ class EasyTab(QtGui.QTabWidget):
         user_hbox = QtGui.QHBoxLayout(self.tab_user)
         user_hbox.addWidget(self.user_table)
         self.tab_user.setLayout(user_hbox)
+
         self.method_table = WeekTool(self.tab_method, self.session)
         method_hbox = QtGui.QHBoxLayout(self.tab_method)
         method_hbox.addWidget(self.method_table, 1)
@@ -604,7 +608,7 @@ class SearchTab(QtGui.QWidget):
 
     def translateUI(self):
         self.object_label.setText(fromUtf8('Що знайти: '))
-        self.object_choice.items = [db_structure.Teachers, db_structure.Weeks]
+        self.object_choice.items = [db_structure.Teachers, db_structure.Rooms]
         self.object_choice.addItems([item.translated for item in self.object_choice.items])
 
         self.department_label.setText(db_structure.Departments.translated + u':')

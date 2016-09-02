@@ -4,7 +4,6 @@
 import urllib
 import json
 import os
-from database.start_db import *
 from database.structure.new_tools import *
 from database.structure.select_tools import *
 from database import DATABASE_DIR, DATABASE_NAME

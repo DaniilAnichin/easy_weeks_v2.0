@@ -1,5 +1,5 @@
-from database import *
-from structure import *
+from database.structure.db_structure import *
+from database import Logger, db_codes
 logger = Logger()
 
 
@@ -58,7 +58,7 @@ def check_data(session):
     if isinstance(session, int):
         return db_codes['session']
 
-    for group in Groups.read(session, True):
+    for group in Groups.read(session, all_=True):
         lessons_dict = []
         for lesson in Lessons.read(session, id_lesson_plan=[lp.id for lp in group.lesson_plans]):
             if lesson.row_time in lessons_dict:
@@ -93,13 +93,19 @@ def check_data(session):
 
 
 def is_free(session, cls, main_id, **kwargs):
-    lesson_plans = LessonPlans.read(session, **{cls.__tablename__: main_id})
-
-    for lesson_plan in lesson_plans:
-        lessons = Lessons.read(session, lesson_plan=lesson_plan, **kwargs)
+    if cls == Rooms:
+        lessons = Lessons.read(session, id_room=main_id, **kwargs)
         if lessons:
             return False
-    return True
+        return True
+    else:
+        lesson_plans = LessonPlans.read(session, **{cls.__tablename__: main_id})
+
+        for lesson_plan in lesson_plans:
+            lessons = Lessons.read(session, lesson_plan=lesson_plan, **kwargs)
+            if lessons:
+                return False
+        return True
 
 
 def find_free(session, cls, **kwargs):

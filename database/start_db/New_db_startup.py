@@ -68,6 +68,8 @@ def main():
 
 
 if __name__ == '__main__':
-    from database.import_schedule.department_data import department_teachers, department_groups
+    from database.import_schedule.department_data import *
     # update_departments(session=connect_database(), cls_name='Teachers', **department_teachers)
-    update_departments(session=connect_database(), cls_name='Groups', **department_groups)
+    # update_departments(session=connect_database(), cls_name='Groups', **department_groups)
+    # update_departments(session=connect_database(), cls_name='Rooms', **department_groups)
+    drop_departments(session=connect_database(), cls_name='Rooms')

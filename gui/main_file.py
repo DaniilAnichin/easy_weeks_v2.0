@@ -120,7 +120,7 @@ class WeeksMenu(QtGui.QMainWindow):
         logger.info('Started database saving function')
 
     def closeEvent(self, event):
-        result = self.tabs.method_table.before_close()
+        result = self.tabs.method_table.check_and_clear_table()
         if result:
             event.ignore()
         else:

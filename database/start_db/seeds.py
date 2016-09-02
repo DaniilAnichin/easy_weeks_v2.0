@@ -134,5 +134,22 @@ def update_departments(session, cls_name, **data):
                 logger.debug('Link')
 
 
+def drop_departments(session, cls_name, department_id=2):
+    department = Departments.read(session, id=department_id)[0]
+    cls = getattr(db_structure, cls_name)
+    elements = cls.read(session, all_=True)
+    for element in elements:
+        param = 'full_name' if cls_name == 'Teachers' else 'name'
+        logger.debug('Element: %s' % unicode(element))
+        logger.debug('Department: %s' % unicode(department))
+        try:
+            element.departments
+            logger.debug('Association')
+            logger.debug(db_codes_output[cls.update(session, main_id=element.id, departments=[department])])
+        except AttributeError:
+            logger.debug(db_codes_output[cls.update(session, main_id=element.id, department=department)])
+            logger.debug('Link')
+
+
 if __name__ == "__main__":
     pass
