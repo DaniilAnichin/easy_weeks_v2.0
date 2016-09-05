@@ -361,7 +361,6 @@ class WeekTool(QtGui.QToolBox):
         self.setMouseTracking(True)
         self.tabButtons = self.findChildren(QtGui.QAbstractButton)
         for b in self.tabButtons:
-            b.setToolTip(QtCore.QString(unicode(self.mapFromParent(b.pos()))))
             b.setMouseTracking(True)
 
     def set_table(self, lesson_set, view_args, drag_enabled=False):
