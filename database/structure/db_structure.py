@@ -559,7 +559,7 @@ class LessonPlans(Base):
     def __unicode__(self):
         return u'%s з %s' % (
             unicode(self.subject),
-            u', '.join([unicode(group) for group in self.groups[0]])
+            u', '.join([unicode(group) for group in self.groups])
         )
 
     amount = Column(Integer, default=2)
@@ -774,16 +774,13 @@ class Lessons(Base):
     def make_temp(self, session, time=None):
         if not time:
             time = self.time()
-        temp_lesson = Lessons.create(session, id_lesson_plan=self.id_lesson_plan,
-                                     is_temp=True, id_room=self.id_room, **time)
-        if isinstance(temp_lesson, int) and temp_lesson == db_codes['exists']:
-            logger.debug('RLY?')
-            return Lessons.read(session, id_lesson_plan=self.id_lesson_plan,
-                                is_temp=True, id_room=self.id_room, **time)[0]
-        elif isinstance(temp_lesson, int):
-            return temp_lesson
 
+        fields = self.fields()
+        fields.pop(fields.index('id'))
+        fields.pop(fields.index('is_temp'))
+        temp_lesson = Lessons(is_temp=True, **{field: getattr(self, field) for field in fields})
         return temp_lesson
+
 
     @classmethod
     def get_plan(cls, session, **data):
