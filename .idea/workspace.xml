@@ -7,8 +7,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="efba25a3-c94c-4dd7-acb7-a88090d3e1b2" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/database/structure/db_structure.py" afterPath="$PROJECT_DIR$/database/structure/db_structure.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gui/dialogs.py" afterPath="$PROJECT_DIR$/gui/dialogs.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gui/elements.py" afterPath="$PROJECT_DIR$/gui/elements.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/gui/main_file.py" afterPath="$PROJECT_DIR$/gui/main_file.py" />
     </list>
     <ignored path="easy_weeks.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -30,11 +32,11 @@
     <splitter split-orientation="horizontal" split-proportion="0.5">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="main_file.py" pinned="false" current-in-tab="false">
+          <file leaf-file-name="main_file.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/gui/main_file.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="2340">
-                  <caret line="140" column="24" selection-start-line="140" selection-start-column="24" selection-end-line="140" selection-end-column="24" />
+                <state relative-caret-position="342">
+                  <caret line="40" column="16" selection-start-line="40" selection-start-column="16" selection-end-line="40" selection-end-column="16" />
                   <folding>
                     <element signature="e#44#54#0" expanded="true" />
                   </folding>
@@ -42,24 +44,14 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="select_table.py" pinned="false" current-in-tab="true">
+          <file leaf-file-name="select_table.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/database/select_table.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="37">
-                  <caret line="131" column="30" selection-start-line="131" selection-start-column="30" selection-end-line="131" selection-end-column="30" />
+                <state relative-caret-position="3132">
+                  <caret line="175" column="17" selection-start-line="175" selection-start-column="17" selection-end-line="175" selection-end-column="17" />
                   <folding>
                     <element signature="e#0#45#0" expanded="true" />
                   </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
-            <entry file="file:///usr/lib/python2.7/logging/__init__.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="205">
-                  <caret line="1154" column="0" selection-start-line="1154" selection-start-column="0" selection-end-line="1154" selection-end-column="0" />
-                  <folding />
                 </state>
               </provider>
             </entry>
@@ -80,10 +72,10 @@
       </split-first>
       <split-second>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="db_structure.py" pinned="false" current-in-tab="true">
+          <file leaf-file-name="db_structure.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/database/structure/db_structure.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="199">
+                <state relative-caret-position="9990">
                   <caret line="561" column="63" selection-start-line="561" selection-start-column="63" selection-end-line="561" selection-end-column="63" />
                   <folding>
                     <element signature="e#856#865#0" expanded="true" />
@@ -92,11 +84,11 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="dialogs.py" pinned="false" current-in-tab="false">
+          <file leaf-file-name="dialogs.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/gui/dialogs.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="563">
-                  <caret line="314" column="35" selection-start-line="314" selection-start-column="35" selection-end-line="314" selection-end-column="35" />
+                <state relative-caret-position="189">
+                  <caret line="389" column="0" selection-start-line="389" selection-start-column="0" selection-end-line="389" selection-end-column="0" />
                   <folding>
                     <element signature="e#44#73#0" expanded="true" />
                   </folding>
@@ -107,14 +99,14 @@
           <file leaf-file-name="elements.py" pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/gui/elements.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="18">
-                  <caret line="289" column="27" selection-start-line="289" selection-start-column="27" selection-end-line="289" selection-end-column="27" />
+                <state relative-caret-position="5886">
+                  <caret line="462" column="40" selection-start-line="462" selection-start-column="40" selection-end-line="462" selection-end-column="40" />
                   <folding>
                     <element signature="e#42#71#0" expanded="true" />
                     <element signature="e#803#4352#0" expanded="false" />
                     <element signature="e#4398#6153#0" expanded="false" />
-                    <element signature="e#21966#26124#0" expanded="false" />
-                    <element signature="e#26166#27013#0" expanded="false" />
+                    <element signature="e#21877#26035#0" expanded="false" />
+                    <element signature="e#26077#26924#0" expanded="false" />
                   </folding>
                 </state>
               </provider>
@@ -183,11 +175,11 @@
         <option value="$PROJECT_DIR$/database/import_schedule/GetCurTimetable.py" />
         <option value="$PROJECT_DIR$/database/structure/__init__.py" />
         <option value="$PROJECT_DIR$/database/start_db/__init__.py" />
-        <option value="$PROJECT_DIR$/gui/main_file.py" />
-        <option value="$PROJECT_DIR$/gui/dialogs.py" />
         <option value="$PROJECT_DIR$/database/select_table.py" />
-        <option value="$PROJECT_DIR$/gui/elements.py" />
         <option value="$PROJECT_DIR$/database/structure/db_structure.py" />
+        <option value="$PROJECT_DIR$/gui/elements.py" />
+        <option value="$PROJECT_DIR$/gui/dialogs.py" />
+        <option value="$PROJECT_DIR$/gui/main_file.py" />
       </list>
     </option>
   </component>
@@ -236,6 +228,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -302,7 +295,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -596,7 +588,7 @@
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.08143839" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32825205" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3292683" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3604888" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3604888" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.398167" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -841,16 +833,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/database/tools.py" />
-    <entry file="file://$PROJECT_DIR$/gui/main_file.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2340">
-          <caret line="140" column="24" selection-start-line="140" selection-start-column="24" selection-end-line="140" selection-end-column="24" />
-          <folding>
-            <element signature="e#44#54#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/gui/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -893,6 +875,23 @@
         </state>
       </provider>
     </entry>
+    <entry file="file:///usr/lib/python2.7/logging/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="205">
+          <caret line="1154" column="0" selection-start-line="1154" selection-start-column="0" selection-end-line="1154" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database/select_table.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3132">
+          <caret line="175" column="17" selection-start-line="175" selection-start-column="17" selection-end-line="175" selection-end-column="17" />
+          <folding>
+            <element signature="e#0#45#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/database/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="72">
@@ -903,28 +902,20 @@
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/lib/python2.7/logging/__init__.py">
+    <entry file="file://$PROJECT_DIR$/database/structure/db_structure.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="205">
-          <caret line="1154" column="0" selection-start-line="1154" selection-start-column="0" selection-end-line="1154" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/database/select_table.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="37">
-          <caret line="131" column="30" selection-start-line="131" selection-start-column="30" selection-end-line="131" selection-end-column="30" />
+        <state relative-caret-position="9990">
+          <caret line="561" column="63" selection-start-line="561" selection-start-column="63" selection-end-line="561" selection-end-column="63" />
           <folding>
-            <element signature="e#0#45#0" expanded="true" />
+            <element signature="e#856#865#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/gui/dialogs.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="563">
-          <caret line="314" column="35" selection-start-line="314" selection-start-column="35" selection-end-line="314" selection-end-column="35" />
+        <state relative-caret-position="189">
+          <caret line="389" column="0" selection-start-line="389" selection-start-column="0" selection-end-line="389" selection-end-column="0" />
           <folding>
             <element signature="e#44#73#0" expanded="true" />
           </folding>
@@ -933,24 +924,24 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/gui/elements.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="18">
-          <caret line="289" column="27" selection-start-line="289" selection-start-column="27" selection-end-line="289" selection-end-column="27" />
+        <state relative-caret-position="5886">
+          <caret line="462" column="40" selection-start-line="462" selection-start-column="40" selection-end-line="462" selection-end-column="40" />
           <folding>
             <element signature="e#42#71#0" expanded="true" />
             <element signature="e#803#4352#0" expanded="false" />
             <element signature="e#4398#6153#0" expanded="false" />
-            <element signature="e#21966#26124#0" expanded="false" />
-            <element signature="e#26166#27013#0" expanded="false" />
+            <element signature="e#21877#26035#0" expanded="false" />
+            <element signature="e#26077#26924#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/database/structure/db_structure.py">
+    <entry file="file://$PROJECT_DIR$/gui/main_file.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="199">
-          <caret line="561" column="63" selection-start-line="561" selection-start-column="63" selection-end-line="561" selection-end-column="63" />
+        <state relative-caret-position="342">
+          <caret line="40" column="16" selection-start-line="40" selection-start-column="16" selection-end-line="40" selection-end-column="16" />
           <folding>
-            <element signature="e#856#865#0" expanded="true" />
+            <element signature="e#44#54#0" expanded="true" />
           </folding>
         </state>
       </provider>

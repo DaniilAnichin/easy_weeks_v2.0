@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*- #
 import sys
 import os
+from functools import partial
 from PyQt4 import QtCore, QtGui
 from database import Logger
 from database.structure.db_structure import *
@@ -14,11 +15,41 @@ from gui.translate import fromUtf8
 logger = Logger()
 
 
+def singletone(cls):
+    obj = cls()
+    cls.__new__ = staticmethod(lambda cls: obj)
+    try:
+        del cls.__init__
+    except AttributeError:
+        pass
+    # def getinstance(cls):
+    #     logger.debug('Raised')
+    #     try:
+    #         result = cls.instance
+    #     except AttributeError:
+    #         result = cls('First')
+    #     cls.instance = result
+    #     logger.debug(cls.instance)
+    #     return result
+    # return partial(getinstance, cls)
+    return cls
+
+
+@singletone
 class WeeksMenu(QtGui.QMainWindow):
-    def __init__(self, session):
+
+    # @singletone
+    # def __new__(cls):
+    #     return super(WeeksMenu, cls).__new__(cls)
+    #     # elif not cls.__init_replaced:
+    #     #     cls.__init__ = lambda a: None
+    #     #     cls.__init_replaced = True
+
+    def __init__(self):
         super(WeeksMenu, self).__init__()
+        # session = connect_database()
         self.resize(805, 600)
-        self.session = session
+        self.session = connect_database()
         self.center = QtGui.QWidget(self)
         self.hbox = QtGui.QHBoxLayout(self.center)
 
@@ -142,7 +173,7 @@ def main():
     # f.close()
 
     session = connect_database()
-    window = WeeksMenu(session)
+    window = WeeksMenu()
     window.show()
     sys.exit(app.exec_())
 

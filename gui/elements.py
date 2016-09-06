@@ -285,9 +285,9 @@ class DragButton(QtGui.QPushButton):
         )
 
     def before_close(self):
-        # if self.lesson.is_temp and not self.lesson.is_empty:
+        if self.lesson.is_temp and not self.lesson.is_empty:
             # ret = type(self.lesson).delete(self.parent().session, self.lesson.id)
-        self.deleteLater()()
+            self.deleteLater()
 
     def save_changes(self):
         logger.debug('Here must be editor saving - button')
@@ -362,7 +362,6 @@ class WeekTool(QtGui.QToolBox):
         self.setMouseTracking(True)
         self.tabButtons = self.findChildren(QtGui.QAbstractButton)
         for button in self.tabButtons:
-            button.setToolTip(QtCore.QString(unicode(self.mapFromParent(button.pos()))))
             button.setMouseTracking(True)
 
         self.translateUI()

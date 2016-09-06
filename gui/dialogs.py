@@ -382,8 +382,9 @@ class RUSureChangeTable(QtGui.QMessageBox):
 
 class AccountQuery(QtGui.QDialog):
     def __init__(self, session):
+        from gui.main_file import WeeksMenu
         super(AccountQuery, self).__init__()
-        self.session = session
+        self.session = WeeksMenu().session
         self.submit_button = QtGui.QPushButton()
         self.submit_button.clicked.connect(self.accept)
 
