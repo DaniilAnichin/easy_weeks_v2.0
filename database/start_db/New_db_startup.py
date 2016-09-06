@@ -24,8 +24,8 @@
 import os.path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from database import DATABASE_DIR, DATABASE_NAME
 from database.structure.db_structure import Base
+from database import DATABASE_DIR, DATABASE_NAME
 from database.start_db.seeds import *
 
 

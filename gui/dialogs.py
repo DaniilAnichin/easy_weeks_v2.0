@@ -7,6 +7,13 @@ from database.structure import db_structure
 from database.structure.db_structure import *
 from translate import fromUtf8
 from gui import elements
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from database.structure.db_structure import Base
+from gui.elements import WeekTool
+from database.select_table import get_table
+from database.start_db.New_db_startup import *
+
 logger = Logger()
 
 
@@ -503,22 +510,36 @@ class ImportDialog(QtGui.QDialog):
         pro_bar.show()
         s = self.session
         j = 0
-        dep_id = Departments.read(self.session, id=self.dep_choiseer.currentIndex()+2)[0].id
+        # dep_id = Departments.read(self.session, short_name=self.dep_choiseer.currentText())[0].id
+        dep_id = 1
         max_t = len(Teachers.read(s, id_department=dep_id))
+        new_engine = create_engine('sqlite:///:memory:')
+        Base.metadata.create_all(new_engine)
+        session_m = sessionmaker(bind=new_engine)
+        tmps = session_m()
+        tmps.commit()
+        create_empty(tmps)
+        create_common(tmps)
         for t in Teachers.read(s, id_department=dep_id):
             teacher = Degrees.read(s, id=t.id_degree)[0].short_name+u' '+t.short_name
             t_lessons = Lessons.read(s, id_lesson_plan=[i.id for i in LessonPlans.read(s, teachers=t.id)])
             if t.id == 1:
                 continue
-            for lesson in t_lessons:
-                lesson.delete(s, lesson.id)
-            for lp in LessonPlans.read(s, teachers=t.id):
-                lp.delete(s, lp.id)
-            teacher_update(s, teacher, False)
+            # for lesson in t_lessons:
+            #     lesson.delete(s, lesson.id)
+            # for lp in LessonPlans.read(s, teachers=t.id):
+            #     lp.delete(s, lp.id)
+            teacher_update(tmps, teacher, True)
+            week_tool_window = WeekTool(None, tmps)
+            week_tool_window.set_table(get_table(tmps, 'teachers', Teachers.read(tmps, True)[-1].id), 'teachers')
+            week_tool_window.show()
+
+
             pro_bar.setValue(int(100 * j / max_t))
             pro_bar.update()
             QtCore.QCoreApplication.processEvents()
             j += 1
+        tmps.close()
         self.deleteLater()
 
 
