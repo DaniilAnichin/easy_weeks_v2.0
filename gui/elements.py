@@ -270,8 +270,9 @@ class DragButton(QtGui.QPushButton):
         self.set_bg_color(self.lesson.lesson_plan.lesson_type.short_name)
         self.setText(self.lesson.to_table(self.view_args))
         if self.draggable and not self.lesson.is_empty:
-            type(self.lesson).update(self.parent().session, main_id=self.lesson.id, **self.time)
-        # self.lesson.set_time(self.time)
+            if self.time != self.lesson.time():
+                self.parent().edited = True
+                type(self.lesson).update(self.parent().session, main_id=self.lesson.id, **self.time)
 
     def set_bg_color(self, lesson_type):
         self.setStyleSheet(color_start.format(*button_colors[lesson_type]))

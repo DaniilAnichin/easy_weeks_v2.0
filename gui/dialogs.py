@@ -274,7 +274,7 @@ class ShowLesson(WeeksDialog):
 
 
 class EditLesson(WeeksDialog):
-    def __init__(self, element, session, time=True, *args, **kwargs):
+    def __init__(self, element, session, time=False, *args, **kwargs):
         super(EditLesson, self).__init__(*args, **kwargs)
 
         self.session = session
