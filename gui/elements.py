@@ -362,7 +362,6 @@ class WeekTool(QtGui.QToolBox):
         self.setMouseTracking(True)
         self.tabButtons = self.findChildren(QtGui.QAbstractButton)
         for button in self.tabButtons:
-            button.setToolTip(QtCore.QString(unicode(self.mapFromParent(button.pos()))))
             button.setMouseTracking(True)
 
         self.translateUI()

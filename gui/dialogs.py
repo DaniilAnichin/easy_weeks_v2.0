@@ -7,6 +7,13 @@ from database.structure import db_structure
 from database.structure.db_structure import *
 from translate import fromUtf8
 from gui import elements
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from database.structure.db_structure import Base
+from gui.elements import WeekTool
+from database.select_table import get_table
+from database.start_db.New_db_startup import *
+
 logger = Logger()
 
 
@@ -89,12 +96,12 @@ class WeeksDialog(QtGui.QDialog):
         setattr(self, name, combo)
         if selected:
             combo.setCurrentIndex(combo.items.index(selected))
-        # logger.info('Added combobox with name "%s"' % name)
+        logger.info('Added combobox with name "%s"' % name)
         return combo
 
     def make_list(self, values_list, choice_list, name):
         items_list = elements.EditableList(self, values_list, choice_list, name)
-        # logger.info('Added list widget with name "%s"' % name)
+        logger.info('Added list widget with name "%s"' % name)
         return items_list
 
     def set_pair(self, first_data, second_data):
@@ -448,8 +455,22 @@ class ImportDialog(QtGui.QDialog):
         self.layout.addWidget(self.import_dep_button, 0, 1)
         self.import_dep_button.clicked.connect(self.updateDepDb)
         self.setWindowTitle(fromUtf8('Оновлення бази'))
-        self.setLayout(self.layout)
         self.session = s
+        self.dep_choiseer = self.make_combo(Departments.read(self.session, True), None, u'Department',
+                                            lambda a: unicode(a))
+        self.layout.addWidget(self.dep_choiseer, 1, 1)
+        self.setLayout(self.layout)
+
+    def make_combo(self, choice_list, selected, name, sort_key):
+        combo = elements.CompleterCombo()
+        combo.items = choice_list[:]
+        combo.items.sort(key=sort_key)
+        combo.addItems([sort_key(item) for item in combo.items])
+        setattr(self, name, combo)
+        if selected:
+            combo.setCurrentIndex(combo.items.index(selected))
+        logger.info('Added combobox with name "%s"' % name)
+        return combo
 
     def updatedb(self):
         import os
@@ -479,7 +500,7 @@ class ImportDialog(QtGui.QDialog):
                 QtCore.QCoreApplication.processEvents()
         self.deleteLater()
 
-    def updateDepDb(self, dep_id):
+    def updateDepDb(self):
         from database.import_schedule.GetCurTimetable import teacher_update
         pro_bar = QtGui.QProgressBar(self)
         self.layout.addWidget(pro_bar, 1, 2)
@@ -487,21 +508,36 @@ class ImportDialog(QtGui.QDialog):
         pro_bar.show()
         s = self.session
         j = 0
+        # dep_id = Departments.read(self.session, short_name=self.dep_choiseer.currentText())[0].id
+        dep_id = 1
         max_t = len(Teachers.read(s, id_department=dep_id))
+        new_engine = create_engine('sqlite:///:memory:')
+        Base.metadata.create_all(new_engine)
+        session_m = sessionmaker(bind=new_engine)
+        tmps = session_m()
+        tmps.commit()
+        create_empty(tmps)
+        create_common(tmps)
         for t in Teachers.read(s, id_department=dep_id):
             teacher = Degrees.read(s, id=t.id_degree)[0].short_name+u' '+t.short_name
             t_lessons = Lessons.read(s, id_lesson_plan=[i.id for i in LessonPlans.read(s, teachers=t.id)])
             if t.id == 1:
                 continue
-            for lesson in t_lessons:
-                lesson.delete(s, lesson.id)
-            for lp in LessonPlans.read(s, teachers=t.id):
-                lp.delete(s, lp.id)
-            teacher_update(s, teacher, False)
+            # for lesson in t_lessons:
+            #     lesson.delete(s, lesson.id)
+            # for lp in LessonPlans.read(s, teachers=t.id):
+            #     lp.delete(s, lp.id)
+            teacher_update(tmps, teacher, True)
+            week_tool_window = WeekTool(None, tmps)
+            week_tool_window.set_table(get_table(tmps, 'teachers', Teachers.read(tmps, True)[-1].id), 'teachers')
+            week_tool_window.show()
+
+
             pro_bar.setValue(int(100 * j / max_t))
             pro_bar.update()
             QtCore.QCoreApplication.processEvents()
             j += 1
+        tmps.close()
         self.deleteLater()
 
 
