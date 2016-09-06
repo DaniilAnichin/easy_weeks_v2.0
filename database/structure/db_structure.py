@@ -451,6 +451,45 @@ class Rooms(Base):
     _associations = ['departments']
     # error = db_codes['room']
 
+    @classmethod
+    def read(cls, session, all_=False, **kwargs):
+        if isinstance(session, int):
+            return db_codes['session']
+
+        result = session.query(cls)
+
+        if all_:
+            # return result.all()
+            return result.all()[1:]
+
+        # Global filter loop:
+        for key in kwargs.keys():
+            if key not in cls.fields():
+                return db_codes['wrong']
+            elif isinstance(kwargs[key], list):
+                if key == 'lessons':
+                    try:
+                        if not isinstance(kwargs[key][0], int):
+                            kwargs[key] = [lesson.id for lesson in kwargs[key]]
+                    except IndexError:
+                        pass
+                    result = result.filter(LessonPlans.lessons.any(
+                        Lessons.id.in_(kwargs[key])
+                    ))
+                else:
+                    result = result.filter(getattr(cls, key).in_(kwargs[key]))
+            else:
+                if key == 'lessons':
+                    if not isinstance(kwargs[key], int):
+                        kwargs[key] = [lesson.id for lesson in kwargs[key]]
+                    result = result.filter(LessonPlans.lessons.any(
+                        Lessons.id.in_(kwargs[key])
+                    ))
+                else:
+                    result = result.filter(getattr(cls, key) == kwargs[key])
+
+        return result.all()
+
 
 class LessonTypes(Base):
     full_name = Column(String)
@@ -518,7 +557,10 @@ class LessonPlans(Base):
     translated = u'Навчальній план'
 
     def __unicode__(self):
-        return u'%s з %s' % (unicode(self.subject), unicode(self.groups[0]))
+        return u'%s з %s' % (
+            unicode(self.subject),
+            u', '.join([unicode(group) for group in self.groups[0]])
+        )
 
     amount = Column(Integer, default=2)
     needed_stuff = Column(String, default='')
@@ -586,20 +628,49 @@ class LessonPlans(Base):
                 return db_codes['wrong']
             elif isinstance(kwargs[key], list):
                 if key == 'groups':
+                    try:
+                        if not isinstance(kwargs[key][0], int):
+                            kwargs[key] = [lesson.id for lesson in kwargs[key]]
+                    except IndexError:
+                        pass
                     result = result.filter(LessonPlans.groups.any(
                              Groups.id.in_(kwargs[key])))
                 elif key == 'teachers':
+                    try:
+                        if not isinstance(kwargs[key][0], int):
+                            kwargs[key] = [lesson.id for lesson in kwargs[key]]
+                    except IndexError:
+                        pass
                     result = result.filter(LessonPlans.teachers.any(
                              Teachers.id.in_(kwargs[key])))
+                elif key == 'lessons':
+                    try:
+                        if not isinstance(kwargs[key][0], int):
+                            kwargs[key] = [lesson.id for lesson in kwargs[key]]
+                    except IndexError:
+                        pass
+                    result = result.filter(LessonPlans.lessons.any(
+                        Lessons.id.in_(kwargs[key])
+                    ))
                 else:
                     result = result.filter(getattr(cls, key).in_(kwargs[key]))
             else:
                 if key == 'groups':
+                    if not isinstance(kwargs[key], int):
+                        kwargs[key] = [lesson.id for lesson in kwargs[key]]
                     result = result.filter(getattr(LessonPlans, key).any(
                              Groups.id == kwargs[key]))
                 elif key == 'teachers':
+                    if not isinstance(kwargs[key], int):
+                        kwargs[key] = [lesson.id for lesson in kwargs[key]]
                     result = result.filter(getattr(LessonPlans, key).any(
                              Teachers.id == kwargs[key]))
+                elif key == 'lessons':
+                    if not isinstance(kwargs[key], int):
+                        kwargs[key] = [lesson.id for lesson in kwargs[key]]
+                    result = result.filter(LessonPlans.lessons.any(
+                        Lessons.id.in_(kwargs[key])
+                    ))
                 else:
                     result = result.filter(getattr(cls, key) == kwargs[key])
 
@@ -632,7 +703,16 @@ class Lessons(Base):
         # logger.info('Passed lesson init')
 
     def __unicode__(self):
-        return u'%s у %s' % (unicode(self.lesson_plan), unicode(self.row_time))
+        return u'%s у час %s' % (unicode(self.lesson_plan), unicode(self.row_time))
+
+    def __eq__(self, other):
+        fields = self.fields()
+        fields.pop(fields.index('id'))
+        fields.pop(fields.index('is_temp'))
+        result = True
+        for field in fields:
+            result = result and (getattr(self, field) == getattr(other, field))
+        return result
 
     def time(self):
         return dict(
@@ -696,7 +776,7 @@ class Lessons(Base):
             time = self.time()
         temp_lesson = Lessons.create(session, id_lesson_plan=self.id_lesson_plan,
                                      is_temp=True, id_room=self.id_room, **time)
-        if temp_lesson == db_codes['exists']:
+        if isinstance(temp_lesson, int) and temp_lesson == db_codes['exists']:
             logger.debug('RLY?')
             return Lessons.read(session, id_lesson_plan=self.id_lesson_plan,
                                 is_temp=True, id_room=self.id_room, **time)[0]
@@ -742,7 +822,7 @@ class Lessons(Base):
 
     @classmethod
     def read(cls, session, all_=False, **kwargs):
-        if 'is_temp' not in kwargs.keys() and 'id' not in kwargs.keys():
+        if not set(kwargs.keys()).intersection({'is_temp', 'id', 'all_'}):
             kwargs.update(dict(is_temp=False))
         return super(Lessons, cls).read(session, all_=all_, **kwargs)
 

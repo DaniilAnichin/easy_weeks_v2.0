@@ -6,38 +6,37 @@ logger = Logger()
 def get_table(session, data_type, data):
     if isinstance(session, int):
         return db_codes['session']
-    logger.debug('Data type: "%s", data: "%s"' % (data_type, data))
     # check data_type and data
+    logger.debug('Data type: "%s", data: "%s"' % (data_type, data))
+    if data_type == 'rooms':
+        params = dict(id_room=data)
+    else:
+        lesson_plan_ids = [lp.id for lp in LessonPlans.read(session, **{data_type: data})]
+        params = dict(id_lesson_plan=lesson_plan_ids)
 
     rettable = [[[None
                   for i in range(len(Lessons.time_ids))]
-                  for j in range(len(Lessons.day_ids))]
-                  for k in range(len(Lessons.week_ids))]
-    if data_type == 'rooms':
-        for w in Lessons.week_ids:
-            for d in Lessons.day_ids:
-                for t in Lessons.time_ids:
-                    rettable[w - 2][d - 2][t - 2] = Lessons.read(session, id_room=data,
-                                                                 id_week=w, id_week_day=d, id_lesson_time=t)
-                    if rettable[w - 2][d - 2][t - 2]:
-                        rettable[w - 2][d - 2][t - 2] = rettable[w - 2][d - 2][t - 2][0]
-                    else:
-                        rettable[w - 2][d - 2][t - 2] = Lessons.read(session, id=1)[0]
-        return rettable
+                 for j in range(len(Lessons.day_ids))]
+                for k in range(len(Lessons.week_ids))]
 
-    else:
-        id_lesson_plan = [lp.id for lp in LessonPlans.read(session, **{data_type: data})]
+    for week_id in Lessons.week_ids:
+        for day_id in Lessons.day_ids:
+            for time_id in Lessons.time_ids:
+                week = Lessons.week_ids.index(week_id)
+                day = Lessons.day_ids.index(day_id)
+                time = Lessons.time_ids.index(time_id)
 
-        for w in Lessons.week_ids:
-            for d in Lessons.day_ids:
-                for t in Lessons.time_ids:
-                    rettable[w-2][d-2][t-2] = Lessons.read(session, id_lesson_plan=id_lesson_plan,
-                                                     id_week=w, id_week_day=d, id_lesson_time=t)
-                    if rettable[w-2][d-2][t-2]:
-                        rettable[w - 2][d - 2][t - 2] = rettable[w-2][d-2][t-2][0]
-                    else:
-                        rettable[w - 2][d - 2][t - 2] = Lessons.read(session, id=1)[0]
-        return rettable
+                lessons = Lessons.read(
+                    session, id_week=week_id, id_week_day=day_id,
+                    id_lesson_time=time_id, **params
+                )
+                if isinstance(lessons, int):
+                    pass
+                elif lessons:
+                    rettable[week][day][time] = lessons[0]
+                else:
+                    rettable[week][day][time] = Lessons.read(session, id=1)[0]
+    return rettable
 
 
 def undefined_lp(session, data_type, data):
@@ -54,42 +53,94 @@ def undefined_lp(session, data_type, data):
     return ret_vect
 
 
-def check_data(session):
+def check_table(session, only_temp=False):
     if isinstance(session, int):
         return db_codes['session']
 
-    for group in Groups.read(session, all_=True):
-        lessons_dict = []
-        for lesson in Lessons.read(session, id_lesson_plan=[lp.id for lp in group.lesson_plans]):
-            if lesson.row_time in lessons_dict:
+    # Can optimize by reading not the all groups/teachers/rooms
+    if only_temp:
+        groups = Groups.read(session, lesson_plans=LessonPlans.read(
+            session, lessons=Lessons.read(session, is_temp=True)
+        ))
+        teachers = Groups.read(session, lesson_plans=LessonPlans.read(
+            session, lessons=Lessons.read(session, is_temp=True)
+        ))
+        rooms = Groups.read(session, lessons=Lessons.read(session, is_temp=True))
+    else:
+        groups = Groups.read(session, all_=True)
+        teachers = Teachers.read(session, all_=True)
+        rooms = Rooms.read(session, all_=True)
+
+    states = [0, 1]
+    for group in groups:
+        lessons = Lessons.read(
+            session, is_temp=states,
+            id_lesson_plan=[lp.id for lp in group.lesson_plans]
+        )
+        time_list = [lesson.row_time for lesson in lessons]
+        repeted = [time for time in set(time_list) if time_list.count(time) > 1]
+        time_dict = {}
+
+        for time in repeted:
+            repeted_less = []
+            for lesson in lessons:
+                if lesson.row_time == time:
+                    repeted_less.append(lesson)
+            time_dict.update({time: repeted_less})
+            if not ((len(time_dict[time]) == 2) and (time_dict[time][0] == time_dict[time][1])
+                    and (time_dict[time][0].is_temp != time_dict[time][1].is_temp)):
                 # do something
-                logger.info('Problem with %s at %s' % (group.name, lesson.row_time))
-                return
-            lessons_dict.append(lesson.row_time)
-    for teach in Teachers.read(session, True):
-        lessons_dict = []
-        for lesson in Lessons.read(session, id_lesson_plan=[lp.id for lp in teach.lesson_plans]):
-            if lesson.row_time in lessons_dict:
+                logger.info('Problem with %s at %s' % (group.name, time))
+                return db_codes['group']
+    for teach in teachers:
+        lessons = Lessons.read(
+            session, is_temp=states,
+            id_lesson_plan=[lp.id for lp in teach.lesson_plans]
+        )
+        time_list = [lesson.row_time for lesson in lessons]
+        repeted = [time for time in set(time_list) if time_list.count(time) > 1]
+        time_dict = {}
+        for time in repeted:
+            repeted_less = []
+            for lesson in lessons:
+                if lesson.row_time == time:
+                    repeted_less.append(lesson)
+            time_dict.update({time: repeted_less})
+            if not (len(time_dict[time]) == 2 and time_dict[time][0] == time_dict[time][1]\
+                    and time_dict[time][0].is_temp != time_dict[time][1].is_temp):
                 # do something
-                logger.info('Problem with %s at %s' % (teach.short_name, lesson.row_time))
-                return
-            lessons_dict.append(lesson.row_time)
-    for room in Rooms.read(session, True):
+                logger.info('Problem with %s at %s' % (teach.short_name, time))
+                return db_codes['teacher']
+    for room in rooms:
         if room.capacity >= 256:
             continue
-        lessons_dict = []
-        for lesson in Lessons.read(session, id_room=room.id):
-            if lesson.row_time in lessons_dict:
+        lessons = Lessons.read(session, is_temp=states, id_room=room.id)
+        time_list = [lesson.row_time for lesson in lessons]
+        repeted = [time for time in set(time_list) if time_list.count(time) > 1]
+        for time in repeted:
+            repeted_less = []
+            for lesson in lessons:
+                if lesson.row_time == time:
+                    repeted_less.append(lesson)
+            if not (len(repeted_less) == 2 and repeted_less[0] == repeted_less[1]
+                    and repeted_less[0].is_temp != repeted_less[1].is_temp):
                 # do something
-                logger.info('Problem with %s at %s' % (room.name, lesson.row_time))
-                return
-            lessons_dict.append(lesson.row_time)
-
-    for lesson in Lessons.read(session, True):
-        lesson.update(session, lesson.id, is_tmp=False)
+                logger.info('Problem with %s at %s' % (room.shortname, time))
+                return db_codes['room']
     logger.info('Database is correct')
 
     return db_codes['success']
+
+
+def save_table(session):
+    if isinstance(session, int):
+        return db_codes['session']
+
+    result = check_table(session)
+    if result == db_codes['success']:
+        for lesson in Lessons.read(session, all_=True, is_temp=True):
+            lesson.update(session, lesson.id, is_tmp=False)
+    return result
 
 
 def is_free(session, cls, main_id, **kwargs):
