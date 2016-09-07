@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*- #
 import sys
 import os
+import gui.dialogs
 from PyQt4 import QtCore, QtGui
 from database import Logger
 from database.structure import *
@@ -158,6 +159,7 @@ def main():
 
     session = connect_database()
     window = WeeksMenu(session)
+    gui.dialogs.danger_singleton = window
     window.show()
     sys.exit(app.exec_())
 

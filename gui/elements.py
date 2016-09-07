@@ -8,6 +8,7 @@ from gui.translate import fromUtf8
 from database.import_schedule import GetCurTimetable
 import os
 from database.start_db import *
+from database.select_table import get_table
 
 logger = Logger()
 
@@ -680,3 +681,29 @@ class WeekMenuBar(QtGui.QMenuBar):
             self.addAction(menu_element.menuAction())
 
         self.parent().setMenuBar(self)
+
+
+class ImportPopWindow(QtGui.QDialog):
+    def __init__(self, session, parent=None):
+        super(ImportPopWindow, self).__init__(parent)
+
+        vlayout = QtGui.QVBoxLayout()
+        self.week_tool_window = WeekTool(None, session)
+        vlayout.addWidget(self.week_tool_window)
+        bhlayoyt = QtGui.QHBoxLayout()
+        self.ybutton = QtGui.QPushButton(u'Застосувати')
+        self.nbutton = QtGui.QPushButton(u'Відмінити')
+        bhlayoyt.addWidget(self.ybutton)
+        bhlayoyt.addWidget(self.nbutton)
+        vlayout.addLayout(bhlayoyt)
+        self.setLayout(vlayout)
+        self.ybutton.clicked.connect(self.acceptTT)
+        self.nbutton.clicked.connect(self.defuseTT)
+        self.is_done = False
+
+    def acceptTT(self):
+        self.is_done = True
+
+    def defuseTT(self):
+        self.is_done = True
+

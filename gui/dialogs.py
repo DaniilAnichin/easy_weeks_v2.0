@@ -10,11 +10,11 @@ from gui import elements
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database.structure.db_structure import Base
-from gui.elements import WeekTool
+from gui.elements import WeekTool, ImportPopWindow
 from database.select_table import get_table
 from database.start_db.New_db_startup import *
 
-logger = Logger()
+danger_singleton = None
 
 
 class LoginDialog(QtGui.QDialog):
@@ -530,10 +530,16 @@ class ImportDialog(QtGui.QDialog):
             # for lp in LessonPlans.read(s, teachers=t.id):
             #     lp.delete(s, lp.id)
             teacher_update(tmps, teacher, True)
-            week_tool_window = WeekTool(None, tmps)
-            week_tool_window.set_table(get_table(tmps, 'teachers', Teachers.read(tmps, True)[-1].id), 'teachers')
-            week_tool_window.show()
 
+            pop_out = ImportPopWindow(tmps)
+            pop_out.week_tool_window.set_table(get_table(tmps, 'teachers', Teachers.read(tmps, True)[-1].id), 'teachers')
+            pop_out.setWindowTitle(QtCore.QString(teacher))
+            pop_out.show()
+            danger_singleton.tabs.setCurIndex = 1
+            danger_singleton.tabs.set_table(*[get_table(s, 'teachers', t.id), 'teachers'])
+
+            while not pop_out.is_done:
+                QtCore.QCoreApplication.processEvents()
 
             pro_bar.setValue(int(100 * j / max_t))
             pro_bar.update()
