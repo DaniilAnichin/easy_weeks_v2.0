@@ -518,6 +518,7 @@ class ImportDialog(QtGui.QDialog):
         session_m = sessionmaker(bind=new_engine)
         tmps = session_m()
         tmps.commit()
+        pop_out.setTmpSession(tmps)
         for t in Teachers.read(self.session, id_department=dep_id):
             create_empty(tmps)
             create_common(tmps)
@@ -538,7 +539,7 @@ class ImportDialog(QtGui.QDialog):
             pop_out.setWindowTitle(QtCore.QString(teacher))
             pop_out.show()
             danger_singleton.tabs.setCurIndex = 2
-            danger_singleton.tabs.set_table(*[get_table(self.session, 'teachers', t.id), 'teachers', True])
+            danger_singleton.tabs.set_table(*[get_table(self.session, 'teachers', t.id), 'teachers'])
 
             while not pop_out.is_done:
                 QtCore.QCoreApplication.processEvents()

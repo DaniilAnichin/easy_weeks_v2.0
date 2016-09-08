@@ -3,6 +3,7 @@
 from functools import partial
 from database import Logger, db_codes_output
 from database.structure import db_structure
+from database.structure.new_tools import new_lesson, new_lesson_plan
 from PyQt4 import QtGui, QtCore
 from gui.translate import fromUtf8
 from database.import_schedule import GetCurTimetable
@@ -703,6 +704,7 @@ class ImportPopWindow(QtGui.QDialog):
         self.nbutton.clicked.connect(self.defuseTT)
         self.is_done = False
         self.teacher = None
+        self.tmps = None
 
     def setTmpSession(self, s):
         self.tmps = s
@@ -717,6 +719,19 @@ class ImportPopWindow(QtGui.QDialog):
             lesson.delete(self.session, lesson.id)
         for lp in LessonPlans.read(self.session, teachers=self.teacher.id):
             lp.delete(self.session, lp.id)
+        for lp in self.tmps.query(LessonPlans).all()[1:]:
+            new_lp = new_lesson_plan(self.session, times_for_2_week=lp.amount, capacity=lp.capacity,
+                                     needed_stuff=lp.needed_stuff,
+                                     id_les_type=lp.id_lesson_type,
+                                     id_sub=Subjects.read(self.session, full_name=lp.subject.full_name)[0].id,
+                                     id_grps=[g.id for g in Groups.read(self.session, name=[p.name for p in
+                                                                                              lp.groups])],
+                                     id_tes=[t.id for t in Teachers.read(self.session, full_name=[p.full_name
+                                                                                                       for p in
+                                                                                                       lp.teachers])])
+            for l in Lessons.read(self.tmps, id_lesson_plan=lp.id):
+                new_lesson(self.session, row_time=l.row_time, id_room=Rooms.read(self.session, name=l.room.name)[0].id,
+                           id_lp=new_lp.id)
         self.is_done = True
 
     def defuseTT(self):
