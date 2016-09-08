@@ -3,8 +3,14 @@
 from functools import partial
 from database import Logger, db_codes_output
 from database.structure import db_structure
+from database.structure.db_structure import *
+from database.structure.new_tools import new_lesson, new_lesson_plan
 from PyQt4 import QtGui, QtCore
 from gui.translate import fromUtf8
+from database.import_schedule import GetCurTimetable
+import os
+from database.start_db import *
+from database.select_table import get_table
 
 logger = Logger()
 
@@ -268,10 +274,11 @@ class DragButton(QtGui.QPushButton):
         else:
             self.lesson = lesson.make_temp(self.parent().session)
         self.set_bg_color(self.lesson.lesson_plan.lesson_type.short_name)
-        self.setText(self.lesson.to_table(self.view_args))
+        # self.setText(self.lesson.to_table(self.view_args))
+        self.setText(self.lesson.to_table())
         if self.draggable and not self.lesson.is_empty:
             if self.time != self.lesson.time():
-                self.parent().edited = True
+                self.parent().set_edited(True)
                 type(self.lesson).update(self.parent().session, main_id=self.lesson.id, **self.time)
 
     def set_bg_color(self, lesson_type):
@@ -291,7 +298,7 @@ class DragButton(QtGui.QPushButton):
 
     def save_changes(self):
         logger.debug('Here must be editor saving - button')
-        self.parent().edited = True
+        self.parent().set_edited(True)
 
 
 class ButtonGrid(QtGui.QGridLayout):
@@ -366,9 +373,10 @@ class WeekTool(QtGui.QToolBox):
 
         self.translateUI()
 
-    def set_table(self, lesson_set, view_args, drag_enabled=False):
-        if self.check_and_clear_table():
-            return 1
+    def set_table(self, lesson_set, view_args, drag_enabled=False, pass_check=False):
+        if not pass_check:
+            if self.check_and_clear_table():
+                return 1
         self.set_edited(False)
         self.first_table.set_table(lesson_set[0], view_args, 0, drag_enabled)
         self.second_table.set_table(lesson_set[1], view_args, 1, drag_enabled)
@@ -685,3 +693,56 @@ class WeekMenuBar(QtGui.QMenuBar):
             self.addAction(menu_element.menuAction())
 
         self.parent().setMenuBar(self)
+
+
+class ImportPopWindow(QtGui.QDialog):
+    def __init__(self, session, parent=None):
+        super(ImportPopWindow, self).__init__(parent)
+
+        vlayout = QtGui.QVBoxLayout()
+        self.week_tool_window = WeekTool(self, session)
+        self.session = session
+        vlayout.addWidget(self.week_tool_window)
+        bhlayoyt = QtGui.QHBoxLayout()
+        self.ybutton = QtGui.QPushButton(u'Застосувати')
+        self.nbutton = QtGui.QPushButton(u'Відмінити')
+        bhlayoyt.addWidget(self.ybutton)
+        bhlayoyt.addWidget(self.nbutton)
+        vlayout.addLayout(bhlayoyt)
+        self.setLayout(vlayout)
+        self.ybutton.clicked.connect(self.acceptTT)
+        self.nbutton.clicked.connect(self.defuseTT)
+        self.is_done = False
+        self.teacher = None
+        self.tmps = None
+
+    def setTmpSession(self, s):
+        self.tmps = s
+
+    def setCurTeacher(self, t):
+        self.teacher = t
+
+    def acceptTT(self):
+        t_lessons = Lessons.read(self.session, id_lesson_plan=[i.id for i in LessonPlans.read(self.session,
+                                                                                              id=self.teacher.id)])
+        for lesson in t_lessons:
+            lesson.delete(self.session, lesson.id)
+        for lp in LessonPlans.read(self.session, teachers=self.teacher.id):
+            lp.delete(self.session, lp.id)
+        for lp in self.tmps.query(LessonPlans).all()[1:]:
+            new_lp = new_lesson_plan(self.session, times_for_2_week=lp.amount, capacity=lp.capacity,
+                                     needed_stuff=lp.needed_stuff,
+                                     id_les_type=lp.id_lesson_type,
+                                     id_sub=Subjects.read(self.session, full_name=lp.subject.full_name)[0].id,
+                                     id_grps=[g.id for g in Groups.read(self.session, name=[p.name for p in
+                                                                                              lp.groups])],
+                                     id_tes=[t.id for t in Teachers.read(self.session, full_name=[p.full_name
+                                                                                                       for p in
+                                                                                                       lp.teachers])])
+            for l in Lessons.read(self.tmps, id_lesson_plan=lp.id):
+                new_lesson(self.session, row_time=l.row_time, id_room=Rooms.read(self.session, name=l.room.name)[0].id,
+                           id_lp=new_lp.id)
+        self.is_done = True
+
+    def defuseTT(self):
+        self.is_done = True

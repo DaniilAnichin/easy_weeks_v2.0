@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*- #
 import sys
 import os
+import gui.dialogs
 from PyQt4 import QtCore, QtGui
 from database import Logger
 from database.structure.db_structure import *
@@ -72,7 +73,7 @@ class WeeksMenu(QtGui.QMainWindow):
 
         # self.load_database()
 
-        default_data = [get_table(self.session, 'groups', 42), ['groups', 42]]
+        default_data = [get_table(self.session, 'groups', 42), 'groups']
         self.tabs.set_table(*default_data)
 
         self.retranslateUi()
@@ -158,6 +159,7 @@ def main():
 
     session = connect_database()
     window = WeeksMenu(session)
+    gui.dialogs.danger_singleton = window
     window.show()
     sys.exit(app.exec_())
 

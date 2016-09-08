@@ -82,8 +82,9 @@ def select_faculties(s, id_f=0, **kwargs):
 def select_departments(s, id_d=0, **kwargs):
     if kwargs.get('full_name', '') == '' and kwargs.get('short_name', '') == '' \
             and not kwargs.get('id_faculty', 0) and not id_d:
-        print "Must be one of the parameters"
-        return -1
+        # print "Must be one of the parameters"
+        return {'id': 1, 'short_name': u'Unknown', 'full_name': u'Unknown', 'id_faculty': 1}
+        # return -1
     if type(s) is int:
         print "No session"
         return -2
