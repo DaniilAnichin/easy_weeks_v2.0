@@ -3,6 +3,7 @@
 from database import Logger, db_codes_output
 from database.structure import db_structure
 from database.structure.db_structure import *
+__all__ = ['create_common', 'create_custom', 'create_empty']
 logger = Logger()
 
 

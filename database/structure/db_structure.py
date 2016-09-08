@@ -557,9 +557,11 @@ class LessonPlans(Base):
     translated = u'Навчальній план'
 
     def __unicode__(self):
-        return u'%s з %s' % (
+        return u'{0},\n{1}\nз {2}\nз {3}'.format(
+            unicode(self.lesson_type),
             unicode(self.subject),
-            u', '.join([unicode(group) for group in self.groups])
+            u', '.join([unicode(group) for group in self.groups]),
+            u', '.join([unicode(teacher) for teacher in self.teachers])
         )
 
     amount = Column(Integer, default=2)

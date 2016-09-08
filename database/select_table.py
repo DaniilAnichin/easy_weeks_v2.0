@@ -1,3 +1,4 @@
+from database.structure import db_structure
 from database.structure.db_structure import *
 from database import Logger, db_codes
 logger = Logger()
@@ -39,16 +40,21 @@ def get_table(session, data_type, data):
     return rettable
 
 
-def undefined_lp(session, data_type, data):
+def undefined_lp(session, data_type=None, data=None):
     if isinstance(session, int):
         return db_codes['session']
     # check data_type and data
 
     ret_vect = []
-    lesson_plans = [lp.id for lp in LessonPlans.read(session, **{data_type: data})]
+    if not (data_type and data):
+        lesson_plans = LessonPlans.read(session, all_=True)
+    else:
+        lesson_plans = LessonPlans.read(session, **{data_type: data})
     for lp in lesson_plans:
         unsorted = lp.amount - len(Lessons.read(session, id_lesson_plan=lp.id))
-        for i in range(unsorted):
+        # for i in range(unsorted):
+        #     ret_vect.append(lp)
+        if unsorted > 0:
             ret_vect.append(lp)
     return ret_vect
 

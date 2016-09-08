@@ -72,7 +72,7 @@ class WeeksMenu(QtGui.QMainWindow):
 
         # self.load_database()
 
-        default_data = [get_table(self.session, 'groups', 42), 'groups']
+        default_data = [get_table(self.session, 'groups', 42), ['groups', 42]]
         self.tabs.set_table(*default_data)
 
         self.retranslateUi()
