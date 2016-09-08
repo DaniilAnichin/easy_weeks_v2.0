@@ -364,9 +364,10 @@ class WeekTool(QtGui.QToolBox):
         for b in self.tabButtons:
             b.setMouseTracking(True)
 
-    def set_table(self, lesson_set, view_args, drag_enabled=False):
-        if self.check_and_clear_table():
-            return 1
+    def set_table(self, lesson_set, view_args, drag_enabled=False, pass_check=False):
+        if not pass_check:
+            if self.check_and_clear_table():
+                return 1
         self.edited = False
         self.first_table.set_table(lesson_set[0], view_args, 0, drag_enabled)
         self.second_table.set_table(lesson_set[1], view_args, 1, drag_enabled)
@@ -688,7 +689,8 @@ class ImportPopWindow(QtGui.QDialog):
         super(ImportPopWindow, self).__init__(parent)
 
         vlayout = QtGui.QVBoxLayout()
-        self.week_tool_window = WeekTool(None, session)
+        self.week_tool_window = WeekTool(self, session)
+        self.session = session
         vlayout.addWidget(self.week_tool_window)
         bhlayoyt = QtGui.QHBoxLayout()
         self.ybutton = QtGui.QPushButton(u'Застосувати')
@@ -700,8 +702,21 @@ class ImportPopWindow(QtGui.QDialog):
         self.ybutton.clicked.connect(self.acceptTT)
         self.nbutton.clicked.connect(self.defuseTT)
         self.is_done = False
+        self.teacher = None
+
+    def setTmpSession(self, s):
+        self.tmps = s
+
+    def setCurTeacher(self, t):
+        self.teacher = t
 
     def acceptTT(self):
+        t_lessons = Lessons.read(self.session, id_lesson_plan=[i.id for i in LessonPlans.read(self.session,
+                                                                                              id=self.teacher.id)])
+        for lesson in t_lessons:
+            lesson.delete(self.session, lesson.id)
+        for lp in LessonPlans.read(self.session, teachers=self.teacher.id):
+            lp.delete(self.session, lp.id)
         self.is_done = True
 
     def defuseTT(self):

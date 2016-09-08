@@ -7,8 +7,8 @@ from database.structure import db_structure
 from database.structure.db_structure import *
 from translate import fromUtf8
 from gui import elements
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, MetaData
+from sqlalchemy.orm import sessionmaker, Session
 from database.structure.db_structure import Base
 from gui.elements import WeekTool, ImportPopWindow
 from database.select_table import get_table
@@ -508,43 +508,49 @@ class ImportDialog(QtGui.QDialog):
         self.layout.addWidget(pro_bar, 1, 2)
         pro_bar.setValue(0)
         pro_bar.show()
-        s = self.session
+        pop_out = ImportPopWindow(self.session)
         j = 0
         # dep_id = Departments.read(self.session, short_name=self.dep_choiseer.currentText())[0].id
         dep_id = 1
-        max_t = len(Teachers.read(s, id_department=dep_id))
+        max_t = len(Teachers.read(self.session, id_department=dep_id))
         new_engine = create_engine('sqlite:///:memory:')
         Base.metadata.create_all(new_engine)
         session_m = sessionmaker(bind=new_engine)
         tmps = session_m()
         tmps.commit()
-        create_empty(tmps)
-        create_common(tmps)
-        for t in Teachers.read(s, id_department=dep_id):
-            teacher = Degrees.read(s, id=t.id_degree)[0].short_name+u' '+t.short_name
-            t_lessons = Lessons.read(s, id_lesson_plan=[i.id for i in LessonPlans.read(s, teachers=t.id)])
+        for t in Teachers.read(self.session, id_department=dep_id):
+            create_empty(tmps)
+            create_common(tmps)
+            teacher = Degrees.read(self.session, id=t.id_degree)[0].short_name+u' '+t.short_name
+            pop_out.setCurTeacher(t)
+
             if t.id == 1:
+                # meta = MetaData()
+                for table in reversed(Base.metadata.sorted_tables):
+                    tmps.execute(table.delete())
+                    tmps.commit()
                 continue
-            # for lesson in t_lessons:
-            #     lesson.delete(s, lesson.id)
-            # for lp in LessonPlans.read(s, teachers=t.id):
-            #     lp.delete(s, lp.id)
+
             teacher_update(tmps, teacher, True)
 
-            pop_out = ImportPopWindow(tmps)
-            pop_out.week_tool_window.set_table(get_table(tmps, 'teachers', Teachers.read(tmps, True)[-1].id), 'teachers')
+            pop_out.week_tool_window.set_table(get_table(tmps, 'teachers', Teachers.read(tmps, True)[-1].id),
+                                               'teachers', pass_check=True)
             pop_out.setWindowTitle(QtCore.QString(teacher))
             pop_out.show()
-            danger_singleton.tabs.setCurIndex = 1
-            danger_singleton.tabs.set_table(*[get_table(s, 'teachers', t.id), 'teachers'])
+            danger_singleton.tabs.setCurIndex = 2
+            danger_singleton.tabs.set_table(*[get_table(self.session, 'teachers', t.id), 'teachers', True])
 
             while not pop_out.is_done:
                 QtCore.QCoreApplication.processEvents()
+            pop_out.is_done = False
 
             pro_bar.setValue(int(100 * j / max_t))
             pro_bar.update()
             QtCore.QCoreApplication.processEvents()
             j += 1
+            for table in reversed(Base.metadata.sorted_tables):
+                tmps.execute(table.delete())
+                tmps.commit()
         tmps.close()
         self.deleteLater()
 
