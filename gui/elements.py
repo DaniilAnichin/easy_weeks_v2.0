@@ -714,7 +714,7 @@ class ImportPopWindow(QtGui.QDialog):
 
     def acceptTT(self):
         t_lessons = Lessons.read(self.session, id_lesson_plan=[i.id for i in LessonPlans.read(self.session,
-                                                                                              id=self.teacher.id)])
+                                                                                              teachers=self.teacher.id)])
         for lesson in t_lessons:
             lesson.delete(self.session, lesson.id)
         for lp in LessonPlans.read(self.session, teachers=self.teacher.id):
@@ -725,10 +725,10 @@ class ImportPopWindow(QtGui.QDialog):
                                      id_les_type=lp.id_lesson_type,
                                      id_sub=Subjects.read(self.session, full_name=lp.subject.full_name)[0].id,
                                      id_grps=[g.id for g in Groups.read(self.session, name=[p.name for p in
-                                                                                              lp.groups])],
+                                                                                            lp.groups])],
                                      id_tes=[t.id for t in Teachers.read(self.session, full_name=[p.full_name
-                                                                                                       for p in
-                                                                                                       lp.teachers])])
+                                                                                                  for p in
+                                                                                                  lp.teachers])])
             for l in Lessons.read(self.tmps, id_lesson_plan=lp.id):
                 new_lesson(self.session, row_time=l.row_time, id_room=Rooms.read(self.session, name=l.room.name)[0].id,
                            id_lp=new_lp.id)
