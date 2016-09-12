@@ -194,9 +194,11 @@ class DragButton(QtGui.QPushButton):
 
             if self.draggable:
                 if self.lesson.is_empty:
-                    return
+                    lesson = Lessons(**self.time)
+                    self.edit_dial = EditLesson(lesson, self.parent().session, empty=True)
+                else:
+                    self.edit_dial = EditLesson(self.lesson, self.parent().session)
                 # self.edit_dial = EditLesson(self.lesson, self.parent().session, time=False)
-                self.edit_dial = EditLesson(self.lesson, self.parent().session)
                 if self.edit_dial.exec_() == EditLesson.Accepted:
                     self.save_changes()
             else:
@@ -278,7 +280,7 @@ class DragButton(QtGui.QPushButton):
         self.setText(self.lesson.to_table())
         if self.draggable and not self.lesson.is_empty:
             if self.time != self.lesson.time():
-                self.parent().set_edited(True)
+                self.parent().edited = True
                 type(self.lesson).update(self.parent().session, main_id=self.lesson.id, **self.time)
 
     def set_bg_color(self, lesson_type):
@@ -298,7 +300,7 @@ class DragButton(QtGui.QPushButton):
 
     def save_changes(self):
         logger.debug('Here must be editor saving - button')
-        self.parent().set_edited(True)
+        self.parent().edited = True
 
 
 class ButtonGrid(QtGui.QGridLayout):

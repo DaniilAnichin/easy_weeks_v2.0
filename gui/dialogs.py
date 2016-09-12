@@ -280,7 +280,7 @@ class ShowLesson(WeeksDialog):
 
 
 class EditLesson(WeeksDialog):
-    def __init__(self, element, session, empty=False, time=False, *args, **kwargs):
+    def __init__(self, element, session, empty=False, time=  False, *args, **kwargs):
         super(EditLesson, self).__init__(*args, **kwargs)
 
         self.session = session
@@ -310,27 +310,33 @@ class EditLesson(WeeksDialog):
     def lp_combo_pair(self):
         cls = LessonPlans
         label = LessonPlans.translated
-        value = self.lp
         values = undefined_lp(self.session)
-        values.append(value)
         name = cls.__tablename__
-        self.set_combo_pair(label, values, name, selected=value)
+        if not self.empty:
+            value = self.lp
+            values.append(value)
+            self.set_combo_pair(label, values, name, selected=value)
+        else:
+            self.set_combo_pair(label, values, name)
 
     def default_combo_pair(self, param, lp=False):
         getter = self.lp if lp else self.lesson
-        cls = type(getattr(getter, param))
+        cls = type(getattr(Lessons.read(self.session, id=1)[0], param))
         label = cls.translated
         values = cls.read(self.session, all_=True)
-        value = getattr(getter, param)
         name = cls.__tablename__
-        self.set_combo_pair(label, values, name, selected=value)
+        if not self.empty:
+            value = getattr(getter, param)
+            self.set_combo_pair(label, values, name, selected=value)
+        else:
+            self.set_combo_pair(label, values, name)
 
     def default_list_pair(self, param, lp=False):
         getter = self.lp if lp else self.lesson
-        cls = type(getattr(getter, param)[0])
+        cls = type(getattr(Lessons.read(self.session, id=1)[0], param)[0])
         label = cls.translated
-        values = cls.read(self.session, all_=True)
         selected_values = getattr(getter, param)
+        values = cls.read(self.session, all_=True)
         name = cls.__tablename__
         self.set_list_pair(label, selected_values, values, name)
 
