@@ -239,7 +239,7 @@ class DragButton(QtGui.QPushButton):
         r0 = self.weekToolRef.tabButtons[0].rect()
         r1 = self.weekToolRef.tabButtons[1].rect()
         ucorrector = QtCore.QPoint(0, 30)
-        dcorrector = QtCore.QPoint(0, 60)
+        dcorrector = QtCore.QPoint(0, 75)
         absr0 = QtCore.QRect(r0.topLeft()+absp0, r0.bottomRight()+absp0+dcorrector)
         absr1 = QtCore.QRect(r1.topLeft()+absp1-ucorrector, r1.bottomRight()+absp1)
         # curMousePos = self.weekToolRef.mapFromGlobal(QtGui.QCursor.pos())
