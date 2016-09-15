@@ -785,6 +785,7 @@ class Lessons(Base):
         elif isinstance(temp_lesson, int):
             return temp_lesson
 
+        self.is_empty = True
         return temp_lesson
 
     @classmethod

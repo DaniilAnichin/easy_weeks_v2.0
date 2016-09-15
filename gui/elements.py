@@ -1,16 +1,16 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from functools import partial
+from PyQt4 import QtGui, QtCore
 from database import Logger, db_codes_output
+from database.select_table import recover_empty
+# from database.import_schedule import GetCurTimetable
 from database.structure import db_structure
 from database.structure.db_structure import *
 from database.structure.new_tools import new_lesson, new_lesson_plan
-from PyQt4 import QtGui, QtCore
 from gui.translate import fromUtf8
-from database.import_schedule import GetCurTimetable
-import os
-from database.start_db import *
-from database.select_table import get_table
+# import os
+# from database.start_db import *
 
 logger = Logger()
 
@@ -384,9 +384,10 @@ class WeekTool(QtGui.QToolBox):
         self.translateUI()
 
     def set_table(self, lesson_set, view_args, drag_enabled=False, pass_check=False):
-        if not pass_check:
-            if self.check_and_clear_table():
-                return 1
+        # if not pass_check:
+        #     if self.is_editing():
+        #         return 1
+        self.clear_table()
         self.set_edited(False)
         self.first_table.set_table(lesson_set[0], view_args, 0, drag_enabled)
         self.second_table.set_table(lesson_set[1], view_args, 1, drag_enabled)
@@ -399,19 +400,17 @@ class WeekTool(QtGui.QToolBox):
     def edited(self):
         return self.first_panel.edited or self.second_panel.edited
 
-    def check_and_clear_table(self):
+    def is_editing(self):
         if self.edited():
             logger.debug('Show dialog asking about table change')
             from gui.dialogs import RUSureChangeTable
             self.rusure = RUSureChangeTable()
             if self.rusure.exec_() == RUSureChangeTable.Yes:
-                self.clear_table()
                 return 0
             else:
                 return 1
         else:
-            logger.debug('Clearing table - not edited')
-            self.clear_table()
+            logger.debug('Not edited')
             return 0
 
     def clear_table(self):
@@ -469,11 +468,13 @@ class EasyTab(QtGui.QTabWidget):
         self.addTab(self.tab_search, fromUtf8('Пошук'))
 
     def set_table(self, lesson_set, view_args):
-        result = self.method_table.set_table(lesson_set, view_args, drag_enabled=True)
+        result = self.method_table.is_editing()
         if result:
             return
         else:
+            recover_empty(self.session)
             self.user_table.set_table(lesson_set, view_args)
+            self.method_table.set_table(lesson_set, view_args, drag_enabled=True)
 
 
 class AdminTab(QtGui.QWidget):

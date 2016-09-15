@@ -1,13 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
 import sys
-import os
 import gui.dialogs
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtGui
 from database import Logger
 from database.structure.db_structure import *
 from database.start_db.New_db_startup import connect_database
-from database.select_table import get_table, check_table
+from database.select_table import get_table, check_table, save_table, recover_empty
 from gui.dialogs import LoginDialog, TableChoosingDialog, ImportDialog, \
     AccountQuery
 from gui.elements import EasyTab, WeekMenuBar
@@ -18,18 +17,18 @@ nullfunc = lambda x: None
 
 
 class WeeksMenu(QtGui.QMainWindow):
-    __instance = None
-    __init_replaced = False
-
-    def __new__(cls, *a, **kwa):
-        if cls.__instance is None:
-            cls.__instance = QtGui.QMainWindow.__new__(cls)
-
-        elif not cls.__init_replaced:
-            cls.__init__ = nullfunc
-            cls.__init_replaced = True
-
-        return cls.__instance
+    # __instance = None
+    # __init_replaced = False
+    #
+    # def __new__(cls, *a, **kwa):
+    #     if cls.__instance is None:
+    #         cls.__instance = QtGui.QMainWindow.__new__(cls)
+    #
+    #     elif not cls.__init_replaced:
+    #         cls.__init__ = nullfunc
+    #         cls.__init_replaced = True
+    #
+    #     return cls.__instance
 
     def __init__(self, session):
         super(WeeksMenu, self).__init__()
@@ -134,12 +133,15 @@ class WeeksMenu(QtGui.QMainWindow):
 
     def save_database(self):
         logger.info('Started database saving function')
+        save_table(self.session)
 
     def closeEvent(self, event):
-        result = self.tabs.method_table.check_and_clear_table()
+        result = self.tabs.method_table.is_editing()
         if result:
             event.ignore()
         else:
+            self.tabs.method_table.clear_table()
+            recover_empty(self.session)
             event.accept()
 
 
