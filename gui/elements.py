@@ -236,7 +236,7 @@ class DragButton(QtGui.QPushButton):
         r0 = self.weekToolRef.tabButtons[0].rect()
         r1 = self.weekToolRef.tabButtons[1].rect()
         ucorrector = QtCore.QPoint(0, 30)
-        dcorrector = QtCore.QPoint(0, 60)
+        dcorrector = QtCore.QPoint(0, 75)
         absr0 = QtCore.QRect(r0.topLeft()+absp0, r0.bottomRight()+absp0+dcorrector)
         absr1 = QtCore.QRect(r1.topLeft()+absp1-ucorrector, r1.bottomRight()+absp1)
         # curMousePos = self.weekToolRef.mapFromGlobal(QtGui.QCursor.pos())
@@ -703,14 +703,19 @@ class ImportPopWindow(QtGui.QDialog):
         vlayout.addWidget(self.week_tool_window)
         bhlayoyt = QtGui.QHBoxLayout()
         self.ybutton = QtGui.QPushButton(u'Застосувати')
-        self.nbutton = QtGui.QPushButton(u'Відмінити')
+        self.nbutton = QtGui.QPushButton(u'Пропустити')
+        self.qbutton = QtGui.QPushButton(u'Вийти')
+        self.qbutton.setFixedWidth(42)
         bhlayoyt.addWidget(self.ybutton)
         bhlayoyt.addWidget(self.nbutton)
+        bhlayoyt.addWidget(self.qbutton)
         vlayout.addLayout(bhlayoyt)
         self.setLayout(vlayout)
         self.ybutton.clicked.connect(self.acceptTT)
         self.nbutton.clicked.connect(self.defuseTT)
+        self.qbutton.clicked.connect(self.quitTT)
         self.is_done = False
+        self.quit = False
         self.teacher = None
         self.tmps = None
 
@@ -719,6 +724,11 @@ class ImportPopWindow(QtGui.QDialog):
 
     def setCurTeacher(self, t):
         self.teacher = t
+
+    def quitTT(self):
+        self.is_done = True
+        self.quit = True
+        self.deleteLater()
 
     def acceptTT(self):
         t_lessons = Lessons.read(self.session, id_lesson_plan=[i.id for i in LessonPlans.read(self.session,

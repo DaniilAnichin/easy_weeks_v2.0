@@ -63,11 +63,14 @@ def main():
     s = create_new_database(DATABASE_NAME)
     s = create_empty(s)
     s = create_common(s)
-    s = create_custom(s)
+    # s = create_custom(s)
     return 0
 
 
 if __name__ == '__main__':
     from database.import_schedule.department_data import department_teachers, department_groups
     # update_departments(session=connect_database(), cls_name='Teachers', **department_teachers)
-    update_departments(session=connect_database(), cls_name='Groups', **department_groups)
+    # update_departments(session=connect_database(), cls_name='Groups', **department_groups)
+    s = create_new_database(DATABASE_NAME)
+    create_empty(s)
+    create_common(s)

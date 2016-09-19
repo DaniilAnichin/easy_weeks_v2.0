@@ -510,8 +510,8 @@ class ImportDialog(QtGui.QDialog):
         pro_bar.show()
         pop_out = ImportPopWindow(self.session)
         j = 0
-        # dep_id = Departments.read(self.session, short_name=self.dep_choiseer.currentText())[0].id
-        dep_id = 1
+        dep_id = Departments.read(self.session, short_name=unicode(self.dep_choiseer.currentText()))[0].id
+        # dep_id = 1
         max_t = len(Teachers.read(self.session, id_department=dep_id))
         new_engine = create_engine('sqlite:///:memory:')
         Base.metadata.create_all(new_engine)
@@ -538,8 +538,8 @@ class ImportDialog(QtGui.QDialog):
                                                'teachers', pass_check=True)
             pop_out.setWindowTitle(QtCore.QString(teacher))
             pop_out.show()
-            danger_singleton.tabs.setCurIndex = 2
             danger_singleton.tabs.set_table(*[get_table(self.session, 'teachers', t.id), 'teachers'])
+            danger_singleton.tabs.setCurrentIndex(1)
 
             while not pop_out.is_done:
                 QtCore.QCoreApplication.processEvents()
@@ -547,13 +547,15 @@ class ImportDialog(QtGui.QDialog):
 
             pro_bar.setValue(int(100 * j / max_t))
             pro_bar.update()
-            QtCore.QCoreApplication.processEvents()
             j += 1
             for table in reversed(Base.metadata.sorted_tables):
                 tmps.execute(table.delete())
                 tmps.commit()
+            if pop_out.quit:
+                break
         tmps.close()
         self.deleteLater()
+
 
 
 def main():
