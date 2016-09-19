@@ -150,15 +150,13 @@ class Base(object):
         for field in cls.fields():
             data.update({field: getattr(result, field)})
         for key in kwargs.keys():
+            if key not in cls.fields():
+                return db_codes['wrong']
             data.update({key: kwargs[key]})
         if cls.read(session, **data):
             return db_codes['exists']
 
-
         # Global filter loop:
-        for key in kwargs.keys():
-            if key not in cls.fields():
-                return db_codes['wrong']
         for key in kwargs.keys():
             setattr(result, key, kwargs[key])
 
@@ -191,7 +189,7 @@ class Base(object):
                 try:
                     if isinstance(linked[0], Departments):
                         default_id = 2
-                except:
+                except KeyError:
                     pass
                 for element in linked:
                     setattr(element, 'id_' + cls.single(), 1)
@@ -881,21 +879,25 @@ class Lessons(Base):
         if isinstance(result, int):
             return result
 
+        result = result[0]
+        data = {}
+        for field in (cls.columns() + cls.links()):
+            data.update({field: getattr(result, field)})
+        for key in kwargs.keys():
+            if key not in (cls.columns() + cls.links()):
+                return db_codes['wrong']
+            data.update({key: kwargs[key]})
+
         if not kwargs.get('is_temp', True):
-            if cls.read(session, **kwargs):
+            if cls.read(session, **data):
                 return db_codes['exists']
-            exists = cls.exists(session, **kwargs)
+            exists = cls.exists(session, **data)
             if exists:
                 return exists
 
-        result = result[0]
-
         # Global filter loop:
         for key in kwargs.keys():
-            if key not in cls.columns():
-                return db_codes['wrong']
-            else:
-                setattr(result, key, kwargs[key])
+            setattr(result, key, kwargs[key])
 
         result.row_time = cls.to_row(result.time())
         session.commit()

@@ -72,7 +72,7 @@ class WeeksMenu(QtGui.QMainWindow):
 
         # self.load_database()
 
-        default_data = [get_table(self.session, 'groups', 42), 'groups']
+        default_data = [get_table(self.session, 'groups', 50), 'groups']
         self.tabs.set_table(*default_data)
 
         self.retranslateUi()
@@ -146,18 +146,7 @@ class WeeksMenu(QtGui.QMainWindow):
 
 
 def main():
-    # from database.start_db.New_db_startup import DATABASE_NAME
-    # from PyQt4.QtCore import QString
     app = QtGui.QApplication(sys.argv)
-    #
-    # path = QtGui.QFileDialog.getOpenFileName(directory=QString('/home'))
-    # path = unicode(path)
-    # f = open(path, 'r')
-    # data = f.readlines()
-    # f.close()
-    # f = open(DATABASE_NAME, 'w')
-    # f.writelines(data)
-    # f.close()
 
     session = connect_database()
     window = WeeksMenu(session)

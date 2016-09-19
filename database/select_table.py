@@ -63,14 +63,14 @@ def check_part(session, name, element, **part_data):
     lessons = Lessons.read(session, is_temp=[0, 1], is_empty=False, **part_data)
     time_list = [lesson.row_time for lesson in lessons]
     repeted = [time for time in set(time_list) if time_list.count(time) > 1]
-    time_dict = {}
+    # time_dict = {}
 
     for time in repeted:
-        repeted_less = []
-        for lesson in lessons:
-            if lesson.row_time == time:
-                repeted_less.append(lesson)
-        time_dict.update({time: repeted_less})
+        # repeted_less = []
+        # for lesson in lessons:
+        #     if lesson.row_time == time:
+        #         repeted_less.append(lesson)
+        # time_dict.update({time: repeted_less})
         # if not ((len(time_dict[time]) == 2) and (time_dict[time][0] == time_dict[time][1]):
         # if not ((len(time_dict[time]) == 2) and (time_dict[time][0] == time_dict[time][1])
         #         and (time_dict[time][0].is_temp != time_dict[time][1].is_temp)):
@@ -147,7 +147,8 @@ def save_table(session):
     if result == db_codes['success']:
         clear_empty(session)
         for lesson in Lessons.read(session, is_temp=True):
-            lesson.update(session, lesson.id, is_temp=False)
+            logger.debug('Edited ?: ')
+            logger.debug(db_codes_output[lesson.update(session, lesson.id, is_temp=False)])
     return result
 
 
@@ -157,6 +158,7 @@ def clear_empty(session):
 
     lessons = Lessons.read(session, is_empty=True)
     for lesson in lessons[1:]:
+        logger.debug('Deleted ?: ')
         logger.debug(db_codes_output[Lessons.delete(session, main_id=lesson.id)])
 
 
