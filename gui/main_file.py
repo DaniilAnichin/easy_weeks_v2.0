@@ -35,7 +35,7 @@ def singletone(cls):
     return cls
 
 
-@singletone
+# @singletone
 class WeeksMenu(QtGui.QMainWindow):
     # @singletone
     # def __new__(cls):

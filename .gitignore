@@ -93,7 +93,11 @@ ENV/
 # databases
 *.db
 
-#project files
+# project files
 .idea/*
+
+# Schedules
+*.xls
+*.xlsx
 
 
