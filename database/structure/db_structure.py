@@ -596,12 +596,6 @@ class LessonPlans(Base):
             return db_codes['exists']
         else:
             elem = cls(**kwargs)
-            # t_checker = u''
-            # g_checker = u''
-            # for t in kwargs['teachers']:
-            #     t_checker += unicode(t)+u','
-            # for g in kwargs['groups']:
-            #     g_checker += unicode(g) + u','
             t_checker = u','.join(kwargs.get('teachers', []))
             g_checker = u','.join(kwargs.get('groups', []))
             elem.param_checker = u'%d,%d,%s,%s,%d,%d,%d' % (kwargs['id_subject'], kwargs['id_lesson_type'],
@@ -881,14 +875,14 @@ class Lessons(Base):
 
         result = result[0]
         data = {}
-        for field in (cls.columns() + cls.links()):
+        for field in cls.columns():
             data.update({field: getattr(result, field)})
         for key in kwargs.keys():
-            if key not in (cls.columns() + cls.links()):
+            if key not in cls.columns():
                 return db_codes['wrong']
             data.update({key: kwargs[key]})
 
-        if not kwargs.get('is_temp', True):
+        if not data['is_temp']:
             if cls.read(session, **data):
                 return db_codes['exists']
             exists = cls.exists(session, **data)
@@ -907,26 +901,25 @@ class Lessons(Base):
     @classmethod
     def exists(cls, session, **kwargs):
         cur_lp = LessonPlans.read(session, id=kwargs['id_lesson_plan'])[0]
+        params = {'is_temp': False}
+        if not kwargs.get('is_empty', False):
+            params.update({'is_empty': False})
 
-        for lesson in Lessons.read(session, lesson_plan=LessonPlans.read(
-                session, groups=cur_lp.groups
-        )):
+        for lesson in Lessons.read(session, id_lesson_plan=[
+            lp.id for lp in LessonPlans.read(session, groups=cur_lp.groups)
+        ], **params):
             if lesson.row_time == kwargs['row_time']:
                 return db_codes['group']
 
-        for lesson in Lessons.read(session, lesson_plan=LessonPlans.read(
-                session, teachers=cur_lp.teachers
-        )):
-            if lesson['row_time'] == kwargs['row_time']:
+        for lesson in Lessons.read(session, id_lesson_plan=[
+            lp.id for lp in LessonPlans.read(session, teachers=cur_lp.teachers)
+        ], **params):
+            if lesson.row_time == kwargs['row_time']:
                 return db_codes['teacher']
 
         if kwargs['id_room'] != 1:
-            for lesson in Lessons.read(session, row_time=kwargs['row_time']):
+            for lesson in Lessons.read(session, row_time=kwargs['row_time'], **params):
                 if lesson.id_room == kwargs['id_room']:
                     return db_codes['room']
 
         return None
-
-    @classmethod
-    def move_temp(cls, session):
-        pass

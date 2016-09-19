@@ -13,23 +13,8 @@ from gui.elements import EasyTab, WeekMenuBar
 from gui.translate import fromUtf8
 logger = Logger()
 
-nullfunc = lambda x: None
-
 
 class WeeksMenu(QtGui.QMainWindow):
-    # __instance = None
-    # __init_replaced = False
-    #
-    # def __new__(cls, *a, **kwa):
-    #     if cls.__instance is None:
-    #         cls.__instance = QtGui.QMainWindow.__new__(cls)
-    #
-    #     elif not cls.__init_replaced:
-    #         cls.__init__ = nullfunc
-    #         cls.__init_replaced = True
-    #
-    #     return cls.__instance
-
     def __init__(self, session):
         super(WeeksMenu, self).__init__()
         self.resize(805, 600)

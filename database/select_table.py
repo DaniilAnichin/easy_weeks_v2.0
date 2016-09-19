@@ -52,8 +52,6 @@ def undefined_lp(session, data_type=None, data=None):
         lesson_plans = LessonPlans.read(session, **{data_type: data})
     for lp in lesson_plans:
         unsorted = lp.amount - len(Lessons.read(session, id_lesson_plan=lp.id))
-        # for i in range(unsorted):
-        #     ret_vect.append(lp)
         if unsorted > 0:
             ret_vect.append(lp)
     return ret_vect
@@ -104,7 +102,6 @@ def check_table(session, only_temp=False):
         teachers = Teachers.read(session, all_=True)
         rooms = Rooms.read(session, all_=True)
 
-    states = [0, 1]
     data = {
         'group': lambda group: dict(id_lesson_plan=[lp.id for lp in group.lesson_plans]),
         'teacher': lambda teach: dict(id_lesson_plan=[lp.id for lp in teach.lesson_plans]),

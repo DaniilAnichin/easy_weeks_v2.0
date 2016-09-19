@@ -94,3 +94,5 @@ ENV/
 # databases
 *.db
 
+*.xls
+*.xlsx
