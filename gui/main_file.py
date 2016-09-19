@@ -37,7 +37,6 @@ def singletone(cls):
 
 @singletone
 class WeeksMenu(QtGui.QMainWindow):
-
     # @singletone
     # def __new__(cls):
     #     return super(WeeksMenu, cls).__new__(cls)
@@ -67,10 +66,11 @@ class WeeksMenu(QtGui.QMainWindow):
             ],
             [
                 'База даних',
-                ['Завантження',  self.load_database],
+                ['Завантаження',  self.load_database],
                 [],
                 ['Перевірка', self.check_database],
-                ['Збереження', self.save_database]
+                ['Збереження', self.save_database],
+                ['Друк', self.print_database]
             ]
         ]
         self.tabs = EasyTab(self.center, self.session)
@@ -87,9 +87,11 @@ class WeeksMenu(QtGui.QMainWindow):
         self.setMenuBar(self.menubar)
 
         # self.load_database()
+        self.cur_data_type = 'teachers'
+        self.cur_data = 69
 
-        default_data = [get_table(self.session, 'groups', 42), 'groups']
-        self.tabs.set_table(*default_data)
+        self.default_data = [get_table(self.session, self.cur_data_type, self.cur_data), self.cur_data_type]
+        self.tabs.set_table(*self.default_data)
 
         self.retranslateUi()
         self.tabs.setCurrentIndex(0)
@@ -102,6 +104,8 @@ class WeeksMenu(QtGui.QMainWindow):
         logger.info('Started table choosing dialog function')
         self.table = TableChoosingDialog(self.session)
         if self.table.exec_() == QtGui.QDialog.Accepted:
+            self.cur_data_type = self.table.data_type
+            self.cur_data = self.table.data_id
             data_type = self.table.data_type
             data_id = self.table.data_id
             logger.debug('%s - %s' % (data_type, data_id))
@@ -149,6 +153,54 @@ class WeeksMenu(QtGui.QMainWindow):
 
     def save_database(self):
         logger.info('Started database saving function')
+
+    def print_database(self):
+        save_dest = QtGui.QFileDialog.getSaveFileName(None, u'Збереження файлу для друку',
+                                                      filter=u'ExcelFiles (*.xlsx)')
+        save_dest = unicode(save_dest)
+        if not save_dest.endswith(u'.xlsx'):
+            save_dest += u'.xlsx'
+        import xlsxwriter
+        book = xlsxwriter.Workbook(save_dest)
+        page = book.add_worksheet(u'Розклад')
+        lformat = book.add_format()
+        lformat.set_align('center')
+        lformat.set_font_size(15)
+        lformat.set_border()
+        sformat = book.add_format()
+        sformat.set_border()
+        page.write(1, 3, u'Тиждень І', lformat)
+        for i in range(1, 7):
+            page.write(2, i, WeekDays.read(self.session, id=i + 1)[0].full_name, sformat)
+        for i in range(3, 8):
+            page.write(i, 0, LessonTimes.read(self.session, id=i - 1)[0].full_name, sformat)
+        page.write(8, 3, u'Тиждень ІІ', lformat)
+        for i in range(1, 7):
+            page.write(9, i, WeekDays.read(self.session, id=i + 1)[0].full_name, sformat)
+        for i in range(10, 15):
+            page.write(i, 0, LessonTimes.read(self.session, id=i - 8)[0].full_name, sformat)
+        if self.cur_data_type == u'teachers':
+            page.write(0, 3,
+                       u'Розклад занять, викладач: %s' % Teachers.read(self.session, id=self.cur_data)[0].full_name,
+                       lformat)
+            for l in range(5):
+                for d in range(6):
+                    if not self.default_data[0][0][d][l].is_empty:
+                        groups = [g.name for g in self.default_data[0][0][d][l].lesson_plan.groups]
+                        names = u''
+                        for g in groups:
+                            names += g + u', '
+                        names = names[:-2]
+                        page.write(l+3, d+1, self.default_data[0][0][d][l].lesson_plan.subject.full_name + u'\n' +
+                                   self.default_data[0][0][d][l].lesson_plan.lesson_type.short_name + u'\n' +
+                                   names + u'\n' +
+                                   self.default_data[0][0][d][l].room.name, sformat)
+        for row in range(15):
+            page.set_row(row, 50)
+        page.set_column(1, 7, 40)
+        page.set_landscape()
+        page.set_page_view()
+        book.close()
 
     def closeEvent(self, event):
         result = self.tabs.method_table.check_and_clear_table()

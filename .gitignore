@@ -93,3 +93,7 @@ ENV/
 # databases
 *.db
 
+#project files
+.idea/*
+
+

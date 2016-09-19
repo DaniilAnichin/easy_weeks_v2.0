@@ -1,10 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from functools import partial
 from database import Logger, db_codes_output
 from database.structure import db_structure
+from database.structure.new_tools import new_lesson, new_lesson_plan
 from PyQt4 import QtGui, QtCore
 from gui.translate import fromUtf8
+from database.structure.db_structure import *
 
 logger = Logger()
 
@@ -231,7 +232,7 @@ class DragButton(QtGui.QPushButton):
         r0 = self.weekToolRef.tabButtons[0].rect()
         r1 = self.weekToolRef.tabButtons[1].rect()
         ucorrector = QtCore.QPoint(0, 30)
-        dcorrector = QtCore.QPoint(0, 60)
+        dcorrector = QtCore.QPoint(0, 75)
         absr0 = QtCore.QRect(r0.topLeft()+absp0, r0.bottomRight()+absp0+dcorrector)
         absr1 = QtCore.QRect(r1.topLeft()+absp1-ucorrector, r1.bottomRight()+absp1)
         # curMousePos = self.weekToolRef.mapFromGlobal(QtGui.QCursor.pos())
@@ -299,43 +300,22 @@ class ButtonGrid(QtGui.QGridLayout):
         super(ButtonGrid, self).__init__(parent)
         self.weekToolRef = weekToolRef
         # self.parent_name = parent.objectName()
+        for i in range(6):
+            l = QtGui.QLabel(WeekDays.read(self.weekToolRef.session, id=i+2)[0].short_name)
+            l.setFixedHeight(13)
+            self.addWidget(l, 0, i+1)
+        for j in range(5):
+            l = QtGui.QLabel(LessonTimes.read(self.weekToolRef.session, id=j+2)[0].short_name)
+            l.setFixedWidth(7)
+            self.addWidget(l, j+1, 0)
 
     def set_table(self, lesson_set, view_args, week, drag_enabled=False):
         for i in range(len(lesson_set)):
             for j in range(len(lesson_set[i])):
                 time = [week, i, j]
                 lesson_button = DragButton(self.weekToolRef, view_args, drag_enabled, time)
-                self.addWidget(lesson_button, j, i, 1, 1)
+                self.addWidget(lesson_button, j+1, i+1, 1, 1)
                 lesson_button.set_lesson(lesson_set[i][j])
-
-
-# class TempGrid(QtGui.QGridLayout):
-#     def __init__(self, parent, table_height=5):
-#         super(TempGrid, self).__init__(parent)
-#         self.table_height = table_height
-#         self.buttons = []
-#
-#         button = DragButton(parent)
-#         self.buttons.append(button)
-#         self.addWidget(button, 0, 0, 1, 1)
-#
-#         self.translateUI()
-#
-#     def add_button(self):
-#         button = DragButton(self.parent(), self.empty_text)
-#         self.buttons.append(button)
-#         x = (len(self.buttons) + 1) / self.table_height
-#         y = (len(self.buttons) + 1) % self.table_height
-#         self.addWidget(button, x, y, 1, 1)
-#
-#     def remove_button(self, button):
-#         self.buttons.remove(button)
-#         self.removeWidget(button)
-#         del button
-#
-#     def translateUI(self):
-#         self.empty_text = fromUtf8('Перетягніть\nзаняття сюди')
-#         self.buttons[-1].setText(self.empty_text)
 
 
 class WeekTool(QtGui.QToolBox):
@@ -685,3 +665,67 @@ class WeekMenuBar(QtGui.QMenuBar):
             self.addAction(menu_element.menuAction())
 
         self.parent().setMenuBar(self)
+
+
+class ImportPopWindow(QtGui.QDialog):
+    def __init__(self, session, parent=None):
+        super(ImportPopWindow, self).__init__(parent)
+
+        vlayout = QtGui.QVBoxLayout()
+        self.week_tool_window = WeekTool(self, session)
+        self.session = session
+        vlayout.addWidget(self.week_tool_window)
+        bhlayoyt = QtGui.QHBoxLayout()
+        self.ybutton = QtGui.QPushButton(u'Застосувати')
+        self.nbutton = QtGui.QPushButton(u'Пропустити')
+        self.qbutton = QtGui.QPushButton(u'Вийти')
+        self.qbutton.setFixedWidth(42)
+        bhlayoyt.addWidget(self.ybutton)
+        bhlayoyt.addWidget(self.nbutton)
+        bhlayoyt.addWidget(self.qbutton)
+        vlayout.addLayout(bhlayoyt)
+        self.setLayout(vlayout)
+        self.ybutton.clicked.connect(self.acceptTT)
+        self.nbutton.clicked.connect(self.defuseTT)
+        self.qbutton.clicked.connect(self.quitTT)
+        self.is_done = False
+        self.quit = False
+        self.teacher = None
+        self.tmps = None
+
+    def setTmpSession(self, s):
+        self.tmps = s
+
+    def setCurTeacher(self, t):
+        self.teacher = t
+
+    def quitTT(self):
+        self.is_done = True
+        self.quit = True
+        self.deleteLater()
+
+    def acceptTT(self):
+        t_lessons = Lessons.read(self.session, id_lesson_plan=[i.id for i in LessonPlans.read(self.session,
+                                                                                              teachers=self.teacher.id)])
+        for lesson in t_lessons:
+            lesson.delete(self.session, lesson.id)
+        for lp in LessonPlans.read(self.session, teachers=self.teacher.id):
+            lp.delete(self.session, lp.id)
+        for lp in self.tmps.query(LessonPlans).all()[1:]:
+            new_lp = new_lesson_plan(self.session, times_for_2_week=lp.amount, capacity=lp.capacity,
+                                     needed_stuff=lp.needed_stuff,
+                                     id_les_type=lp.id_lesson_type,
+                                     id_sub=Subjects.read(self.session, full_name=lp.subject.full_name)[0].id,
+                                     id_grps=[g.id for g in Groups.read(self.session, name=[p.name for p in
+                                                                                            lp.groups])],
+                                     id_tes=[t.id for t in Teachers.read(self.session, full_name=[p.full_name
+                                                                                                  for p in
+                                                                                                  lp.teachers])])
+            for l in Lessons.read(self.tmps, id_lesson_plan=lp.id):
+                new_lesson(self.session, row_time=l.row_time, id_room=Rooms.read(self.session, name=l.room.name)[0].id,
+                           id_lp=new_lp.id)
+        self.is_done = True
+
+    def defuseTT(self):
+        self.is_done = True
+

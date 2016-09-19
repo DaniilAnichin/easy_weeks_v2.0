@@ -242,7 +242,7 @@ def new_subject(s, short_name='', full_name=''):
 
 
 def new_lesson_plan(s, id_sub=0, id_les_type=1, id_grps=[], id_tes=[1],
-                    times_for_2_week=0, split_groups=0, capacity=32, needed_stuff=''):
+                    times_for_2_week=0, split_groups=0, capacity=32, needed_stuff=u''):
     if times_for_2_week < 1:
         print "Not selected number of lesson"
         return -12
@@ -294,7 +294,6 @@ def new_lesson_plan(s, id_sub=0, id_les_type=1, id_grps=[], id_tes=[1],
                                   amount=times_for_2_week,
                                   needed_stuff=needed_stuff,
                                   capacity=capacity,
-                                  split_groups=split_groups,
                                   param_checker=param_checker)
     for id_te in id_tes:
         exist_te = s.query(Teachers).get(id_te)
@@ -306,7 +305,7 @@ def new_lesson_plan(s, id_sub=0, id_les_type=1, id_grps=[], id_tes=[1],
     s.add(new_lesson_plan)
     s.commit()
 
-    return 0
+    return new_lesson_plan
 
 
 def new_lesson(s, id_lp, id_room, row_time):
