@@ -1,5 +1,5 @@
 from database.structure.db_structure import *
-from database import Logger, db_codes
+from database import Logger, db_codes, db_codes_output
 logger = Logger()
 
 
@@ -39,18 +39,48 @@ def get_table(session, data_type, data):
     return rettable
 
 
-def undefined_lp(session, data_type, data):
+def undefined_lp(session, data_type=None, data=None):
     if isinstance(session, int):
         return db_codes['session']
     # check data_type and data
 
     ret_vect = []
-    lesson_plans = [lp.id for lp in LessonPlans.read(session, **{data_type: data})]
+    if not (data_type and data):
+        lesson_plans = LessonPlans.read(session, all_=True)
+    else:
+        lesson_plans = LessonPlans.read(session, **{data_type: data})
     for lp in lesson_plans:
         unsorted = lp.amount - len(Lessons.read(session, id_lesson_plan=lp.id))
-        for i in range(unsorted):
+        if unsorted > 0:
             ret_vect.append(lp)
     return ret_vect
+
+
+def check_part(session, name, element, **part_data):
+    lessons = Lessons.read(session, is_temp=[0, 1], is_empty=False, **part_data)
+    time_list = [lesson.row_time for lesson in lessons]
+    repeted = [time for time in set(time_list) if time_list.count(time) > 1]
+    # time_dict = {}
+
+    for time in repeted:
+        # repeted_less = []
+        # for lesson in lessons:
+        #     if lesson.row_time == time:
+        #         repeted_less.append(lesson)
+        # time_dict.update({time: repeted_less})
+        # if not ((len(time_dict[time]) == 2) and (time_dict[time][0] == time_dict[time][1]):
+        # if not ((len(time_dict[time]) == 2) and (time_dict[time][0] == time_dict[time][1])
+        #         and (time_dict[time][0].is_temp != time_dict[time][1].is_temp)):
+        #
+        # do something
+        # raise error message here, instead of logger
+        try:
+            logger.info('Problem with %s at %s' % (element.name, time))
+        except AttributeError:
+            logger.info('Problem with %s at %s' % (element.short_name, time))
+
+        return db_codes[name]
+    return db_codes['success']
 
 
 def check_table(session, only_temp=False):
@@ -71,64 +101,36 @@ def check_table(session, only_temp=False):
         teachers = Teachers.read(session, all_=True)
         rooms = Rooms.read(session, all_=True)
 
-    states = [0, 1]
-    for group in groups:
-        lessons = Lessons.read(
-            session, is_temp=states,
-            id_lesson_plan=[lp.id for lp in group.lesson_plans]
-        )
-        time_list = [lesson.row_time for lesson in lessons]
-        repeted = [time for time in set(time_list) if time_list.count(time) > 1]
-        time_dict = {}
+    data = {
+        'group': lambda group: dict(id_lesson_plan=[lp.id for lp in group.lesson_plans]),
+        'teacher': lambda teach: dict(id_lesson_plan=[lp.id for lp in teach.lesson_plans]),
+        'room': lambda room: dict(id_room=room.id)
+    }
 
-        for time in repeted:
-            repeted_less = []
-            for lesson in lessons:
-                if lesson.row_time == time:
-                    repeted_less.append(lesson)
-            time_dict.update({time: repeted_less})
-            if not ((len(time_dict[time]) == 2) and (time_dict[time][0] == time_dict[time][1])
-                    and (time_dict[time][0].is_temp != time_dict[time][1].is_temp)):
-                # do something
-                logger.info('Problem with %s at %s' % (group.name, time))
-                return db_codes['group']
+    for group in groups:
+        name = 'group'
+        part_data = data[name](group)
+        res = check_part(session, name, group, **part_data)
+        if res != db_codes['success']:
+            return res
+
     for teach in teachers:
-        lessons = Lessons.read(
-            session, is_temp=states,
-            id_lesson_plan=[lp.id for lp in teach.lesson_plans]
-        )
-        time_list = [lesson.row_time for lesson in lessons]
-        repeted = [time for time in set(time_list) if time_list.count(time) > 1]
-        time_dict = {}
-        for time in repeted:
-            repeted_less = []
-            for lesson in lessons:
-                if lesson.row_time == time:
-                    repeted_less.append(lesson)
-            time_dict.update({time: repeted_less})
-            if not (len(time_dict[time]) == 2 and time_dict[time][0] == time_dict[time][1]\
-                    and time_dict[time][0].is_temp != time_dict[time][1].is_temp):
-                # do something
-                logger.info('Problem with %s at %s' % (teach.short_name, time))
-                return db_codes['teacher']
+        name = 'teacher'
+        part_data = data[name](teach)
+        res = check_part(session, name, teach, **part_data)
+        if res != db_codes['success']:
+            return res
+
     for room in rooms:
         if room.capacity >= 256:
             continue
-        lessons = Lessons.read(session, is_temp=states, id_room=room.id)
-        time_list = [lesson.row_time for lesson in lessons]
-        repeted = [time for time in set(time_list) if time_list.count(time) > 1]
-        for time in repeted:
-            repeted_less = []
-            for lesson in lessons:
-                if lesson.row_time == time:
-                    repeted_less.append(lesson)
-            if not (len(repeted_less) == 2 and repeted_less[0] == repeted_less[1]
-                    and repeted_less[0].is_temp != repeted_less[1].is_temp):
-                # do something
-                logger.info('Problem with %s at %s' % (room.shortname, time))
-                return db_codes['room']
-    logger.info('Database is correct')
+        name = 'room'
+        part_data = data[name](room)
+        res = check_part(session, name, room, **part_data)
+        if res != db_codes['success']:
+            return res
 
+    logger.info('Database is correct')
     return db_codes['success']
 
 
@@ -138,9 +140,30 @@ def save_table(session):
 
     result = check_table(session)
     if result == db_codes['success']:
-        for lesson in Lessons.read(session, all_=True, is_temp=True):
-            lesson.update(session, lesson.id, is_tmp=False)
+        clear_empty(session)
+        for lesson in Lessons.read(session, is_temp=True):
+            logger.debug('Edited ?: ')
+            logger.debug(db_codes_output[lesson.update(session, lesson.id, is_temp=False)])
     return result
+
+
+def clear_empty(session):
+    if isinstance(session, int):
+        return db_codes['session']
+
+    lessons = Lessons.read(session, is_empty=True)
+    for lesson in lessons[1:]:
+        logger.debug('Deleted ?: ')
+        logger.debug(db_codes_output[Lessons.delete(session, main_id=lesson.id)])
+
+
+def recover_empty(session):
+    if isinstance(session, int):
+        return db_codes['session']
+
+    lessons = Lessons.read(session, is_empty=True)
+    for lesson in lessons[1:]:
+        logger.debug(db_codes_output[Lessons.update(session, main_id=lesson.id, is_empty=False)])
 
 
 def is_free(session, cls, main_id, **kwargs):

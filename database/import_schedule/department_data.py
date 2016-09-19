@@ -4,7 +4,7 @@
 
 def get_teachers():
     from database import Logger
-    from database.structure import Teachers
+    from database.structure.db_structure import Teachers
     from database.start_db.New_db_startup import connect_database
     logger = Logger()
     session = connect_database()
@@ -16,7 +16,7 @@ def get_teachers():
 
 def get_groops():
     from database import Logger
-    from database.structure import Groups
+    from database.structure.db_structure import Groups
     from database.start_db.New_db_startup import connect_database
     logger = Logger()
     session = connect_database()
@@ -243,19 +243,3 @@ department_rooms = {
 if __name__ == '__main__':
     # get_teachers()
     get_groops()
-
-
-'''
-
-        u'іп-32',
-        u'іп-42',
-        u'іп-44',
-        u'іп-52',
-        u'іп-54',
-        u'іп-62',
-        u'іп-62м',
-        u'іп-64',
-
-
-
-'''

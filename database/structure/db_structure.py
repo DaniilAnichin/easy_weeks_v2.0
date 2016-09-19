@@ -150,15 +150,13 @@ class Base(object):
         for field in cls.fields():
             data.update({field: getattr(result, field)})
         for key in kwargs.keys():
+            if key not in cls.fields():
+                return db_codes['wrong']
             data.update({key: kwargs[key]})
         if cls.read(session, **data):
             return db_codes['exists']
 
-
         # Global filter loop:
-        for key in kwargs.keys():
-            if key not in cls.fields():
-                return db_codes['wrong']
         for key in kwargs.keys():
             setattr(result, key, kwargs[key])
 
@@ -191,7 +189,7 @@ class Base(object):
                 try:
                     if isinstance(linked[0], Departments):
                         default_id = 2
-                except:
+                except KeyError:
                     pass
                 for element in linked:
                     setattr(element, 'id_' + cls.single(), 1)
@@ -557,9 +555,11 @@ class LessonPlans(Base):
     translated = u'Навчальній план'
 
     def __unicode__(self):
-        return u'%s з %s' % (
+        return u'{0},\n{1}\nз {2}\nз {3}'.format(
+            unicode(self.lesson_type),
             unicode(self.subject),
-            u', '.join([unicode(group) for group in self.groups])
+            u', '.join([unicode(group) for group in self.groups]),
+            u', '.join([unicode(teacher) for teacher in self.teachers])
         )
 
     amount = Column(Integer, default=2)
@@ -596,12 +596,6 @@ class LessonPlans(Base):
             return db_codes['exists']
         else:
             elem = cls(**kwargs)
-            # t_checker = u''
-            # g_checker = u''
-            # for t in kwargs['teachers']:
-            #     t_checker += unicode(t)+u','
-            # for g in kwargs['groups']:
-            #     g_checker += unicode(g) + u','
             t_checker = u','.join(kwargs.get('teachers', []))
             g_checker = u','.join(kwargs.get('groups', []))
             elem.param_checker = u'%d,%d,%s,%s,%d,%d,%d' % (kwargs['id_subject'], kwargs['id_lesson_type'],
@@ -774,13 +768,21 @@ class Lessons(Base):
     def make_temp(self, session, time=None):
         if not time:
             time = self.time()
+        # fields = self.fields()
+        # fields.pop(fields.index('id'))
+        # fields.pop(fields.index('is_temp'))
+        # temp_lesson = Lessons(is_temp=True, **{field: getattr(self, field) for field in fields})
+        temp_lesson = Lessons.create(session, id_lesson_plan=self.id_lesson_plan,
+                                     is_temp=True, id_room=self.id_room, **time)
+        if isinstance(temp_lesson, int) and temp_lesson == db_codes['exists']:
+            logger.debug('RLY?')
+            return Lessons.read(session, id_lesson_plan=self.id_lesson_plan,
+                                is_temp=True, id_room=self.id_room, **time)[0]
+        elif isinstance(temp_lesson, int):
+            return temp_lesson
 
-        fields = self.fields()
-        fields.pop(fields.index('id'))
-        fields.pop(fields.index('is_temp'))
-        temp_lesson = Lessons(is_temp=True, **{field: getattr(self, field) for field in fields})
+        self.is_empty = True
         return temp_lesson
-
 
     @classmethod
     def get_plan(cls, session, **data):
@@ -875,21 +877,25 @@ class Lessons(Base):
         if isinstance(result, int):
             return result
 
-        if not kwargs.get('is_temp', True):
-            if cls.read(session, **kwargs):
-                return db_codes['exists']
-            exists = cls.exists(session, **kwargs)
-            if exists:
-                return exists
-
         result = result[0]
-
-        # Global filter loop:
+        data = {}
+        for field in cls.columns():
+            data.update({field: getattr(result, field)})
         for key in kwargs.keys():
             if key not in cls.columns():
                 return db_codes['wrong']
-            else:
-                setattr(result, key, kwargs[key])
+            data.update({key: kwargs[key]})
+
+        if not data['is_temp']:
+            if cls.read(session, **data):
+                return db_codes['exists']
+            exists = cls.exists(session, **data)
+            if exists:
+                return exists
+
+        # Global filter loop:
+        for key in kwargs.keys():
+            setattr(result, key, kwargs[key])
 
         result.row_time = cls.to_row(result.time())
         session.commit()
@@ -899,26 +905,25 @@ class Lessons(Base):
     @classmethod
     def exists(cls, session, **kwargs):
         cur_lp = LessonPlans.read(session, id=kwargs['id_lesson_plan'])[0]
+        params = {'is_temp': False}
+        if not kwargs.get('is_empty', False):
+            params.update({'is_empty': False})
 
-        for lesson in Lessons.read(session, lesson_plan=LessonPlans.read(
-                session, groups=cur_lp.groups
-        )):
+        for lesson in Lessons.read(session, id_lesson_plan=[
+            lp.id for lp in LessonPlans.read(session, groups=cur_lp.groups)
+        ], **params):
             if lesson.row_time == kwargs['row_time']:
                 return db_codes['group']
 
-        for lesson in Lessons.read(session, lesson_plan=LessonPlans.read(
-                session, teachers=cur_lp.teachers
-        )):
-            if lesson['row_time'] == kwargs['row_time']:
+        for lesson in Lessons.read(session, id_lesson_plan=[
+            lp.id for lp in LessonPlans.read(session, teachers=cur_lp.teachers)
+        ], **params):
+            if lesson.row_time == kwargs['row_time']:
                 return db_codes['teacher']
 
         if kwargs['id_room'] != 1:
-            for lesson in Lessons.read(session, row_time=kwargs['row_time']):
+            for lesson in Lessons.read(session, row_time=kwargs['row_time'], **params):
                 if lesson.id_room == kwargs['id_room']:
                     return db_codes['room']
 
         return None
-
-    @classmethod
-    def move_temp(cls, session):
-        pass
