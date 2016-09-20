@@ -155,37 +155,41 @@ class WeeksMenu(QtGui.QMainWindow):
         lformat.set_border()
         sformat = book.add_format()
         sformat.set_border()
-        page.write(1, 3, u'Тиждень І', lformat)
+        page.set_column(0, 6, cell_format=sformat)
+        page.merge_range(1, 0, 1, 6, u'Тиждень І', lformat)
         for i in range(1, 7):
             page.write(2, i, WeekDays.read(self.session, id=i + 1)[0].full_name, sformat)
         for i in range(3, 8):
             page.write(i, 0, LessonTimes.read(self.session, id=i - 1)[0].full_name, sformat)
-        page.write(8, 3, u'Тиждень ІІ', lformat)
+        page.merge_range(8, 0, 8, 6, u'Тиждень ІІ', lformat)
         for i in range(1, 7):
             page.write(9, i, WeekDays.read(self.session, id=i + 1)[0].full_name, sformat)
         for i in range(10, 15):
             page.write(i, 0, LessonTimes.read(self.session, id=i - 8)[0].full_name, sformat)
         if self.cur_data_type == u'teachers':
-            page.write(0, 3,
-                       u'Розклад занять, викладач: %s' % Teachers.read(self.session, id=self.cur_data)[0].full_name,
-                       lformat)
-            for l in range(5):
-                for d in range(6):
-                    if not self.default_data[0][0][d][l].is_empty:
-                        groups = [g.name for g in self.default_data[0][0][d][l].lesson_plan.groups]
-                        names = u''
-                        for g in groups:
-                            names += g + u', '
-                        names = names[:-2]
-                        page.write(l+3, d+1, self.default_data[0][0][d][l].lesson_plan.subject.full_name + u'\n' +
-                                   self.default_data[0][0][d][l].lesson_plan.lesson_type.short_name + u'\n' +
-                                   names + u'\n' +
-                                   self.default_data[0][0][d][l].room.name, sformat)
+            page.merge_range(0, 0, 0, 6,
+                             u'Розклад занять, викладач: %s' % Teachers.read(self.session, id=self.cur_data)[0].full_name,
+                             lformat)
+            for w in range(2):
+                for l in range(5):
+                    for d in range(6):
+                        if not self.default_data[0][w][d][l].is_empty:
+                            groups = [g.name for g in self.default_data[0][w][d][l].lesson_plan.groups]
+                            names = u''
+                            for g in groups:
+                                names += g + u', '
+                            names = names[:-2]
+                            page.write(l+3+w*7, d+1, self.default_data[0][w][d][l].lesson_plan.subject.full_name + u'\n' +
+                                       self.default_data[0][w][d][l].lesson_plan.lesson_type.short_name + u'\n' +
+                                       names + u'\n' +
+                                       self.default_data[0][w][d][l].room.name, sformat)
         for row in range(15):
             page.set_row(row, 50)
         page.set_column(1, 7, 40)
         page.set_landscape()
         page.set_page_view()
+        page.print_area(0, 0, 14, 6)
+        page.fit_to_pages(1, 1)
         book.close()
 
     def closeEvent(self, event):
