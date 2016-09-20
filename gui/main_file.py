@@ -1,40 +1,23 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
 import sys
-import os
-import gui.dialogs
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtGui
 from database import Logger
-from database.structure import *
+from database.structure.db_structure import *
 from database.start_db.New_db_startup import connect_database
-from database.select_table import get_table, check_data
+from database.select_table import get_table, check_table, save_table, recover_empty
 from gui.dialogs import LoginDialog, TableChoosingDialog, ImportDialog, \
     AccountQuery
 from gui.elements import EasyTab, WeekMenuBar
 from gui.translate import fromUtf8
 logger = Logger()
 
-nullfunc = lambda x: None
-
 
 class WeeksMenu(QtGui.QMainWindow):
-    __instance = None
-    __init_replaced = False
-
-    def __new__(cls, *a, **kwa):
-        if cls.__instance is None:
-            cls.__instance = QtGui.QMainWindow.__new__(cls)
-
-        elif not cls.__init_replaced:
-            cls.__init__ = nullfunc
-            cls.__init_replaced = True
-
-        return cls.__instance
-
-    def __init__(self, session):
+    def __init__(self):
         super(WeeksMenu, self).__init__()
         self.resize(805, 600)
-        self.session = session
+        self.session = connect_database()
         self.center = QtGui.QWidget(self)
         self.hbox = QtGui.QHBoxLayout(self.center)
 
@@ -76,8 +59,10 @@ class WeeksMenu(QtGui.QMainWindow):
         self.cur_data_type = 'teachers'
         self.cur_data = 69
 
-        self.default_data = [get_table(self.session, self.cur_data_type, self.cur_data), self.cur_data_type]
-        self.tabs.set_table(*self.default_data)
+        # self.default_data = [get_table(self.session, self.cur_data_type, self.cur_data), self.cur_data_type]
+        # self.tabs.set_table(*self.default_data)
+        default_data = [get_table(self.session, 'groups', 50), 'groups']
+        self.tabs.set_table(*default_data)
 
         self.retranslateUi()
         self.tabs.setCurrentIndex(0)
@@ -135,10 +120,12 @@ class WeeksMenu(QtGui.QMainWindow):
 
     def check_database(self):
         logger.info('Started database check function')
-        check_data(self.session)
+        check_table(self.session)
 
     def save_database(self):
         logger.info('Started database saving function')
+        save_table(self.session)
+        self.tabs.method_table.set_edited(False)
 
     def print_database(self):
         save_dest = QtGui.QFileDialog.getSaveFileName(None, u'Збереження файлу для друку',
@@ -193,30 +180,18 @@ class WeeksMenu(QtGui.QMainWindow):
         book.close()
 
     def closeEvent(self, event):
-        result = self.tabs.method_table.before_close()
+        result = self.tabs.method_table.is_editing()
         if result:
             event.ignore()
         else:
+            self.tabs.method_table.clear_table()
+            recover_empty(self.session)
             event.accept()
 
 
 def main():
-    # from database.start_db.New_db_startup import DATABASE_NAME
-    # from PyQt4.QtCore import QString
     app = QtGui.QApplication(sys.argv)
-    #
-    # path = QtGui.QFileDialog.getOpenFileName(directory=QString('/home'))
-    # path = unicode(path)
-    # f = open(path, 'r')
-    # data = f.readlines()
-    # f.close()
-    # f = open(DATABASE_NAME, 'w')
-    # f.writelines(data)
-    # f.close()
-
-    session = connect_database()
-    window = WeeksMenu(session)
-    gui.dialogs.danger_singleton = window
+    window = WeeksMenu()
     window.show()
     sys.exit(app.exec_())
 

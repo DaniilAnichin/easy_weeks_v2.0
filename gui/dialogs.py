@@ -11,10 +11,10 @@ from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import sessionmaker, Session
 from database.structure.db_structure import Base
 from gui.elements import WeekTool, ImportPopWindow
-from database.select_table import get_table
-from database.start_db.New_db_startup import *
-
+from database.select_table import get_table, undefined_lp
+from database.start_db.seeds import *
 danger_singleton = None
+logger = Logger()
 
 
 class LoginDialog(QtGui.QDialog):
@@ -276,15 +276,15 @@ class ShowLesson(WeeksDialog):
         self.set_pair(Weeks.translated, self.lesson.week)
         self.set_pair(WeekDays.translated, self.lesson.week_day)
         self.set_pair(LessonTimes.translated, self.lesson.lesson_time)
-        logger.debug('This lesson %s temp' % ('is' if self.lesson.is_temp else 'isn\'t'))
         self.setWindowTitle(fromUtf8('Заняття'))
 
 
 class EditLesson(WeeksDialog):
-    def __init__(self, element, session, time=True, *args, **kwargs):
+    def __init__(self, element, session, empty=False, time=  False, *args, **kwargs):
         super(EditLesson, self).__init__(*args, **kwargs)
 
         self.session = session
+        self.empty = empty
 
         if not isinstance(element, Lessons):
             logger.info('Wrong object passed: not a lesson')
@@ -293,9 +293,13 @@ class EditLesson(WeeksDialog):
         logger.info('Setting lesson data')
         self.lesson = element
         self.lp = self.lesson.lesson_plan
-        for elem in ['groups', 'teachers']:
-            self.default_list_pair(elem, lp=True)
-        self.default_combo_pair('subject', lp=True)
+
+        # for elem in ['groups', 'teachers']:
+        #     self.default_list_pair(elem, lp=True)
+        # self.default_combo_pair('subject', lp=True)
+        # self.default_combo_pair('lesson_type', lp=True)
+        self.lp_combo_pair()
+
         field_list = ['room'] + (['week', 'week_day', 'lesson_time'] if time else [])
         for elem in field_list:
             self.default_combo_pair(elem)
@@ -303,21 +307,36 @@ class EditLesson(WeeksDialog):
         self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.accept))
         self.setWindowTitle(fromUtf8('Редагування заняття'))
 
+    def lp_combo_pair(self):
+        cls = LessonPlans
+        label = LessonPlans.translated
+        values = undefined_lp(self.session)
+        name = cls.__tablename__
+        if not self.empty:
+            value = self.lp
+            values.append(value)
+            self.set_combo_pair(label, values, name, selected=value)
+        else:
+            self.set_combo_pair(label, values, name)
+
     def default_combo_pair(self, param, lp=False):
         getter = self.lp if lp else self.lesson
-        cls = type(getattr(getter, param))
+        cls = type(getattr(Lessons.read(self.session, id=1)[0], param))
         label = cls.translated
         values = cls.read(self.session, all_=True)
-        value = getattr(getter, param)
         name = cls.__tablename__
-        self.set_combo_pair(label, values, name, selected=value)
+        if not self.empty:
+            value = getattr(getter, param)
+            self.set_combo_pair(label, values, name, selected=value)
+        else:
+            self.set_combo_pair(label, values, name)
 
     def default_list_pair(self, param, lp=False):
         getter = self.lp if lp else self.lesson
-        cls = type(getattr(getter, param)[0])
+        cls = type(getattr(Lessons.read(self.session, id=1)[0], param)[0])
         label = cls.translated
-        values = cls.read(self.session, all_=True)
         selected_values = getattr(getter, param)
+        values = cls.read(self.session, all_=True)
         name = cls.__tablename__
         self.set_list_pair(label, selected_values, values, name)
 
@@ -348,6 +367,7 @@ class TableChoosingDialog(WeeksDialog):
     def accept(self):
         self.data_type = self.data_type.__tablename__
         self.data_id = self.values[self.data_choice.currentIndex()].id
+        # Add data to statusbar
         super(TableChoosingDialog, self).accept()
 
 
@@ -365,7 +385,7 @@ class RUSureDelete(QtGui.QMessageBox):
 
     def translateUI(self):
         self.setButtonText(QtGui.QMessageBox.Yes, fromUtf8('Так'))
-        self.setButtonText(QtGui.QMessageBox.No, fromUtf8("Ні"))
+        self.setButtonText(QtGui.QMessageBox.No, fromUtf8('Ні'))
         self.setWindowTitle(fromUtf8('Попередження'))
 
 
@@ -383,14 +403,15 @@ class RUSureChangeTable(QtGui.QMessageBox):
 
     def translateUI(self):
         self.setButtonText(QtGui.QMessageBox.Yes, fromUtf8('Так'))
-        self.setButtonText(QtGui.QMessageBox.No, fromUtf8("Ні"))
+        self.setButtonText(QtGui.QMessageBox.No, fromUtf8('Ні'))
         self.setWindowTitle(fromUtf8('Попередження'))
 
 
 class AccountQuery(QtGui.QDialog):
     def __init__(self, session):
+        from gui.main_file import WeeksMenu
         super(AccountQuery, self).__init__()
-        self.session = session
+        self.session = WeeksMenu().session
         self.submit_button = QtGui.QPushButton()
         self.submit_button.clicked.connect(self.accept)
 
@@ -436,9 +457,7 @@ class AccountQuery(QtGui.QDialog):
                 message=message, status=u'method', departments=[department]
             )
             if isinstance(result, int):
-                logger.debug(result)
-            # Users.create(self.session, nickname=login, status=u'method',
-            #              password=password, message=message, departments=[department])
+                logger.debug(db_codes_output[result])
             super(AccountQuery, self).accept()
         else:
             self.login_input.setText(fromUtf8('Логін вже існує!'))
@@ -478,7 +497,8 @@ class ImportDialog(QtGui.QDialog):
         import os
         from database import DATABASE_NAME, DATABASE_DIR
         from database.import_schedule.GetCurTimetable import teacher_update
-        from database.start_db import create_new_database, create_empty, create_common, create_custom
+        from database.start_db.New_db_startup import create_new_database
+        from database.start_db.seeds import create_empty, create_common, create_custom
 
         pro_bar = QtGui.QProgressBar(self)
         self.layout.addWidget(pro_bar, 1, 0)

@@ -1,16 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from functools import partial
-from database import Logger, db_codes_output
-from database.structure import db_structure
-from database.structure.new_tools import new_lesson, new_lesson_plan
 from PyQt4 import QtGui, QtCore
+from database import Logger, db_codes_output
+from database.select_table import recover_empty
+# from database.import_schedule import GetCurTimetable
+from database.structure import db_structure
+from database.structure.db_structure import *
+from database.structure.new_tools import new_lesson, new_lesson_plan
 from gui.translate import fromUtf8
-from database.import_schedule import GetCurTimetable
-import os
-from database.start_db import *
-from database.select_table import get_table
-
 logger = Logger()
 
 
@@ -193,9 +190,11 @@ class DragButton(QtGui.QPushButton):
 
             if self.draggable:
                 if self.lesson.is_empty:
-                    return
+                    lesson = Lessons(**self.time)
+                    self.edit_dial = EditLesson(lesson, self.parent().session, empty=True)
+                else:
+                    self.edit_dial = EditLesson(self.lesson, self.parent().session)
                 # self.edit_dial = EditLesson(self.lesson, self.parent().session, time=False)
-                self.edit_dial = EditLesson(self.lesson, self.parent().session)
                 if self.edit_dial.exec_() == EditLesson.Accepted:
                     self.save_changes()
             else:
@@ -273,10 +272,12 @@ class DragButton(QtGui.QPushButton):
         else:
             self.lesson = lesson.make_temp(self.parent().session)
         self.set_bg_color(self.lesson.lesson_plan.lesson_type.short_name)
-        self.setText(self.lesson.to_table(self.view_args))
+        # self.setText(self.lesson.to_table(self.view_args))
+        self.setText(self.lesson.to_table())
         if self.draggable and not self.lesson.is_empty:
-            type(self.lesson).update(self.parent().session, main_id=self.lesson.id, **self.time)
-        # self.lesson.set_time(self.time)
+            if self.time != self.lesson.time():
+                self.parent().edited = True
+                type(self.lesson).update(self.parent().session, main_id=self.lesson.id, **self.time)
 
     def set_bg_color(self, lesson_type):
         self.setStyleSheet(color_start.format(*button_colors[lesson_type]))
@@ -290,14 +291,12 @@ class DragButton(QtGui.QPushButton):
 
     def before_close(self):
         if self.lesson.is_temp and not self.lesson.is_empty:
-            # logger.debug('Lesson: %s' % unicode(self.lesson))
-            ret = type(self.lesson).delete(self.parent().session, self.lesson.id)
-            # logger.debug(db_codes_output[ret])
+            # ret = type(self.lesson).delete(self.parent().session, self.lesson.id)
             self.deleteLater()
 
     def save_changes(self):
         logger.debug('Here must be editor saving - button')
-        self.parent().parent().edited = True
+        self.parent().edited = True
 
 
 class ButtonGrid(QtGui.QGridLayout):
@@ -323,97 +322,75 @@ class ButtonGrid(QtGui.QGridLayout):
                 lesson_button.set_lesson(lesson_set[i][j])
 
 
-# class TempGrid(QtGui.QGridLayout):
-#     def __init__(self, parent, table_height=5):
-#         super(TempGrid, self).__init__(parent)
-#         self.table_height = table_height
-#         self.buttons = []
-#
-#         button = DragButton(parent)
-#         self.buttons.append(button)
-#         self.addWidget(button, 0, 0, 1, 1)
-#
-#         self.translateUI()
-#
-#     def add_button(self):
-#         button = DragButton(self.parent(), self.empty_text)
-#         self.buttons.append(button)
-#         x = (len(self.buttons) + 1) / self.table_height
-#         y = (len(self.buttons) + 1) % self.table_height
-#         self.addWidget(button, x, y, 1, 1)
-#
-#     def remove_button(self, button):
-#         self.buttons.remove(button)
-#         self.removeWidget(button)
-#         del button
-#
-#     def translateUI(self):
-#         self.empty_text = fromUtf8('Перетягніть\nзаняття сюди')
-#         self.buttons[-1].setText(self.empty_text)
-
-
 class WeekTool(QtGui.QToolBox):
     def __init__(self, parent, session, *args, **kwargs):
         super(WeekTool, self).__init__(parent, *args, **kwargs)
         self.session = session
+        self.initUI()
+
+    def initUI(self):
         self.first_panel = QtGui.QWidget(self)
         self.first_panel.acceptDrops()
-        self.first_panel.session = session
+        self.first_panel.session = self.session
+        self.addItem(self.first_panel, '')
+        self.first_table = ButtonGrid(self.first_panel, self)
+
         self.second_panel = QtGui.QWidget(self)
         self.second_panel.acceptDrops()
-        self.second_panel.session = session
-        self.first_table = ButtonGrid(self.first_panel, self)
-        self.second_table = ButtonGrid(self.second_panel, self)
-        self.addItem(self.first_panel, '')
+        self.second_panel.session = self.session
         self.addItem(self.second_panel, '')
-        self.translateUI()
-        self.edited = False
+        self.second_table = ButtonGrid(self.second_panel, self)
+
+        self.set_edited(False)
+
         self.setMouseTracking(True)
         self.tabButtons = self.findChildren(QtGui.QAbstractButton)
-        for b in self.tabButtons:
-            b.setMouseTracking(True)
+        for button in self.tabButtons:
+            button.setMouseTracking(True)
 
-    def set_table(self, lesson_set, view_args, drag_enabled=False, pass_check=False):
+        self.translateUI()
+
+    def set_table(self, lesson_set, view_args, drag_enabled=False, pass_check=True):
         if not pass_check:
-            if self.check_and_clear_table():
+            if self.is_editing():
                 return 1
-        self.edited = False
+        self.clear_table()
+        self.set_edited(False)
         self.first_table.set_table(lesson_set[0], view_args, 0, drag_enabled)
         self.second_table.set_table(lesson_set[1], view_args, 1, drag_enabled)
         return 0
 
-    def check_and_clear_table(self):
-        if self.edited:
-            logger.debug('Asking')
+    def set_edited(self, boolean):
+        self.first_panel.edited = boolean
+        self.second_panel.edited = boolean
+
+    def edited(self):
+        return self.first_panel.edited or self.second_panel.edited
+
+    def is_editing(self):
+        if self.edited():
+            logger.debug('Show dialog asking about table change')
             from gui.dialogs import RUSureChangeTable
             self.rusure = RUSureChangeTable()
             if self.rusure.exec_() == RUSureChangeTable.Yes:
-                self.clear_table()
                 return 0
             else:
                 return 1
         else:
             logger.debug('Not edited')
-            self.clear_table()
             return 0
 
     def clear_table(self):
-        for child in self.first_panel.children():
-            if isinstance(child, DragButton):
-                child.before_close()
-                del child
-        for child in self.second_panel.children():
-            if isinstance(child, DragButton):
-                child.before_close()
-                del child
+        for child in self.first_panel.findChildren(DragButton):
+            child.before_close()
+            del child
+        for child in self.second_panel.findChildren(DragButton):
+            child.before_close()
+            del child
 
     def translateUI(self):
         self.setItemText(0, fromUtf8('Перший тиждень'))
         self.setItemText(1, fromUtf8('Другий тиждень'))
-
-    def before_close(self):
-        logger.debug('We\'re going to close')
-        return self.check_and_clear_table()
 
     def dragEnterEvent(self, e):
         e.accept()
@@ -443,6 +420,7 @@ class EasyTab(QtGui.QTabWidget):
         user_hbox = QtGui.QHBoxLayout(self.tab_user)
         user_hbox.addWidget(self.user_table)
         self.tab_user.setLayout(user_hbox)
+
         self.method_table = WeekTool(self.tab_method, self.session)
         method_hbox = QtGui.QHBoxLayout(self.tab_method)
         method_hbox.addWidget(self.method_table, 1)
@@ -457,11 +435,13 @@ class EasyTab(QtGui.QTabWidget):
         self.addTab(self.tab_search, fromUtf8('Пошук'))
 
     def set_table(self, lesson_set, view_args):
-        result = self.method_table.set_table(lesson_set, view_args, drag_enabled=True)
+        result = self.method_table.is_editing()
         if result:
             return
         else:
+            recover_empty(self.session)
             self.user_table.set_table(lesson_set, view_args)
+            self.method_table.set_table(lesson_set, view_args, drag_enabled=True)
 
 
 class AdminTab(QtGui.QWidget):
@@ -614,7 +594,7 @@ class SearchTab(QtGui.QWidget):
 
     def translateUI(self):
         self.object_label.setText(fromUtf8('Що знайти: '))
-        self.object_choice.items = [db_structure.Teachers, db_structure.Weeks]
+        self.object_choice.items = [db_structure.Teachers, db_structure.Rooms]
         self.object_choice.addItems([item.translated for item in self.object_choice.items])
 
         self.department_label.setText(db_structure.Departments.translated + u':')
@@ -754,4 +734,3 @@ class ImportPopWindow(QtGui.QDialog):
 
     def defuseTT(self):
         self.is_done = True
-

@@ -150,15 +150,13 @@ class Base(object):
         for field in cls.fields():
             data.update({field: getattr(result, field)})
         for key in kwargs.keys():
+            if key not in cls.fields():
+                return db_codes['wrong']
             data.update({key: kwargs[key]})
         if cls.read(session, **data):
             return db_codes['exists']
 
-
         # Global filter loop:
-        for key in kwargs.keys():
-            if key not in cls.fields():
-                return db_codes['wrong']
         for key in kwargs.keys():
             setattr(result, key, kwargs[key])
 
@@ -191,7 +189,7 @@ class Base(object):
                 try:
                     if isinstance(linked[0], Departments):
                         default_id = 2
-                except:
+                except KeyError:
                     pass
                 for element in linked:
                     setattr(element, 'id_' + cls.single(), 1)
@@ -451,6 +449,45 @@ class Rooms(Base):
     _associations = ['departments']
     # error = db_codes['room']
 
+    @classmethod
+    def read(cls, session, all_=False, **kwargs):
+        if isinstance(session, int):
+            return db_codes['session']
+
+        result = session.query(cls)
+
+        if all_:
+            # return result.all()
+            return result.all()[1:]
+
+        # Global filter loop:
+        for key in kwargs.keys():
+            if key not in cls.fields():
+                return db_codes['wrong']
+            elif isinstance(kwargs[key], list):
+                if key == 'lessons':
+                    try:
+                        if not isinstance(kwargs[key][0], int):
+                            kwargs[key] = [lesson.id for lesson in kwargs[key]]
+                    except IndexError:
+                        pass
+                    result = result.filter(LessonPlans.lessons.any(
+                        Lessons.id.in_(kwargs[key])
+                    ))
+                else:
+                    result = result.filter(getattr(cls, key).in_(kwargs[key]))
+            else:
+                if key == 'lessons':
+                    if not isinstance(kwargs[key], int):
+                        kwargs[key] = [lesson.id for lesson in kwargs[key]]
+                    result = result.filter(LessonPlans.lessons.any(
+                        Lessons.id.in_(kwargs[key])
+                    ))
+                else:
+                    result = result.filter(getattr(cls, key) == kwargs[key])
+
+        return result.all()
+
 
 class LessonTypes(Base):
     full_name = Column(String)
@@ -518,7 +555,12 @@ class LessonPlans(Base):
     translated = u'Навчальній план'
 
     def __unicode__(self):
-        return u'%s з %s' % (unicode(self.subject), unicode(self.groups[0]))
+        return u'{0},\n{1}\nз {2}\nз {3}'.format(
+            unicode(self.lesson_type),
+            unicode(self.subject),
+            u', '.join([unicode(group) for group in self.groups]),
+            u', '.join([unicode(teacher) for teacher in self.teachers])
+        )
 
     amount = Column(Integer, default=2)
     needed_stuff = Column(String, default='')
@@ -554,12 +596,6 @@ class LessonPlans(Base):
             return db_codes['exists']
         else:
             elem = cls(**kwargs)
-            # t_checker = u''
-            # g_checker = u''
-            # for t in kwargs['teachers']:
-            #     t_checker += unicode(t)+u','
-            # for g in kwargs['groups']:
-            #     g_checker += unicode(g) + u','
             t_checker = u','.join(kwargs.get('teachers', []))
             g_checker = u','.join(kwargs.get('groups', []))
             elem.param_checker = u'%d,%d,%s,%s,%d,%d,%d' % (kwargs['id_subject'], kwargs['id_lesson_type'],
@@ -586,20 +622,49 @@ class LessonPlans(Base):
                 return db_codes['wrong']
             elif isinstance(kwargs[key], list):
                 if key == 'groups':
+                    try:
+                        if not isinstance(kwargs[key][0], int):
+                            kwargs[key] = [lesson.id for lesson in kwargs[key]]
+                    except IndexError:
+                        pass
                     result = result.filter(LessonPlans.groups.any(
                              Groups.id.in_(kwargs[key])))
                 elif key == 'teachers':
+                    try:
+                        if not isinstance(kwargs[key][0], int):
+                            kwargs[key] = [lesson.id for lesson in kwargs[key]]
+                    except IndexError:
+                        pass
                     result = result.filter(LessonPlans.teachers.any(
                              Teachers.id.in_(kwargs[key])))
+                elif key == 'lessons':
+                    try:
+                        if not isinstance(kwargs[key][0], int):
+                            kwargs[key] = [lesson.id for lesson in kwargs[key]]
+                    except IndexError:
+                        pass
+                    result = result.filter(LessonPlans.lessons.any(
+                        Lessons.id.in_(kwargs[key])
+                    ))
                 else:
                     result = result.filter(getattr(cls, key).in_(kwargs[key]))
             else:
                 if key == 'groups':
+                    if not isinstance(kwargs[key], int):
+                        kwargs[key] = [lesson.id for lesson in kwargs[key]]
                     result = result.filter(getattr(LessonPlans, key).any(
                              Groups.id == kwargs[key]))
                 elif key == 'teachers':
+                    if not isinstance(kwargs[key], int):
+                        kwargs[key] = [lesson.id for lesson in kwargs[key]]
                     result = result.filter(getattr(LessonPlans, key).any(
                              Teachers.id == kwargs[key]))
+                elif key == 'lessons':
+                    if not isinstance(kwargs[key], int):
+                        kwargs[key] = [lesson.id for lesson in kwargs[key]]
+                    result = result.filter(LessonPlans.lessons.any(
+                        Lessons.id.in_(kwargs[key])
+                    ))
                 else:
                     result = result.filter(getattr(cls, key) == kwargs[key])
 
@@ -632,7 +697,16 @@ class Lessons(Base):
         # logger.info('Passed lesson init')
 
     def __unicode__(self):
-        return u'%s у %s' % (unicode(self.lesson_plan), unicode(self.row_time))
+        return u'%s у час %s' % (unicode(self.lesson_plan), unicode(self.row_time))
+
+    def __eq__(self, other):
+        fields = self.fields()
+        fields.pop(fields.index('id'))
+        fields.pop(fields.index('is_temp'))
+        result = True
+        for field in fields:
+            result = result and (getattr(self, field) == getattr(other, field))
+        return result
 
     def time(self):
         return dict(
@@ -694,15 +768,20 @@ class Lessons(Base):
     def make_temp(self, session, time=None):
         if not time:
             time = self.time()
+        # fields = self.fields()
+        # fields.pop(fields.index('id'))
+        # fields.pop(fields.index('is_temp'))
+        # temp_lesson = Lessons(is_temp=True, **{field: getattr(self, field) for field in fields})
         temp_lesson = Lessons.create(session, id_lesson_plan=self.id_lesson_plan,
                                      is_temp=True, id_room=self.id_room, **time)
-        if temp_lesson == db_codes['exists']:
+        if isinstance(temp_lesson, int) and temp_lesson == db_codes['exists']:
             logger.debug('RLY?')
             return Lessons.read(session, id_lesson_plan=self.id_lesson_plan,
                                 is_temp=True, id_room=self.id_room, **time)[0]
         elif isinstance(temp_lesson, int):
             return temp_lesson
 
+        self.is_empty = True
         return temp_lesson
 
     @classmethod
@@ -742,7 +821,7 @@ class Lessons(Base):
 
     @classmethod
     def read(cls, session, all_=False, **kwargs):
-        if 'is_temp' not in kwargs.keys() and 'id' not in kwargs.keys():
+        if not set(kwargs.keys()).intersection({'is_temp', 'id', 'all_'}):
             kwargs.update(dict(is_temp=False))
         return super(Lessons, cls).read(session, all_=all_, **kwargs)
 
@@ -798,21 +877,25 @@ class Lessons(Base):
         if isinstance(result, int):
             return result
 
-        if not kwargs.get('is_temp', True):
-            if cls.read(session, **kwargs):
-                return db_codes['exists']
-            exists = cls.exists(session, **kwargs)
-            if exists:
-                return exists
-
         result = result[0]
-
-        # Global filter loop:
+        data = {}
+        for field in cls.columns():
+            data.update({field: getattr(result, field)})
         for key in kwargs.keys():
             if key not in cls.columns():
                 return db_codes['wrong']
-            else:
-                setattr(result, key, kwargs[key])
+            data.update({key: kwargs[key]})
+
+        if not data['is_temp']:
+            if cls.read(session, **data):
+                return db_codes['exists']
+            exists = cls.exists(session, **data)
+            if exists:
+                return exists
+
+        # Global filter loop:
+        for key in kwargs.keys():
+            setattr(result, key, kwargs[key])
 
         result.row_time = cls.to_row(result.time())
         session.commit()
@@ -822,26 +905,25 @@ class Lessons(Base):
     @classmethod
     def exists(cls, session, **kwargs):
         cur_lp = LessonPlans.read(session, id=kwargs['id_lesson_plan'])[0]
+        params = {'is_temp': False}
+        if not kwargs.get('is_empty', False):
+            params.update({'is_empty': False})
 
-        for lesson in Lessons.read(session, lesson_plan=LessonPlans.read(
-                session, groups=cur_lp.groups
-        )):
+        for lesson in Lessons.read(session, id_lesson_plan=[
+            lp.id for lp in LessonPlans.read(session, groups=cur_lp.groups)
+        ], **params):
             if lesson.row_time == kwargs['row_time']:
                 return db_codes['group']
 
-        for lesson in Lessons.read(session, lesson_plan=LessonPlans.read(
-                session, teachers=cur_lp.teachers
-        )):
-            if lesson['row_time'] == kwargs['row_time']:
+        for lesson in Lessons.read(session, id_lesson_plan=[
+            lp.id for lp in LessonPlans.read(session, teachers=cur_lp.teachers)
+        ], **params):
+            if lesson.row_time == kwargs['row_time']:
                 return db_codes['teacher']
 
         if kwargs['id_room'] != 1:
-            for lesson in Lessons.read(session, row_time=kwargs['row_time']):
+            for lesson in Lessons.read(session, row_time=kwargs['row_time'], **params):
                 if lesson.id_room == kwargs['id_room']:
                     return db_codes['room']
 
         return None
-
-    @classmethod
-    def move_temp(cls, session):
-        pass
