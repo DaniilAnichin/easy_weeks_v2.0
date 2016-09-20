@@ -59,10 +59,10 @@ class WeeksMenu(QtGui.QMainWindow):
         self.cur_data_type = 'teachers'
         self.cur_data = 69
 
-        # self.default_data = [get_table(self.session, self.cur_data_type, self.cur_data), self.cur_data_type]
-        # self.tabs.set_table(*self.default_data)
-        default_data = [get_table(self.session, 'groups', 50), 'groups']
-        self.tabs.set_table(*default_data)
+        self.default_data = [get_table(self.session, self.cur_data_type, self.cur_data), self.cur_data_type]
+        self.tabs.set_table(*self.default_data)
+        # default_data = [get_table(self.session, self.cur_data_type, self.cur_data), self.cur_data_type]
+        # self.tabs.set_table(*default_data)
 
         self.retranslateUi()
         self.tabs.setCurrentIndex(0)
@@ -129,6 +129,7 @@ class WeeksMenu(QtGui.QMainWindow):
 
     def print_database(self):
         save_dest = QtGui.QFileDialog.getSaveFileName(None, u'Збереження файлу для друку',
+                                                      directory=u'Розклад_%s.xlsx' % Teachers.read(self.session, id=self.cur_data)[0].short_name.replace(u' ', u'_')[:-1],
                                                       filter=u'ExcelFiles (*.xlsx)')
         save_dest = unicode(save_dest)
         if not save_dest.endswith(u'.xlsx'):
@@ -142,7 +143,8 @@ class WeeksMenu(QtGui.QMainWindow):
         lformat.set_border()
         sformat = book.add_format()
         sformat.set_border()
-        page.set_column(0, 6, cell_format=sformat)
+        page.set_column(0, 0, 10)
+        page.set_column(1, 7, 40)
         page.merge_range(1, 0, 1, 6, u'Тиждень І', lformat)
         for i in range(1, 7):
             page.write(2, i, WeekDays.read(self.session, id=i + 1)[0].full_name, sformat)
@@ -160,7 +162,7 @@ class WeeksMenu(QtGui.QMainWindow):
             for w in range(2):
                 for l in range(5):
                     for d in range(6):
-                        if not self.default_data[0][w][d][l].is_empty:
+                        if not self.default_data[0][w][d][l].id == 1:
                             groups = [g.name for g in self.default_data[0][w][d][l].lesson_plan.groups]
                             names = u''
                             for g in groups:
@@ -170,9 +172,10 @@ class WeeksMenu(QtGui.QMainWindow):
                                        self.default_data[0][w][d][l].lesson_plan.lesson_type.short_name + u'\n' +
                                        names + u'\n' +
                                        self.default_data[0][w][d][l].room.name, sformat)
+                        else:
+                            page.write_blank(l+3+w*7, d+1, u'i_love_assembler', sformat)
         for row in range(15):
-            page.set_row(row, 50)
-        page.set_column(1, 7, 40)
+            page.set_row(row, 75)
         page.set_landscape()
         page.set_page_view()
         page.print_area(0, 0, 14, 6)
