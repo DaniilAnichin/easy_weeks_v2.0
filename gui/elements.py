@@ -352,7 +352,7 @@ class WeekTool(QtGui.QToolBox):
 
     def set_table(self, lesson_set, view_args, drag_enabled=False, pass_check=True):
         if not pass_check:
-            if self.is_editing():
+            if not self.is_editing():
                 return 1
         self.clear_table()
         self.set_edited(False)
@@ -373,12 +373,13 @@ class WeekTool(QtGui.QToolBox):
             from gui.dialogs import RUSureChangeTable
             self.rusure = RUSureChangeTable()
             if self.rusure.exec_() == RUSureChangeTable.Yes:
-                return 0
+                result = True
             else:
-                return 1
+                result = False
         else:
             logger.debug('Not edited')
-            return 0
+            result = True
+        return result
 
     def clear_table(self):
         for child in self.first_panel.findChildren(DragButton):
@@ -436,7 +437,7 @@ class EasyTab(QtGui.QTabWidget):
 
     def set_table(self, lesson_set, view_args):
         result = self.method_table.is_editing()
-        if result:
+        if not result:
             return
         else:
             recover_empty(self.session)

@@ -5,6 +5,7 @@ from PyQt4 import QtGui
 from database import Logger
 from database.structure.db_structure import *
 from database.start_db.New_db_startup import connect_database
+from database.xls_tools import print_table
 from database.select_table import get_table, check_table, save_table, recover_empty
 from gui.dialogs import LoginDialog, TableChoosingDialog, ImportDialog, \
     AccountQuery
@@ -24,7 +25,7 @@ class WeeksMenu(QtGui.QMainWindow):
         menu_data = [
             [
                 'Відображення',
-                ['Задати розклад', self.show_table_dialog]
+                ['Задати розклад', self.set_tabs_table]
             ],
             [
                 'Користувач',
@@ -59,8 +60,7 @@ class WeeksMenu(QtGui.QMainWindow):
         self.cur_data_type = 'teachers'
         self.cur_data = 69
 
-        self.default_data = [get_table(self.session, self.cur_data_type, self.cur_data), self.cur_data_type]
-        self.tabs.set_table(*self.default_data)
+        self.set_tabs_table([self.cur_data_type, self.cur_data])
         # default_data = [get_table(self.session, self.cur_data_type, self.cur_data), self.cur_data_type]
         # self.tabs.set_table(*default_data)
 
@@ -71,16 +71,23 @@ class WeeksMenu(QtGui.QMainWindow):
         self.setWindowTitle(fromUtf8('EasyWeeks'))
         logger.info('Passed MainMenu TranslateUI function')
 
+    def set_tabs_table(self, data=None):
+        if not isinstance(data, list):
+            logger.debug('No?')
+
+            data = self.show_table_dialog()
+            # data = [self.cur_data_type, self.cur_data]
+        self.table_data = get_table(self.session, *data)
+        if self.tabs.set_table(self.table_data, data[0]):
+            self.cur_data_type, self.cur_data = tuple(data)
+
     def show_table_dialog(self):
         logger.info('Started table choosing dialog function')
         self.table = TableChoosingDialog(self.session)
         if self.table.exec_() == QtGui.QDialog.Accepted:
-            self.cur_data_type = self.table.data_type
-            self.cur_data = self.table.data_id
-            data_type = self.table.data_type
-            data_id = self.table.data_id
-            logger.debug('%s - %s' % (data_type, data_id))
-            self.tabs.set_table(get_table(self.session, data_type, data_id), data_type)
+            data = [self.table.data_type, self.table.data_id]
+            logger.debug('%s - %s' % (data[0], data[1]))
+            return data
 
     def login(self):
         logger.info('Started user login function')
@@ -128,63 +135,20 @@ class WeeksMenu(QtGui.QMainWindow):
         self.tabs.method_table.set_edited(False)
 
     def print_database(self):
-        save_dest = QtGui.QFileDialog.getSaveFileName(None, u'Збереження файлу для друку',
-                                                      directory=u'Розклад_%s.xlsx' % Teachers.read(self.session, id=self.cur_data)[0].short_name.replace(u' ', u'_')[:-1],
-                                                      filter=u'ExcelFiles (*.xlsx)')
+        note = u'Збереження файлу для друку'
+        teacher_name = Teachers.read(self.session, id=self.cur_data)[0].short_name.replace(u' ', u'_')[:-1]
+        name = u'Розклад_%s.xlsx' % teacher_name
+        save_dest = QtGui.QFileDialog.getSaveFileName(
+            None, note, directory=name, filter=u'ExcelFiles (*.xlsx)'
+        )
         save_dest = unicode(save_dest)
         if not save_dest.endswith(u'.xlsx'):
             save_dest += u'.xlsx'
-        import xlsxwriter
-        book = xlsxwriter.Workbook(save_dest)
-        page = book.add_worksheet(u'Розклад')
-        lformat = book.add_format()
-        lformat.set_align('center')
-        lformat.set_font_size(15)
-        lformat.set_border()
-        sformat = book.add_format()
-        sformat.set_border()
-        page.set_column(0, 0, 10)
-        page.set_column(1, 7, 40)
-        page.merge_range(1, 0, 1, 6, u'Тиждень І', lformat)
-        for i in range(1, 7):
-            page.write(2, i, WeekDays.read(self.session, id=i + 1)[0].full_name, sformat)
-        for i in range(3, 8):
-            page.write(i, 0, LessonTimes.read(self.session, id=i - 1)[0].full_name, sformat)
-        page.merge_range(8, 0, 8, 6, u'Тиждень ІІ', lformat)
-        for i in range(1, 7):
-            page.write(9, i, WeekDays.read(self.session, id=i + 1)[0].full_name, sformat)
-        for i in range(10, 15):
-            page.write(i, 0, LessonTimes.read(self.session, id=i - 8)[0].full_name, sformat)
-        if self.cur_data_type == u'teachers':
-            page.merge_range(0, 0, 0, 6,
-                             u'Розклад занять, викладач: %s' % Teachers.read(self.session, id=self.cur_data)[0].full_name,
-                             lformat)
-            for w in range(2):
-                for l in range(5):
-                    for d in range(6):
-                        if not self.default_data[0][w][d][l].id == 1:
-                            groups = [g.name for g in self.default_data[0][w][d][l].lesson_plan.groups]
-                            names = u''
-                            for g in groups:
-                                names += g + u', '
-                            names = names[:-2]
-                            page.write(l+3+w*7, d+1, self.default_data[0][w][d][l].lesson_plan.subject.full_name + u'\n' +
-                                       self.default_data[0][w][d][l].lesson_plan.lesson_type.short_name + u'\n' +
-                                       names + u'\n' +
-                                       self.default_data[0][w][d][l].room.name, sformat)
-                        else:
-                            page.write_blank(l+3+w*7, d+1, u'i_love_assembler', sformat)
-        for row in range(15):
-            page.set_row(row, 75)
-        page.set_landscape()
-        page.set_page_view()
-        page.print_area(0, 0, 14, 6)
-        page.fit_to_pages(1, 1)
-        book.close()
+        print_table(self.session, save_dest, self.table_data, self.cur_data_type, self.cur_data)
 
     def closeEvent(self, event):
         result = self.tabs.method_table.is_editing()
-        if result:
+        if not result:
             event.ignore()
         else:
             self.tabs.method_table.clear_table()
