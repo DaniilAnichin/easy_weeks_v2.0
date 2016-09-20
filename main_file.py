@@ -56,16 +56,12 @@ class WeeksMenu(QtGui.QMainWindow):
         self.menubar = WeekMenuBar(self, menu_data=menu_data)
         self.setMenuBar(self.menubar)
 
-        # self.load_database()
         self.cur_data_type = 'teachers'
         self.cur_data = 69
 
         self.set_tabs_table([self.cur_data_type, self.cur_data])
-        # default_data = [get_table(self.session, self.cur_data_type, self.cur_data), self.cur_data_type]
-        # self.tabs.set_table(*default_data)
 
         self.retranslateUi()
-        self.tabs.setCurrentIndex(0)
 
     def retranslateUi(self):
         self.setWindowTitle(fromUtf8('EasyWeeks'))
@@ -78,7 +74,7 @@ class WeeksMenu(QtGui.QMainWindow):
             data = self.show_table_dialog()
             # data = [self.cur_data_type, self.cur_data]
         self.table_data = get_table(self.session, *data)
-        if self.tabs.set_table(self.table_data, data[0]):
+        if not self.tabs.set_table(self.table_data, data[0]):
             self.cur_data_type, self.cur_data = tuple(data)
 
     def show_table_dialog(self):
