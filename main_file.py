@@ -7,9 +7,12 @@ from database.structure.db_structure import *
 from database.start_db.New_db_startup import connect_database
 from database.xls_tools import print_table
 from database.select_table import get_table, check_table, save_table, recover_empty
-from gui.dialogs import LoginDialog, TableChoosingDialog, ImportDialog, \
-    AccountQuery
-from gui.elements import EasyTab, WeekMenuBar
+from gui.dialogs.LoginDialog import LoginDialog
+from gui.dialogs.TableChoosingDialog import TableChoosingDialog
+from gui.dialogs.ImportDialog import ImportDialog
+from gui.dialogs.AccountQuery import AccountQuery
+from gui.elements.EasyTab import EasyTab
+from gui.elements.WeekMenuBar import WeekMenuBar
 from gui.translate import fromUtf8
 logger = Logger()
 
@@ -94,7 +97,7 @@ class WeeksMenu(QtGui.QMainWindow):
 
     def make_account_query(self):
         logger.info('Started account query sending function')
-        self.query = AccountQuery(self.session)
+        self.query = AccountQuery()
         self.query.exec_()
 
     def set_user(self, user=None):

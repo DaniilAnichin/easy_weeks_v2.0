@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui
 from database import Logger
-from gui.elements import DragButton, ButtonGrid
+from gui.elements.DragButton import DragButton
+from gui.elements.ButtonGrid import ButtonGrid
+from gui.dialogs.RUSureChangeTable import RUSureChangeTable
 from gui.translate import fromUtf8
 logger = Logger()
 
@@ -55,7 +57,6 @@ class WeekTool(QtGui.QToolBox):
     def is_editing(self):
         if self.edited():
             logger.debug('Show dialog asking about table change')
-            from gui.dialogs import RUSureChangeTable
             self.rusure = RUSureChangeTable()
             if self.rusure.exec_() == RUSureChangeTable.Yes:
                 result = True
