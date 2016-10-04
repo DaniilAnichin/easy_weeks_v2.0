@@ -8,7 +8,7 @@ from database.start_db.New_db_startup import connect_database
 from database.xls_tools import print_table
 from database.select_table import get_table, check_table, save_table, recover_empty
 from gui.dialogs import LoginDialog, TableChoosingDialog, ImportDialog, \
-    AccountQuery
+    AccountQuery, PrintDialog
 from gui.elements import EasyTab, WeekMenuBar
 from gui.translate import fromUtf8
 logger = Logger()
@@ -135,16 +135,20 @@ class WeeksMenu(QtGui.QMainWindow):
         self.tabs.method_table.set_edited(False)
 
     def print_database(self):
-        note = u'Збереження файлу для друку'
-        teacher_name = Teachers.read(self.session, id=self.cur_data)[0].short_name.replace(u' ', u'_')[:-1]
-        name = u'Розклад_%s.xlsx' % teacher_name
-        save_dest = QtGui.QFileDialog.getSaveFileName(
-            None, note, directory=name, filter=u'ExcelFiles (*.xlsx)'
-        )
-        save_dest = unicode(save_dest)
-        if not save_dest.endswith(u'.xlsx'):
-            save_dest += u'.xlsx'
-        print_table(self.session, save_dest, self.table_data, self.cur_data_type, self.cur_data)
+
+        self.to_print_database = PrintDialog(self.session, self.cur_data, self.table_data, self.cur_data_type)
+        self.to_print_database.show()
+
+        # note = u'Збереження файлу для друку'
+        # teacher_name = Teachers.read(self.session, id=self.cur_data)[0].short_name.replace(u' ', u'_')[:-1]
+        # name = u'Розклад_%s.xlsx' % teacher_name
+        # save_dest = QtGui.QFileDialog.getSaveFileName(
+        #     None, note, directory=name, filter=u'ExcelFiles (*.xlsx)'
+        # )
+        # save_dest = unicode(save_dest)
+        # if not save_dest.endswith(u'.xlsx'):
+        #     save_dest += u'.xlsx'
+        # print_table(self.session, save_dest, self.table_data, self.cur_data_type, self.cur_data)
 
     def closeEvent(self, event):
         result = self.tabs.method_table.is_editing()
@@ -156,10 +160,14 @@ class WeeksMenu(QtGui.QMainWindow):
             event.accept()
 
 
+import gui.dialogs
+
+
 def main():
     app = QtGui.QApplication(sys.argv)
     window = WeeksMenu()
     window.show()
+    gui.dialogs.danger_singleton = window
     sys.exit(app.exec_())
 
 

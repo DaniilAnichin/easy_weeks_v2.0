@@ -43,6 +43,24 @@ def print_table(session, save_dest, table, data_type, data_id):
                     else:
                         page.write_blank(l+3+w*7, d+1, u'i_love_assembler', sformat)
 
+    elif data_type == u'groups':
+        page.merge_range(0, 0, 0, 6,
+                         u'Розклад занять, група: %s' % Groups.read(session, id=data_id)[0].name,
+                         lformat)
+        for w in range(2):
+            for l in range(5):
+                for d in range(6):
+                    lesson = table[w][d][l]
+                    if not lesson.id == 1:
+                        groups = [g.name for g in lesson.lesson_plan.teachers]
+                        names = u', '.join(groups)
+                        page.write(l + 3 + w * 7, d + 1, lesson.lesson_plan.subject.full_name + u'\n' +
+                                   lesson.lesson_plan.lesson_type.short_name + u'\n' +
+                                   names + u'\n' +
+                                   lesson.room.name, sformat)
+                    else:
+                        page.write_blank(l + 3 + w * 7, d + 1, u'i_love_assembler', sformat)
+
     for row in range(15):
         page.set_row(row, 75)
     page.set_landscape()
