@@ -43,15 +43,15 @@ class DragButton(QtGui.QPushButton):
 
         if QMouseEvent.button() == QtCore.Qt.RightButton:
             # Pressing callback
-
             if self.draggable:
                 if self.lesson.is_empty:
-                    lesson = Lessons(**self.time)
+                    lesson = Lessons.create(self.parent().session, is_temp=True, **self.time)
                     self.edit_dial = EditLesson(lesson, self.parent().session, empty=True)
                 else:
                     self.edit_dial = EditLesson(self.lesson, self.parent().session)
-                # self.edit_dial = EditLesson(self.lesson, self.parent().session, time=False)
                 if self.edit_dial.exec_() == EditLesson.Accepted:
+                    if self.lesson.is_empty:
+                        self.lesson = lesson
                     self.save_changes()
             else:
                 if not self.lesson.is_empty:
@@ -128,17 +128,12 @@ class DragButton(QtGui.QPushButton):
             e.ignore()
 
     def set_lesson(self, lesson):
-        if lesson.is_temp or lesson.is_empty or not self.draggable:
-            self.lesson = lesson
-        else:
-            self.lesson = lesson.make_temp(self.parent().session)
-        self.set_bg_color(self.lesson.lesson_plan.lesson_type.short_name)
-        # self.setText(self.lesson.to_table(self.view_args))
-        self.setText(self.lesson.to_table())
+        self.lesson = lesson
         if self.draggable and not self.lesson.is_empty:
             if self.time != self.lesson.time():
                 self.parent().edited = True
-                type(self.lesson).update(self.parent().session, main_id=self.lesson.id, **self.time)
+                Lessons.update(self.parent().session, main_id=self.lesson.id, **self.time)
+        self.redraw()
 
     def set_bg_color(self, lesson_type):
         self.setStyleSheet(color_start.format(*button_colors[lesson_type]))
@@ -157,5 +152,10 @@ class DragButton(QtGui.QPushButton):
             self.deleteLater()
 
     def save_changes(self):
-        logger.debug('Here must be editor saving - button')
         self.parent().edited = True
+        self.redraw()
+
+    def redraw(self):
+        self.set_bg_color(self.lesson.lesson_plan.lesson_type.short_name)
+        self.setText(self.lesson.to_table())
+        # self.setText(self.lesson.to_table(self.view_args))

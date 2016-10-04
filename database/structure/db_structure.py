@@ -778,10 +778,6 @@ class Lessons(Base):
             logger.debug('RLY?')
             return Lessons.read(session, id_lesson_plan=self.id_lesson_plan,
                                 is_temp=True, id_room=self.id_room, **time)[0]
-        elif isinstance(temp_lesson, int):
-            return temp_lesson
-
-        self.is_empty = True
         return temp_lesson
 
     @classmethod
@@ -889,7 +885,7 @@ class Lessons(Base):
         if not data['is_temp']:
             if cls.read(session, **data):
                 return db_codes['exists']
-            exists = cls.exists(session, **data)
+            exists = cls.exists(session, main_id, **data)
             if exists:
                 return exists
 
@@ -903,7 +899,7 @@ class Lessons(Base):
         return db_codes['success']
 
     @classmethod
-    def exists(cls, session, **kwargs):
+    def exists(cls, session, main_id, **kwargs):
         cur_lp = LessonPlans.read(session, id=kwargs['id_lesson_plan'])[0]
         params = {'is_temp': False}
         if not kwargs.get('is_empty', False):
@@ -913,17 +909,20 @@ class Lessons(Base):
             lp.id for lp in LessonPlans.read(session, groups=cur_lp.groups)
         ], **params):
             if lesson.row_time == kwargs['row_time']:
-                return db_codes['group']
+                if lesson.id != main_id:
+                    return db_codes['group']
 
         for lesson in Lessons.read(session, id_lesson_plan=[
             lp.id for lp in LessonPlans.read(session, teachers=cur_lp.teachers)
         ], **params):
             if lesson.row_time == kwargs['row_time']:
-                return db_codes['teacher']
+                if lesson.id != main_id:
+                    return db_codes['teacher']
 
         if kwargs['id_room'] != 1:
             for lesson in Lessons.read(session, row_time=kwargs['row_time'], **params):
                 if lesson.id_room == kwargs['id_room']:
-                    return db_codes['room']
+                    if lesson.id != main_id:
+                        return db_codes['room']
 
         return None

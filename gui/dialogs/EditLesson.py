@@ -70,5 +70,10 @@ class EditLesson(WeeksDialog):
         self.set_list_pair(label, selected_values, values, name)
 
     def accept(self):
-        logger.debug('Here must be editor saving')
+        logger.debug('Here is editor saving')
+        lp = self.lesson_plans.items[self.lesson_plans.currentIndex()]
+        room = self.rooms.items[self.rooms.currentIndex()]
+        # self.lesson.lesson_plan = lp
+        # self.lesson.room = room
+        Lessons.update(self.session, main_id=self.lesson.id, id_lesson_plan=lp.id, id_room=room.id)
         super(EditLesson, self).accept()

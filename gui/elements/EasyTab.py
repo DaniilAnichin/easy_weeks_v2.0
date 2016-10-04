@@ -53,6 +53,5 @@ class EasyTab(QtGui.QTabWidget):
         if not result:
             return
         else:
-            recover_empty(self.session)
             self.user_table.set_table(lesson_set, view_args)
             self.method_table.set_table(lesson_set, view_args, drag_enabled=True)

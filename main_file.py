@@ -71,14 +71,19 @@ class WeeksMenu(QtGui.QMainWindow):
         logger.info('Passed MainMenu TranslateUI function')
 
     def set_tabs_table(self, data=None):
+        self.clear_tabs()
+
         if not isinstance(data, list):
-            logger.debug('No?')
+            logger.debug('No data passed into set_tabs')
 
             data = self.show_table_dialog()
             # data = [self.cur_data_type, self.cur_data]
+        if data is None:
+            return
         self.table_data = get_table(self.session, *data)
         if not self.tabs.set_table(self.table_data, data[0]):
-            self.cur_data_type, self.cur_data = tuple(data)
+            self.cur_data_type = data[0]
+            self.cur_data = data[1]
 
     def show_table_dialog(self):
         logger.info('Started table choosing dialog function')
@@ -135,6 +140,7 @@ class WeeksMenu(QtGui.QMainWindow):
 
     def print_database(self):
         note = u'Збереження файлу для друку'
+        logger.debug('{}, {}'.format(self.cur_data, self.cur_data_type))
         teacher_name = Teachers.read(self.session, id=self.cur_data)[0].short_name.replace(u' ', u'_')[:-1]
         name = u'Розклад_%s.xlsx' % teacher_name
         save_dest = QtGui.QFileDialog.getSaveFileName(
@@ -146,13 +152,20 @@ class WeeksMenu(QtGui.QMainWindow):
         print_table(self.session, save_dest, self.table_data, self.cur_data_type, self.cur_data)
 
     def closeEvent(self, event):
-        result = self.tabs.method_table.is_editing()
-        if not result:
+        if not self.clear_tabs():
             event.ignore()
         else:
-            self.tabs.method_table.clear_table()
-            recover_empty(self.session)
             event.accept()
+
+    def clear_tabs(self):
+        result = self.tabs.method_table.is_editing()
+        if not result:
+            return False
+        else:
+            self.tabs.method_table.clear_table()
+            self.tabs.user_table.clear_table()
+            recover_empty(self.session)
+            return True
 
 
 def main():

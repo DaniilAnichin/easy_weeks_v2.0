@@ -33,7 +33,9 @@ def get_table(session, data_type, data):
                 if isinstance(lessons, int):
                     pass
                 elif lessons:
-                    rettable[week][day][time] = lessons[0]
+                    rettable[week][day][time] = lessons[0].make_temp(session)
+                    res = Lessons.update(session, lessons[0].id, is_empty=True)
+                    logger.debug(db_codes_output[res])
                 else:
                     rettable[week][day][time] = Lessons.read(session, id=1)[0]
     return rettable
@@ -57,27 +59,15 @@ def undefined_lp(session, data_type=None, data=None):
 
 
 def check_part(session, name, element, **part_data):
-    lessons = Lessons.read(session, is_temp=[0, 1], is_empty=False, **part_data)
+    lessons = Lessons.read(session, is_temp=[False, True], is_empty=False, **part_data)
     time_list = [lesson.row_time for lesson in lessons]
     repeted = [time for time in set(time_list) if time_list.count(time) > 1]
-    # time_dict = {}
 
     for time in repeted:
-        # repeted_less = []
-        # for lesson in lessons:
-        #     if lesson.row_time == time:
-        #         repeted_less.append(lesson)
-        # time_dict.update({time: repeted_less})
-        # if not ((len(time_dict[time]) == 2) and (time_dict[time][0] == time_dict[time][1]):
-        # if not ((len(time_dict[time]) == 2) and (time_dict[time][0] == time_dict[time][1])
-        #         and (time_dict[time][0].is_temp != time_dict[time][1].is_temp)):
-        #
-        # do something
-        # raise error message here, instead of logger
-        try:
-            logger.info('Problem with %s at %s' % (element.name, time))
-        except AttributeError:
+        if hasattr(element, 'short_name'):
             logger.info('Problem with %s at %s' % (element.short_name, time))
+        else:
+            logger.info('Problem with %s at %s' % (element.name, time))
 
         return db_codes[name]
     return db_codes['success']
@@ -142,8 +132,8 @@ def save_table(session):
     if result == db_codes['success']:
         clear_empty(session)
         for lesson in Lessons.read(session, is_temp=True):
-            logger.debug('Edited ?: ')
-            logger.debug(db_codes_output[lesson.update(session, lesson.id, is_temp=False)])
+            ret = lesson.update(session, lesson.id, is_temp=False)
+            # logger.degub('Edited?: {}'.format(db_codes_output[ret]))
     return result
 
 
@@ -153,8 +143,10 @@ def clear_empty(session):
 
     lessons = Lessons.read(session, is_empty=True)
     for lesson in lessons[1:]:
-        logger.debug('Deleted ?: ')
-        logger.debug(db_codes_output[Lessons.delete(session, main_id=lesson.id)])
+        # Scips the first empty lesson:
+        ret = Lessons.delete(session, main_id=lesson.id)
+        # logger.degub('Deleted?: {}'.format(db_codes_output[ret]))
+    return db_codes['success']
 
 
 def recover_empty(session):
@@ -163,7 +155,9 @@ def recover_empty(session):
 
     lessons = Lessons.read(session, is_empty=True)
     for lesson in lessons[1:]:
-        logger.debug(db_codes_output[Lessons.update(session, main_id=lesson.id, is_empty=False)])
+        ret = Lessons.update(session, main_id=lesson.id, is_empty=False)
+        # logger.degub('Restored?: {}'.format(db_codes_output[ret]))
+    return db_codes['success']
 
 
 def is_free(session, cls, main_id, **kwargs):

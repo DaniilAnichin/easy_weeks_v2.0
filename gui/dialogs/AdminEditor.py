@@ -8,25 +8,6 @@ from gui.translate import fromUtf8
 logger = Logger()
 
 
-color_start = '''border: 1px solid #8f8f91;
-    border-radius: 6px;
-    background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
-                                      stop: 0 #{}, stop: 1 #{});
-    min-width: 80px;'''
-
-# need other colors, looks ugly
-button_colors = {
-    u'Unknown': ['ffffff', 'dddddd'],
-    u'Лек': ['7777ff', '1111ff'],
-    u'Прак': ['77ff77', '11ff11'],
-    u'Лаб': ['ff7777', 'ff1111']
-}
-
-size_policy = QtGui.QSizePolicy(
-    QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum
-)
-
-
 class AdminEditor(WeeksDialog):
     def __init__(self, element, session, empty=False, *args, **kwargs):
         super(AdminEditor, self).__init__(*args, **kwargs)
