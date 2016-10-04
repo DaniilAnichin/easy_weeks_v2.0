@@ -5,21 +5,31 @@ from PyQt4 import QtGui
 from database import Logger
 from database.structure.db_structure import *
 from database.start_db.New_db_startup import connect_database
-from database.xls_tools import print_table
 from database.select_table import get_table, check_table, save_table, recover_empty
 from gui.dialogs.LoginDialog import LoginDialog
 from gui.dialogs.TableChoosingDialog import TableChoosingDialog
 from gui.dialogs.ImportDialog import ImportDialog
 from gui.dialogs.AccountQuery import AccountQuery
+from gui.dialogs.PrintDialog import PrintDialog
 from gui.elements.EasyTab import EasyTab
 from gui.elements.WeekMenuBar import WeekMenuBar
 from gui.translate import fromUtf8
 logger = Logger()
 
 
+def singleton(class_):
+    instances = {}
+
+    def getinstance(*args, **kwargs):
+        if class_ not in instances:
+            instances[class_] = class_(*args, **kwargs)
+        return instances[class_]
+    return getinstance
+
+@singleton
 class WeeksMenu(QtGui.QMainWindow):
     def __init__(self):
-        super(WeeksMenu, self).__init__()
+        super(QtGui.QMainWindow, self).__init__()
         self.resize(805, 600)
         self.session = connect_database()
         self.center = QtGui.QWidget(self)
@@ -75,9 +85,8 @@ class WeeksMenu(QtGui.QMainWindow):
 
         if not isinstance(data, list):
             logger.debug('No data passed into set_tabs')
-
             data = self.show_table_dialog()
-            # data = [self.cur_data_type, self.cur_data]
+
         if data is None:
             return
         self.table_data = get_table(self.session, *data)
@@ -139,17 +148,19 @@ class WeeksMenu(QtGui.QMainWindow):
         self.tabs.method_table.set_edited(False)
 
     def print_database(self):
-        note = u'Збереження файлу для друку'
-        logger.debug('{}, {}'.format(self.cur_data, self.cur_data_type))
-        teacher_name = Teachers.read(self.session, id=self.cur_data)[0].short_name.replace(u' ', u'_')[:-1]
-        name = u'Розклад_%s.xlsx' % teacher_name
-        save_dest = QtGui.QFileDialog.getSaveFileName(
-            None, note, directory=name, filter=u'ExcelFiles (*.xlsx)'
-        )
-        save_dest = unicode(save_dest)
-        if not save_dest.endswith(u'.xlsx'):
-            save_dest += u'.xlsx'
-        print_table(self.session, save_dest, self.table_data, self.cur_data_type, self.cur_data)
+        self.to_print_database = PrintDialog(self.session, self.cur_data, self.table_data, self.cur_data_type)
+        self.to_print_database.show()
+
+        # note = u'Збереження файлу для друку'
+        # teacher_name = Teachers.read(self.session, id=self.cur_data)[0].short_name.replace(u' ', u'_')[:-1]
+        # name = u'Розклад_%s.xlsx' % teacher_name
+        # save_dest = QtGui.QFileDialog.getSaveFileName(
+        #     None, note, directory=name, filter=u'ExcelFiles (*.xlsx)'
+        # )
+        # save_dest = unicode(save_dest)
+        # if not save_dest.endswith(u'.xlsx'):
+        #     save_dest += u'.xlsx'
+        # print_table(self.session, save_dest, self.table_data, self.cur_data_type, self.cur_data)
 
     def closeEvent(self, event):
         if not self.clear_tabs():
@@ -163,7 +174,7 @@ class WeeksMenu(QtGui.QMainWindow):
             return False
         else:
             self.tabs.method_table.clear_table()
-            self.tabs.user_table.clear_table()
+            # self.tabs.user_table.clear_table()
             recover_empty(self.session)
             return True
 
