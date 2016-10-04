@@ -637,13 +637,13 @@ class PrintDialog(QtGui.QDialog):
         dep_id = Departments.read(self.session, short_name=unicode(self.dep_choiseer.currentText()))[0].id
         for t in Teachers.read(self.session, id_department=dep_id):
             teacher_name = t.short_name.replace(u' ', u'_')[:-1]
-            name = u'/Розклад_%s.xlsx' % teacher_name
-            save_dest = save_dir + name
-            danger_singleton.tabs.set_table(*[get_table(self.session, 'teachers', t.id), 'teachers'])
+            name = u'Розклад_%s.xlsx' % teacher_name
+            import os.path
+            save_dest = os.path.join(save_dir, name)
 
-            self.cur_data = danger_singleton.cur_data
-            self.table_data = danger_singleton.table_data
-            self.cur_data_type = danger_singleton.cur_data_type
+            self.cur_data = t.id
+            self.table_data = get_table(self.session, 'teachers', t.id)
+            self.cur_data_type = 'teachers'
 
             print_table(self.session, save_dest, self.table_data, self.cur_data_type, self.cur_data)
 
