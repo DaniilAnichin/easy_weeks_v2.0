@@ -7,7 +7,6 @@ from gui.elements.CompleterCombo import CompleterCombo
 from database.select_table import get_table
 from database.xls_tools import print_table
 from database import Logger
-danger_singleton = None
 logger = Logger()
 
 
@@ -52,6 +51,8 @@ class PrintDialog(QtGui.QDialog):
         elif self.cur_data_type == u'groups':
             group_name = Groups.read(self.session, id=self.cur_data)[0].name
             name = u'Розклад_%s.xlsx' % group_name
+        else:
+            return
         save_dest = QtGui.QFileDialog.getSaveFileName(
             None, note, directory=name, filter=u'ExcelFiles (*.xlsx)'
         )
@@ -59,7 +60,7 @@ class PrintDialog(QtGui.QDialog):
         if not save_dest.endswith(u'.xlsx'):
             save_dest += u'.xlsx'
         print_table(self.session, save_dest, self.table_data, self.cur_data_type, self.cur_data)
-        # danger_singleton.print_database()
+        self.close()
 
     def print_dep(self):
         note = u'Збереження файлу для друку'
@@ -71,11 +72,12 @@ class PrintDialog(QtGui.QDialog):
         for t in Teachers.read(self.session, id_department=dep_id):
             teacher_name = t.short_name.replace(u' ', u'_')[:-1]
             name = u'/Розклад_%s.xlsx' % teacher_name
-            save_dest = save_dir + name
-            danger_singleton.tabs.set_table(*[get_table(self.session, 'teachers', t.id), 'teachers'])
+            import os.path
+            save_dest = os.path.join(save_dir, name)
 
-            self.cur_data = danger_singleton.cur_data
-            self.table_data = danger_singleton.table_data
-            self.cur_data_type = danger_singleton.cur_data_type
+            self.cur_data = t.id
+            self.table_data = get_table(self.session, 'teachers', t.id)
+            self.cur_data_type = 'teachers'
 
             print_table(self.session, save_dest, self.table_data, self.cur_data_type, self.cur_data)
+        self.close()
