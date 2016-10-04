@@ -147,8 +147,8 @@ class DragButton(QtGui.QPushButton):
 
     def before_close(self):
         if self.lesson.is_temp and not self.lesson.is_empty:
-            ret = type(self.lesson).delete(self.parent().session, self.lesson.id)
-            logger.debug(db_codes_output[ret])
+            # ret = type(self.lesson).delete(self.parent().session, self.lesson.id)
+            # logger.debug('Button deleted:? {}'.format(db_codes_output[ret]))
             self.deleteLater()
 
     def save_changes(self):

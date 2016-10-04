@@ -5,7 +5,7 @@ from PyQt4 import QtGui
 from database import Logger
 from database.structure.db_structure import *
 from database.start_db.New_db_startup import connect_database
-from database.select_table import get_table, check_table, save_table, recover_empty
+from database.select_table import get_table, check_table, save_table, recover_empty, clear_temp
 from gui.dialogs.LoginDialog import LoginDialog
 from gui.dialogs.TableChoosingDialog import TableChoosingDialog
 from gui.dialogs.ImportDialog import ImportDialog
@@ -174,6 +174,7 @@ class WeeksMenu(QtGui.QMainWindow):
             return False
         else:
             self.tabs.method_table.clear_table()
+            clear_temp(self.session)
             # self.tabs.user_table.clear_table()
             recover_empty(self.session)
             return True

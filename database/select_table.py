@@ -35,7 +35,7 @@ def get_table(session, data_type, data):
                 elif lessons:
                     rettable[week][day][time] = lessons[0].make_temp(session)
                     res = Lessons.update(session, lessons[0].id, is_empty=True)
-                    logger.debug(db_codes_output[res])
+                    # logger.debug('Lesson empted?: {}'.format(db_codes_output[res]))
                 else:
                     rettable[week][day][time] = Lessons.read(session, id=1)[0]
     return rettable
@@ -147,6 +147,16 @@ def clear_empty(session):
         ret = Lessons.delete(session, main_id=lesson.id)
         # logger.degub('Deleted?: {}'.format(db_codes_output[ret]))
     return db_codes['success']
+
+
+def clear_temp(session):
+    if isinstance(session, int):
+        return db_codes['session']
+
+    lessons = Lessons.read(session, is_temp=True)
+    for lesson in lessons:
+        ret = Lessons.delete(session, main_id=lesson.id)
+        # logger.degub('Deleted?: {}'.format(db_codes_output[ret]))
 
 
 def recover_empty(session):
