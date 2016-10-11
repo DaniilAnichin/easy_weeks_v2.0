@@ -5,28 +5,25 @@ from PyQt4 import QtGui
 from database import Logger
 from database.structure.db_structure import *
 from database.start_db.New_db_startup import connect_database
-from database.select_table import get_table, check_table, save_table, recover_empty, clear_temp
-from gui.dialogs.LoginDialog import LoginDialog
-from gui.dialogs.TableChoosingDialog import TableChoosingDialog
+from database.select_table import *
 from gui.dialogs.ImportDialog import ImportDialog
-from gui.dialogs.AccountQuery import AccountQuery
-from gui.dialogs.PrintDialog import PrintDialog
 from gui.elements.EasyTab import EasyTab
 from gui.elements.WeekMenuBar import WeekMenuBar
 from gui.translate import fromUtf8
 logger = Logger()
 
 
-def singleton(class_):
-    instances = {}
-
-    def getinstance(*args, **kwargs):
-        if class_ not in instances:
-            instances[class_] = class_(*args, **kwargs)
-        return instances[class_]
-    return getinstance
-
-@singleton
+# def singleton(cls):
+#     instances = {}
+#
+#     def getinstance(*args, **kwargs):
+#         if cls not in instances:
+#             instances[cls] = cls(*args, **kwargs)
+#         return instances[cls]
+#     return getinstance
+#
+#
+# @singleton
 class WeeksMenu(QtGui.QMainWindow):
     def __init__(self):
         super(QtGui.QMainWindow, self).__init__()
@@ -96,6 +93,7 @@ class WeeksMenu(QtGui.QMainWindow):
 
     def show_table_dialog(self):
         logger.info('Started table choosing dialog function')
+        from gui.dialogs.TableChoosingDialog import TableChoosingDialog
         self.table = TableChoosingDialog(self.session)
         if self.table.exec_() == QtGui.QDialog.Accepted:
             data = [self.table.data_type, self.table.data_id]
@@ -104,6 +102,7 @@ class WeeksMenu(QtGui.QMainWindow):
 
     def login(self):
         logger.info('Started user login function')
+        from gui.dialogs.LoginDialog import LoginDialog
         self.login = LoginDialog(Users.read(self.session, all_=True))
         if self.login.exec_() == QtGui.QDialog.Accepted:
             self.set_user(self.login.user)
@@ -111,6 +110,7 @@ class WeeksMenu(QtGui.QMainWindow):
 
     def make_account_query(self):
         logger.info('Started account query sending function')
+        from gui.dialogs.AccountQuery import AccountQuery
         self.query = AccountQuery()
         self.query.exec_()
 
@@ -134,13 +134,12 @@ class WeeksMenu(QtGui.QMainWindow):
 
     def load_database(self):
         logger.info('Started database uploading function')
-
-        self.update = ImportDialog(self.session)
+        self.update = ImportDialog(self)
         self.update.show()
 
     def check_database(self):
         logger.info('Started database check function')
-        check_table(self.session)
+        check_table(self.session, only_temp=True)
 
     def save_database(self):
         logger.info('Started database saving function')
@@ -148,19 +147,11 @@ class WeeksMenu(QtGui.QMainWindow):
         self.tabs.method_table.set_edited(False)
 
     def print_database(self):
-        self.to_print_database = PrintDialog(self.session, self.cur_data, self.table_data, self.cur_data_type)
-        self.to_print_database.show()
-
-        # note = u'Збереження файлу для друку'
-        # teacher_name = Teachers.read(self.session, id=self.cur_data)[0].short_name.replace(u' ', u'_')[:-1]
-        # name = u'Розклад_%s.xlsx' % teacher_name
-        # save_dest = QtGui.QFileDialog.getSaveFileName(
-        #     None, note, directory=name, filter=u'ExcelFiles (*.xlsx)'
-        # )
-        # save_dest = unicode(save_dest)
-        # if not save_dest.endswith(u'.xlsx'):
-        #     save_dest += u'.xlsx'
-        # print_table(self.session, save_dest, self.table_data, self.cur_data_type, self.cur_data)
+        from gui.dialogs.PrintDialog import PrintDialog
+        self.print_dialog = PrintDialog(
+            self.session, self.cur_data, self.table_data, self.cur_data_type
+        )
+        self.print_dialog.show()
 
     def closeEvent(self, event):
         if not self.clear_tabs():

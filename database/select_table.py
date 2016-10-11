@@ -1,5 +1,7 @@
 from database.structure.db_structure import *
 from database import Logger, db_codes, db_codes_output
+__all__ = ['get_table', 'check_table', 'save_table', 'recover_empty',
+           'clear_empty', 'clear_temp', 'find_free', 'undefined_lp']
 logger = Logger()
 
 
@@ -44,26 +46,26 @@ def get_table(session, data_type, data):
 def undefined_lp(session, data_type=None, data=None):
     if isinstance(session, int):
         return db_codes['session']
-    # check data_type and data
 
-    ret_vect = []
+    result = []
+    # check data_type and data
     if not (data_type and data):
         lesson_plans = LessonPlans.read(session, all_=True)
     else:
         lesson_plans = LessonPlans.read(session, **{data_type: data})
-    for lp in lesson_plans:
-        unsorted = lp.amount - len(Lessons.read(session, id_lesson_plan=lp.id))
+    for plan in lesson_plans:
+        unsorted = plan.amount - len(Lessons.read(session, id_lesson_plan=plan.id))
         if unsorted > 0:
-            ret_vect.append(lp)
-    return ret_vect
+            result.append(plan)
+    return result
 
 
 def check_part(session, name, element, **part_data):
     lessons = Lessons.read(session, is_temp=[False, True], is_empty=False, **part_data)
     time_list = [lesson.row_time for lesson in lessons]
-    repeted = [time for time in set(time_list) if time_list.count(time) > 1]
+    duplicates = [time for time in set(time_list) if time_list.count(time) > 1]
 
-    for time in repeted:
+    for time in duplicates:
         if hasattr(element, 'short_name'):
             logger.info('Problem with %s at %s' % (element.short_name, time))
         else:
@@ -82,10 +84,10 @@ def check_table(session, only_temp=False):
         groups = Groups.read(session, lesson_plans=LessonPlans.read(
             session, lessons=Lessons.read(session, is_temp=True)
         ))
-        teachers = Groups.read(session, lesson_plans=LessonPlans.read(
+        teachers = Teachers.read(session, lesson_plans=LessonPlans.read(
             session, lessons=Lessons.read(session, is_temp=True)
         ))
-        rooms = Groups.read(session, lessons=Lessons.read(session, is_temp=True))
+        rooms = Rooms.read(session, lessons=Lessons.read(session, is_temp=True))
     else:
         groups = Groups.read(session, all_=True)
         teachers = Teachers.read(session, all_=True)
@@ -97,6 +99,7 @@ def check_table(session, only_temp=False):
         'room': lambda room: dict(id_room=room.id)
     }
 
+    # This is awful for now
     for group in groups:
         name = 'group'
         part_data = data[name](group)
@@ -142,8 +145,8 @@ def clear_empty(session):
         return db_codes['session']
 
     lessons = Lessons.read(session, is_empty=True)
+    # Skips the first empty lesson:
     for lesson in lessons[1:]:
-        # Scips the first empty lesson:
         ret = Lessons.delete(session, main_id=lesson.id)
         # logger.degub('Deleted?: {}'.format(db_codes_output[ret]))
     return db_codes['success']
@@ -192,9 +195,9 @@ def find_free(session, cls, **kwargs):
     department = kwargs.pop('department', None)
 
     for classmate in classmates:
-        try:
+        if hasattr(classmate, 'departments'):
             departments = classmate.departments
-        except AttributeError:
+        else:
             departments = [classmate.department]
 
         if department in departments and is_free(session, cls, classmate.id, **kwargs):

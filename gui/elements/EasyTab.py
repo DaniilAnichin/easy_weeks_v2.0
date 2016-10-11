@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui
 from database import Logger
-from database.select_table import recover_empty
 from gui.elements.AdminTab import AdminTab
 from gui.elements.SearchTab import SearchTab
 from gui.elements.WeekTool import WeekTool

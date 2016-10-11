@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from PyQt4 import QtGui, QtCore
+from PyQt4 import QtGui
 from database import Logger
-from gui.elements import WeekTool
+from gui.elements.WeekTool import WeekTool
 from database.structure.db_structure import *
 from database.structure.new_tools import *
 logger = Logger()
@@ -45,9 +45,13 @@ class ImportDiffDialog(QtGui.QDialog):
         self.quit = True
         self.deleteLater()
 
+    def defuseTT(self):
+        self.is_done = True
+
     def acceptTT(self):
-        t_lessons = Lessons.read(self.session, id_lesson_plan=[i.id for i in LessonPlans.read(self.session,
-                                                                                              teachers=self.teacher.id)])
+        t_lessons = Lessons.read(self.session, id_lesson_plan=[
+            i.id for i in LessonPlans.read(self.session, teachers=self.teacher.id)
+        ])
         for lesson in t_lessons:
             lesson.delete(self.session, lesson.id)
         for lp in LessonPlans.read(self.session, teachers=self.teacher.id):
@@ -65,7 +69,4 @@ class ImportDiffDialog(QtGui.QDialog):
             for l in Lessons.read(self.tmps, id_lesson_plan=lp.id):
                 new_lesson(self.session, row_time=l.row_time, id_room=Rooms.read(self.session, name=l.room.name)[0].id,
                            id_lp=new_lp.id)
-        self.is_done = True
-
-    def defuseTT(self):
         self.is_done = True

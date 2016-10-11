@@ -598,9 +598,11 @@ class LessonPlans(Base):
             elem = cls(**kwargs)
             t_checker = u','.join(kwargs.get('teachers', []))
             g_checker = u','.join(kwargs.get('groups', []))
-            elem.param_checker = u'%d,%d,%s,%s,%d,%d,%d' % (kwargs['id_subject'], kwargs['id_lesson_type'],
-                                                            g_checker, t_checker, kwargs['amount'],
-                                                            kwargs['split_groups'], kwargs['capacity'])
+            elem.param_checker = u'%d,%d,%s,%s,%d,%d,%d' % (
+                kwargs['id_subject'], kwargs['id_lesson_type'],
+                g_checker, t_checker, kwargs['amount'],
+                kwargs['split_groups'], kwargs['capacity']
+            )
             session.add(elem)
 
         return elem
@@ -617,6 +619,7 @@ class LessonPlans(Base):
             return result.all()[1:]
 
         # Global filter loop:
+        # This one have to become simplified
         for key in kwargs.keys():
             if key not in cls.fields():
                 return db_codes['wrong']
@@ -768,10 +771,6 @@ class Lessons(Base):
     def make_temp(self, session, time=None):
         if not time:
             time = self.time()
-        # fields = self.fields()
-        # fields.pop(fields.index('id'))
-        # fields.pop(fields.index('is_temp'))
-        # temp_lesson = Lessons(is_temp=True, **{field: getattr(self, field) for field in fields})
         temp_lesson = Lessons.create(session, id_lesson_plan=self.id_lesson_plan,
                                      is_temp=True, id_room=self.id_room, **time)
         if isinstance(temp_lesson, int) and temp_lesson == db_codes['exists']:

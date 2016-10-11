@@ -1,24 +1,26 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import os
 from PyQt4 import QtGui, QtCore
-from database.structure.db_structure import *
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from database import Logger
+from database import Logger, DATABASE_NAME, DATABASE_DIR
+from database.import_schedule.GetCurTimetable import teacher_update
 from database.select_table import get_table
 from database.start_db.seeds import *
+from database.start_db.New_db_startup import create_new_database
+from database.structure.db_structure import *
 from database.structure.db_structure import Base
 from gui.elements.CompleterCombo import CompleterCombo
 from gui.dialogs.ImportDiffDialog import ImportDiffDialog
 from gui.translate import fromUtf8
 logger = Logger()
-danger_singleton = None
 
 
 class ImportDialog(QtGui.QDialog):
-    def __init__(self, s, parent=None):
+    def __init__(self, window, parent=None):
         super(ImportDialog, self).__init__(parent)
-
+        self.window = window
         self.layout = QtGui.QGridLayout(self)
         self.import_all_button = QtGui.QPushButton(fromUtf8('Повне оновлення'), self)
         self.layout.addWidget(self.import_all_button, 0, 0)
@@ -27,10 +29,10 @@ class ImportDialog(QtGui.QDialog):
         self.layout.addWidget(self.import_dep_button, 0, 1)
         self.import_dep_button.clicked.connect(self.updateDepDb)
         self.setWindowTitle(fromUtf8('Оновлення бази'))
-        self.session = s
-        self.dep_choiseer = self.make_combo(Departments.read(self.session, True), None, u'Department',
-                                            lambda a: unicode(a))
-        self.layout.addWidget(self.dep_choiseer, 1, 1)
+        self.session = self.window.session
+        self.dep_chooser = self.make_combo(Departments.read(self.session, True), None, u'Department',
+                                           lambda a: unicode(a))
+        self.layout.addWidget(self.dep_chooser, 1, 1)
         self.setLayout(self.layout)
 
     def make_combo(self, choice_list, selected, name, sort_key):
@@ -45,11 +47,7 @@ class ImportDialog(QtGui.QDialog):
         return combo
 
     def updatedb(self):
-        import os
-        from database import DATABASE_NAME, DATABASE_DIR
-        from database.import_schedule.GetCurTimetable import teacher_update
-        from database.start_db.New_db_startup import create_new_database
-        from database.start_db.seeds import create_empty, create_common, create_custom
+
 
         pro_bar = QtGui.QProgressBar(self)
         self.layout.addWidget(pro_bar, 1, 0)
@@ -81,7 +79,7 @@ class ImportDialog(QtGui.QDialog):
         pro_bar.show()
         pop_out = ImportDiffDialog(self.session)
         j = 0
-        dep_id = Departments.read(self.session, short_name=unicode(self.dep_choiseer.currentText()))[0].id
+        dep_id = Departments.read(self.session, short_name=unicode(self.dep_chooser.currentText()))[0].id
         # dep_id = 1
         max_t = len(Teachers.read(self.session, id_department=dep_id))
         new_engine = create_engine('sqlite:///:memory:')
@@ -109,8 +107,8 @@ class ImportDialog(QtGui.QDialog):
                                                'teachers', pass_check=True)
             pop_out.setWindowTitle(QtCore.QString(teacher))
             pop_out.show()
-            danger_singleton.tabs.set_table(*[get_table(self.session, 'teachers', t.id), 'teachers'])
-            danger_singleton.tabs.setCurrentIndex(1)
+            self.window.tabs.set_table(*[get_table(self.session, 'teachers', t.id), 'teachers'])
+            self.window.tabs.setCurrentIndex(1)
 
             while not pop_out.is_done:
                 QtCore.QCoreApplication.processEvents()
@@ -126,4 +124,3 @@ class ImportDialog(QtGui.QDialog):
                 break
         tmps.close()
         self.deleteLater()
-
