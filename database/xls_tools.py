@@ -36,10 +36,13 @@ def print_table(session, save_dest, table, data_type, data_id):
                     if not lesson.id == 1:
                         groups = [g.name for g in lesson.lesson_plan.groups]
                         names = u', '.join(groups)
-                        page.write(l+3+w*7, d+1, lesson.lesson_plan.subject.full_name + u'\n' +
-                                   lesson.lesson_plan.lesson_type.short_name + u'\n' +
-                                   names + u'\n' +
-                                   lesson.room.name, sformat)
+                        data = u'\n'.join([
+                            lesson.lesson_plan.subject.full_name,
+                            lesson.lesson_plan.lesson_type.short_name,
+                            names,
+                            lesson.room.name
+                        ])
+                        page.write(l + 3 + w * 7, d + 1, data, sformat)
                     else:
                         page.write_blank(l+3+w*7, d+1, u'i_love_assembler', sformat)
 
@@ -52,12 +55,15 @@ def print_table(session, save_dest, table, data_type, data_id):
                 for d in range(6):
                     lesson = table[w][d][l]
                     if not lesson.id == 1:
-                        groups = [g.name for g in lesson.lesson_plan.teachers]
-                        names = u', '.join(groups)
-                        page.write(l + 3 + w * 7, d + 1, lesson.lesson_plan.subject.full_name + u'\n' +
-                                   lesson.lesson_plan.lesson_type.short_name + u'\n' +
-                                   names + u'\n' +
-                                   lesson.room.name, sformat)
+                        teachers = [t.full_name for t in lesson.lesson_plan.teachers]
+                        names = u', '.join(teachers)
+                        data = u'\n'.join([
+                            lesson.lesson_plan.subject.full_name,
+                            lesson.lesson_plan.lesson_type.short_name,
+                            names,
+                            lesson.room.name
+                        ])
+                        page.write(l + 3 + w * 7, d + 1, data, sformat)
                     else:
                         page.write_blank(l + 3 + w * 7, d + 1, u'i_love_assembler', sformat)
 

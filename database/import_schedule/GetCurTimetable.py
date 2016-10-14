@@ -3,10 +3,8 @@
 
 import urllib
 import json
-import os
 from database.structure.new_tools import *
 from database.structure.select_tools import *
-from database import DATABASE_DIR, DATABASE_NAME
 
 
 lessons_url = "http://api.rozklad.org.ua/v2/teachers/%s/lessons"
@@ -34,12 +32,6 @@ def get_teacher_id(s, cur_teacher, add_teacher=True):
 
 
 def teacher_update(s, teacher, add_t=True):
-    # # temporary deleting:
-    # # os.remove(os.path.join(DATABASE_DIR, DATABASE_NAME))
-    # # s = create_new_database(os.path.join(DATABASE_DIR, DATABASE_NAME))
-    # s = connect_database(os.path.join(DATABASE_DIR, DATABASE_NAME))
-    # with open(os.path.join(DATABASE_DIR, 'import_schedule', '_teachers.txt'), 'r') as f:
-    #     for teacher in f:
     if isinstance(teacher, unicode):
         teacher = teacher.encode('utf-8')
     if get_teacher_id(s, teacher, add_t) != -1:
