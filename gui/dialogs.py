@@ -636,6 +636,8 @@ class PrintDialog(QtGui.QDialog):
         save_dir = unicode(save_dir)
         dep_id = Departments.read(self.session, short_name=unicode(self.dep_choiseer.currentText()))[0].id
         for t in Teachers.read(self.session, id_department=dep_id):
+            QtCore.QCoreApplication.processEvents()
+
             teacher_name = t.short_name.replace(u' ', u'_')[:-1]
             name = u'Розклад_%s.xlsx' % teacher_name
             import os.path
