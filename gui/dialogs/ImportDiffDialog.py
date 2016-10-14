@@ -3,15 +3,15 @@
 from PyQt4 import QtGui
 from database import Logger
 from gui.elements.WeekTool import WeekTool
+from database import db_codes_output
 from database.structure.db_structure import *
-from database.structure.new_tools import *
 logger = Logger()
 
 
 class ImportDiffDialog(QtGui.QDialog):
     def __init__(self, session, parent=None):
         super(ImportDiffDialog, self).__init__(parent)
-
+        self.resize(805, 600)
         vlayout = QtGui.QVBoxLayout()
         self.week_tool_window = WeekTool(self, session)
         self.session = session
@@ -20,22 +20,22 @@ class ImportDiffDialog(QtGui.QDialog):
         self.ybutton = QtGui.QPushButton(u'Застосувати')
         self.nbutton = QtGui.QPushButton(u'Пропустити')
         self.qbutton = QtGui.QPushButton(u'Вийти')
+        self.ybutton.clicked.connect(self.acceptTT)
+        self.nbutton.clicked.connect(self.defuseTT)
+        self.qbutton.clicked.connect(self.quitTT)
         self.qbutton.setFixedWidth(42)
         bhlayoyt.addWidget(self.ybutton)
         bhlayoyt.addWidget(self.nbutton)
         bhlayoyt.addWidget(self.qbutton)
         vlayout.addLayout(bhlayoyt)
         self.setLayout(vlayout)
-        self.ybutton.clicked.connect(self.acceptTT)
-        self.nbutton.clicked.connect(self.defuseTT)
-        self.qbutton.clicked.connect(self.quitTT)
         self.is_done = False
         self.quit = False
         self.teacher = None
-        self.tmps = None
+        self.tmp_session = None
 
     def setTmpSession(self, s):
-        self.tmps = s
+        self.tmp_session = s
 
     def setCurTeacher(self, t):
         self.teacher = t
@@ -50,23 +50,33 @@ class ImportDiffDialog(QtGui.QDialog):
 
     def acceptTT(self):
         t_lessons = Lessons.read(self.session, id_lesson_plan=[
-            i.id for i in LessonPlans.read(self.session, teachers=self.teacher.id)
+            lp.id for lp in LessonPlans.read(self.session, teachers=self.teacher.id)
         ])
         for lesson in t_lessons:
-            lesson.delete(self.session, lesson.id)
+            Lessons.delete(self.session, main_id=lesson.id)
         for lp in LessonPlans.read(self.session, teachers=self.teacher.id):
-            lp.delete(self.session, lp.id)
-        for lp in self.tmps.query(LessonPlans).all()[1:]:
-            new_lp = new_lesson_plan(self.session, times_for_2_week=lp.amount, capacity=lp.capacity,
-                                     needed_stuff=lp.needed_stuff,
-                                     id_les_type=lp.id_lesson_type,
-                                     id_sub=Subjects.read(self.session, full_name=lp.subject.full_name)[0].id,
-                                     id_grps=[g.id for g in Groups.read(self.session, name=[p.name for p in
-                                                                                            lp.groups])],
-                                     id_tes=[t.id for t in Teachers.read(self.session, full_name=[p.full_name
-                                                                                                  for p in
-                                                                                                  lp.teachers])])
-            for l in Lessons.read(self.tmps, id_lesson_plan=lp.id):
-                new_lesson(self.session, row_time=l.row_time, id_room=Rooms.read(self.session, name=l.room.name)[0].id,
-                           id_lp=new_lp.id)
+            LessonPlans.delete(self.session, main_id=lp.id)
+        for lp in LessonPlans.read(self.tmp_session, all_=True):
+            new_lp = LessonPlans.create(
+                self.session,
+                amount=lp.amount,
+                capacity=lp.capacity,
+                needed_stuff=lp.needed_stuff,
+                id_lesson_type=lp.id_lesson_type,
+                id_subject=Subjects.read(self.session, full_name=lp.subject.full_name)[0].id,
+                groups=Groups.read(self.session, name=[g.name for g in lp.groups]),
+                teachers=Teachers.read(self.session, full_name=[t.full_name for t in lp.teachers])
+            )
+            if isinstance(new_lp, int):
+                logger.debug(db_codes_output[new_lp])
+            else:
+                for lesson in Lessons.read(self.tmp_session, id_lesson_plan=lp.id):
+                    new_lesson = Lessons.create(
+                        self.session,
+                        row_time=lesson.row_time,
+                        id_room=Rooms.read(self.session, name=lesson.room.name)[0].id,
+                        id_lesson_plan=new_lp.id
+                    )
+                    if isinstance(new_lesson, int):
+                        logger.debug(db_codes_output[new_lesson])
         self.is_done = True

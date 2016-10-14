@@ -189,10 +189,10 @@ class Base(object):
                 try:
                     if isinstance(linked[0], Departments):
                         default_id = 2
-                except KeyError:
+                except IndexError:
                     pass
                 for element in linked:
-                    setattr(element, 'id_' + cls.single(), 1)
+                    setattr(element, 'id_' + cls.single(), default_id)
             # else:
             #     setattr(linked, 'id_' + cls.single(), 1)
         for association in cls.associations():
@@ -595,16 +595,17 @@ class LessonPlans(Base):
         elif result:
             return db_codes['exists']
         else:
-            elem = cls(**kwargs)
-            t_checker = u','.join(kwargs.get('teachers', []))
-            g_checker = u','.join(kwargs.get('groups', []))
-            elem.param_checker = u'%d,%d,%s,%s,%d,%d,%d' % (
+            if not kwargs.get('split_groups'):
+                kwargs.update(dict(split_groups=0))
+            t_checker = u','.join([str(elem.id) for elem in kwargs.get('teachers', [])])
+            g_checker = u','.join([str(elem.id) for elem in kwargs.get('groups', [])])
+            kwargs.update(dict(param_checker=u'%d,%d,%s,%s,%d,%d,%d' % (
                 kwargs['id_subject'], kwargs['id_lesson_type'],
                 g_checker, t_checker, kwargs['amount'],
                 kwargs['split_groups'], kwargs['capacity']
-            )
+            )))
+            elem = cls(**kwargs)
             session.add(elem)
-
         return elem
 
     @classmethod
@@ -779,18 +780,18 @@ class Lessons(Base):
                                 is_temp=True, id_room=self.id_room, **time)[0]
         return temp_lesson
 
-    @classmethod
-    def get_plan(cls, session, **data):
-        needed_keys = list(set(data.keys()) & set(LessonPlans.fields()))
-        exists = LessonPlans.read(session, **{key: data[key] for key in needed_keys})
-        if isinstance(exists, list):
-            return exists[0]
-
-        lesson_plan = LessonPlans.create(session, **{key: data[key] for key in needed_keys})
-        if isinstance(lesson_plan, int):
-            return lesson_plan
-
-        return lesson_plan
+    # @classmethod
+    # def get_plan(cls, session, **data):
+    #     needed_keys = list(set(data.keys()) & set(LessonPlans.fields()))
+    #     exists = LessonPlans.read(session, **{key: data[key] for key in needed_keys})
+    #     if isinstance(exists, list):
+    #         return exists[0]
+    #
+    #     lesson_plan = LessonPlans.create(session, **{key: data[key] for key in needed_keys})
+    #     if isinstance(lesson_plan, int):
+    #         return lesson_plan
+    #
+    #     return lesson_plan
 
     def to_table(self, *args):
         # Make lesson to string to view it on the table

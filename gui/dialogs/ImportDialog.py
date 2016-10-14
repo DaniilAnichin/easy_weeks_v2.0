@@ -21,18 +21,33 @@ class ImportDialog(QtGui.QDialog):
     def __init__(self, window, parent=None):
         super(ImportDialog, self).__init__(parent)
         self.window = window
-        self.layout = QtGui.QGridLayout(self)
+        self.session = self.window.session
+        self.initUI()
+
+    def initUI(self):
+        self.setWindowTitle(fromUtf8('Оновлення бази'))
+        self.layout = QtGui.QVBoxLayout(self)
+
         self.import_all_button = QtGui.QPushButton(fromUtf8('Повне оновлення'), self)
-        self.layout.addWidget(self.import_all_button, 0, 0)
+        self.layout.addWidget(self.import_all_button)
         self.import_all_button.clicked.connect(self.updatedb)
         self.import_dep_button = QtGui.QPushButton(fromUtf8('Оновлення викладачів\nкафедри'))
-        self.layout.addWidget(self.import_dep_button, 0, 1)
+        self.layout.addWidget(self.import_dep_button)
         self.import_dep_button.clicked.connect(self.updateDepDb)
-        self.setWindowTitle(fromUtf8('Оновлення бази'))
-        self.session = self.window.session
-        self.dep_chooser = self.make_combo(Departments.read(self.session, True), None, u'Department',
-                                           lambda a: unicode(a))
-        self.layout.addWidget(self.dep_chooser, 1, 1)
+
+        self.dep_chooser = self.make_combo(
+            Departments.read(self.session, True), None, u'Department', lambda a: unicode(a)
+        )
+        self.layout.addWidget(self.dep_chooser)
+
+        self.pro_bar = QtGui.QProgressBar(self)
+        self.pro_bar.setValue(0)
+        self.layout.addWidget(self.pro_bar)
+
+        self.break_button = QtGui.QPushButton(fromUtf8('Перервати'))
+        self.break_button.clicked.connect(self.closeEvent)
+        self.layout.addWidget(self.break_button)
+
         self.setLayout(self.layout)
 
     def make_combo(self, choice_list, selected, name, sort_key):
@@ -47,80 +62,84 @@ class ImportDialog(QtGui.QDialog):
         return combo
 
     def updatedb(self):
-
-
-        pro_bar = QtGui.QProgressBar(self)
-        self.layout.addWidget(pro_bar, 1, 0)
-        pro_bar.setValue(0)
-        pro_bar.show()
+        self.pro_bar.show()
         os.remove(os.path.join(DATABASE_DIR, DATABASE_NAME))
-        s = create_new_database(os.path.join(DATABASE_DIR, DATABASE_NAME))
-        s = create_empty(s)
-        s = create_common(s)
-        s = create_custom(s)
+        session = create_new_database(os.path.join(DATABASE_DIR, DATABASE_NAME))
+        session = create_empty(session)
+        session = create_common(session)
+        session = create_custom(session)
         with open(os.path.join(DATABASE_DIR, 'import_schedule', '_teachers.txt'), 'r') as f:
-            i = 0
-            max_t = len(f.readlines())
-            f.seek(0)
-            for teacher in f:
-                i += 1
-                pro_bar.setValue(int(100*i/max_t))
-                pro_bar.update()
-                teacher = teacher[:-1]
-                teacher_update(s, teacher)
+            lines = f.readlines()
+            teacher_number = len(lines)
+            for i in range(teacher_number):
+                self.pro_bar.setValue(100 * i / teacher_number)
+                self.pro_bar.update()
+                teacher = lines[i][:-1]
+                teacher_update(session, teacher)
                 QtCore.QCoreApplication.processEvents()
         self.deleteLater()
 
     def updateDepDb(self):
-        from database.import_schedule.GetCurTimetable import teacher_update
-        pro_bar = QtGui.QProgressBar(self)
-        self.layout.addWidget(pro_bar, 1, 2)
-        pro_bar.setValue(0)
-        pro_bar.show()
+        self.pro_bar.show()
         pop_out = ImportDiffDialog(self.session)
         j = 0
-        dep_id = Departments.read(self.session, short_name=unicode(self.dep_chooser.currentText()))[0].id
-        # dep_id = 1
-        max_t = len(Teachers.read(self.session, id_department=dep_id))
+
+        department_name = unicode(self.dep_chooser.currentText())
+        department_id = Departments.read(self.session, short_name=department_name)[0].id
+        teachers = Teachers.read(self.session, id_department=department_id)
+        teachers_number = len(teachers)
+
         new_engine = create_engine('sqlite:///:memory:')
         Base.metadata.create_all(new_engine)
         session_m = sessionmaker(bind=new_engine)
-        tmps = session_m()
-        tmps.commit()
-        pop_out.setTmpSession(tmps)
-        for t in Teachers.read(self.session, id_department=dep_id):
-            create_empty(tmps)
-            create_common(tmps)
-            teacher = Degrees.read(self.session, id=t.id_degree)[0].short_name+u' '+t.short_name
-            pop_out.setCurTeacher(t)
+        self.tmp_session = session_m()
+        self.tmp_session.commit()
+        pop_out.setTmpSession(self.tmp_session)
 
-            if t.id == 1:
+        for i in range(teachers_number):
+            create_empty(self.tmp_session)
+            create_common(self.tmp_session)
+            teacher = teachers[i]
+            teacher_name = u' '.join([
+                Degrees.read(self.session, id=teacher.id_degree)[0].short_name,
+                teacher.short_name
+            ])
+            pop_out.setCurTeacher(teacher)
+
+            if teacher.id == 1:
                 # meta = MetaData()
                 for table in reversed(Base.metadata.sorted_tables):
-                    tmps.execute(table.delete())
-                    tmps.commit()
+                    self.tmp_session.execute(table.delete())
+                    self.tmp_session.commit()
                 continue
 
-            teacher_update(tmps, teacher, True)
+            teacher_update(self.tmp_session, teacher_name, True)
+            temp_teacher = Teachers.read(self.tmp_session, all_=True)[-1]
 
-            pop_out.week_tool_window.set_table(get_table(tmps, 'teachers', Teachers.read(tmps, True)[-1].id),
-                                               'teachers', pass_check=True)
-            pop_out.setWindowTitle(QtCore.QString(teacher))
+            pop_out.week_tool_window.set_table(
+                get_table(self.tmp_session, 'teachers', temp_teacher.id), 'teachers', pass_check=False
+            )
+            pop_out.setWindowTitle(QtCore.QString(teacher_name))
             pop_out.show()
-            self.window.tabs.set_table(*[get_table(self.session, 'teachers', t.id), 'teachers'])
+            self.window.tabs.set_table(get_table(self.session, 'teachers', teacher.id), 'teachers')
             self.window.tabs.setCurrentIndex(1)
 
             while not pop_out.is_done:
                 QtCore.QCoreApplication.processEvents()
             pop_out.is_done = False
 
-            pro_bar.setValue(int(100 * j / max_t))
-            pro_bar.update()
-            j += 1
+            self.pro_bar.setValue(100 * j / teachers_number)
+            self.pro_bar.update()
+
             for table in reversed(Base.metadata.sorted_tables):
-                tmps.execute(table.delete())
-                tmps.commit()
+                self.tmp_session.execute(table.delete())
+                self.tmp_session.commit()
             if pop_out.quit:
                 break
-        tmps.close()
+        self.tmp_session.close()
+        self.deleteLater()
+        
+    def closeEvent(self, QCloseEvent):
+        if hasattr(self.tmp_session, 'close'):
+            self.tmp_session.close()
         self.deleteLater()

@@ -41,7 +41,8 @@ class WeekTool(QtGui.QToolBox):
         if not pass_check:
             if not self.is_editing():
                 return 1
-        self.clear_table()
+        else:
+            self.clear_table()
         self.set_edited(False)
         self.first_table.set_table(lesson_set[0], view_args, 0, drag_enabled)
         self.second_table.set_table(lesson_set[1], view_args, 1, drag_enabled)

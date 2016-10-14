@@ -59,9 +59,6 @@ class DragButton(QtGui.QPushButton):
                     self.show_dial.exec_()
                 else:
                     logger.debug('Are you kiddig me?')
-                    logger.debug(self.lesson.id)
-                    logger.debug(self.lesson.is_temp)
-                    logger.debug(self.lesson.is_empty)
             logger.info('Pressed: %s' % self.__str__())
 
     def mouseMoveEvent(self, e):
