@@ -64,7 +64,7 @@ class WeekTool(QtGui.QToolBox):
             else:
                 result = False
         else:
-            logger.debug('Not edited')
+            # logger.debug('Not edited')
             result = True
         return result
 

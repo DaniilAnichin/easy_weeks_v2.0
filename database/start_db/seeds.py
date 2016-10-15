@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from database import Logger, db_codes_output
-from database.structure import db_structure
-from database.structure.db_structure import *
-__all__ = ['create_common', 'create_custom', 'create_empty']
+from database import Logger, db_codes, db_codes_output, structure
+from database.start_db.department_data import \
+    department_groups, department_rooms, department_teachers
+from database.structure import *
+__all__ = ['create_common', 'create_custom', 'create_empty',
+           'update_departments', 'drop_departments']
 logger = Logger()
 
 
@@ -58,6 +60,7 @@ def create_common(session):
         Degrees(short_name=u'зав.каф.', full_name=u'завідувач кафедри'),
         Degrees(short_name=u'проф.', full_name=u'професор'),
         Degrees(short_name=u'ст.вик.', full_name=u'старший викладач'),
+        Degrees(short_name=u'пос.', full_name=u'посада'),
 
         LessonTypes(short_name=u'Лек', full_name=u'Лекція'),
         LessonTypes(short_name=u'Прак', full_name=u'Практика'),
@@ -109,48 +112,48 @@ def create_custom(session):
                     full_name=u'Автоматизованих систем обробки iнформацiї та управлiння'),
     ])
     session.commit()
-
-    group_prefixes = [
-        'ia', 'ik', 'io', 'ip', 'is', 'it'
-    ]
-
     return session
 
 
-def update_departments(session, cls_name, **data):
+def part_departments(session, cls_name, **data):
     for dept_name in data.keys():
         department = Departments.read(session, short_name=dept_name)[0]
-        cls = getattr(db_structure, cls_name)
+        cls = getattr(structure, cls_name)
         for element_name in data[dept_name]:
             param = 'full_name' if cls_name == 'Teachers' else 'name'
             element = cls.read(session, **{param: element_name})[0]
-            logger.debug('Element: %s' % unicode(element))
-            logger.debug('Department: %s' % unicode(department))
             try:
                 element.departments
-                logger.debug('Association')
-                logger.debug(db_codes_output[cls.update(session, main_id=element.id, departments=[department])])
+                result = cls.update(session, main_id=element.id, departments=[department])
             except AttributeError:
-                logger.debug(db_codes_output[cls.update(session, main_id=element.id, department=department)])
-                logger.debug('Link')
+                result = cls.update(session, main_id=element.id, department=department)
+            if result not in [db_codes['exists'], db_codes['success']]:
+                logger.debug(db_codes_output[result])
 
 
 def drop_departments(session, cls_name, department_id=2):
     department = Departments.read(session, id=department_id)[0]
-    cls = getattr(db_structure, cls_name)
+    cls = getattr(structure, cls_name)
     elements = cls.read(session, all_=True)
     for element in elements:
-        param = 'full_name' if cls_name == 'Teachers' else 'name'
-        logger.debug('Element: %s' % unicode(element))
-        logger.debug('Department: %s' % unicode(department))
         try:
             element.departments
-            logger.debug('Association')
-            logger.debug(db_codes_output[cls.update(session, main_id=element.id, departments=[department])])
+            result = cls.update(session, main_id=element.id, departments=[department])
         except AttributeError:
-            logger.debug(db_codes_output[cls.update(session, main_id=element.id, department=department)])
-            logger.debug('Link')
+            result = cls.update(session, main_id=element.id, department=department)
+        if result not in [db_codes['exists'], db_codes['success']]:
+            logger.debug(db_codes_output[result])
 
 
-if __name__ == "__main__":
-    pass
+def update_departments(session):
+    drop_departments(session, cls_name='Teachers')
+    drop_departments(session, cls_name='Groups')
+    drop_departments(session, cls_name='Rooms')
+
+    part_departments(session, cls_name='Teachers', **department_teachers)
+    part_departments(session, cls_name='Groups', **department_groups)
+    part_departments(session, cls_name='Rooms', **department_rooms)
+
+if __name__ == '__main__':
+    from database.start_db.db_startup import connect_database
+    update_departments(connect_database())

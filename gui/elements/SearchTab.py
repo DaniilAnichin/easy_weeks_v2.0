@@ -1,11 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui
+
 from database import Logger
+from database.structure import *
 from database.select_table import find_free, get_table
-from database.structure.db_structure import *
-from gui.translate import fromUtf8
 from gui.elements.CompleterCombo import CompleterCombo
+from gui.translate import fromUtf8
+
 logger = Logger()
 
 

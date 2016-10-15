@@ -2,28 +2,19 @@
 # -*- coding: utf-8 -*- #
 import sys
 from PyQt4 import QtGui
+
 from database import Logger
-from database.structure.db_structure import *
-from database.start_db.New_db_startup import connect_database
+from database.start_db.db_startup import connect_database
 from database.select_table import *
+from database.structure import *
 from gui.dialogs.ImportDialog import ImportDialog
 from gui.elements.EasyTab import EasyTab
 from gui.elements.WeekMenuBar import WeekMenuBar
 from gui.translate import fromUtf8
+
 logger = Logger()
 
 
-# def singleton(cls):
-#     instances = {}
-#
-#     def getinstance(*args, **kwargs):
-#         if cls not in instances:
-#             instances[cls] = cls(*args, **kwargs)
-#         return instances[cls]
-#     return getinstance
-#
-#
-# @singleton
 class WeeksMenu(QtGui.QMainWindow):
     def __init__(self):
         super(QtGui.QMainWindow, self).__init__()

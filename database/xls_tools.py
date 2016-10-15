@@ -1,7 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
 import xlsxwriter
-from database.structure.db_structure import *
+
+from database.structure import *
 
 
 def print_table(session, save_dest, table, data_type, data_id):

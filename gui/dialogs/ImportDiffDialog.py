@@ -1,10 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui
+
 from database import Logger
-from gui.elements.WeekTool import WeekTool
 from database import db_codes_output
-from database.structure.db_structure import *
+from database.structure import *
+from gui.elements.WeekTool import WeekTool
+
 logger = Logger()
 
 
@@ -50,13 +52,15 @@ class ImportDiffDialog(QtGui.QDialog):
 
     def acceptTT(self):
         t_lessons = Lessons.read(self.session, id_lesson_plan=[
-            lp.id for lp in LessonPlans.read(self.session, teachers=self.teacher.id)
+            old_lp.id for old_lp in LessonPlans.read(self.session, teachers=self.teacher.id)
         ])
         for lesson in t_lessons:
             Lessons.delete(self.session, main_id=lesson.id)
-        for lp in LessonPlans.read(self.session, teachers=self.teacher.id):
-            LessonPlans.delete(self.session, main_id=lp.id)
+        for old_lp in LessonPlans.read(self.session, teachers=self.teacher.id):
+            LessonPlans.delete(self.session, main_id=old_lp.id)
+        self.is_done = True
         for lp in LessonPlans.read(self.tmp_session, all_=True):
+            logger.debug(unicode(str(lp)) + lp.subject.full_name)
             new_lp = LessonPlans.create(
                 self.session,
                 amount=lp.amount,
@@ -79,4 +83,3 @@ class ImportDiffDialog(QtGui.QDialog):
                     )
                     if isinstance(new_lesson, int):
                         logger.debug(db_codes_output[new_lesson])
-        self.is_done = True

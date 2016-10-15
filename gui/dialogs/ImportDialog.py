@@ -2,18 +2,21 @@
 # -*- coding: utf-8 -*-
 import os
 from PyQt4 import QtGui, QtCore
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
 from database import Logger, DATABASE_NAME, DATABASE_DIR
-from database.import_schedule.GetCurTimetable import teacher_update
-from database.select_table import get_table
+from database.start_db.import_db import teacher_update
+from database.start_db.db_startup import create_new_database
 from database.start_db.seeds import *
-from database.start_db.New_db_startup import create_new_database
-from database.structure.db_structure import *
-from database.structure.db_structure import Base
-from gui.elements.CompleterCombo import CompleterCombo
+from database.select_table import get_table
+from database.structure import *
+from database.structure import Base
 from gui.dialogs.ImportDiffDialog import ImportDiffDialog
+from gui.elements.CompleterCombo import CompleterCombo
 from gui.translate import fromUtf8
+
 logger = Logger()
 
 
@@ -68,7 +71,7 @@ class ImportDialog(QtGui.QDialog):
         session = create_empty(session)
         session = create_common(session)
         session = create_custom(session)
-        with open(os.path.join(DATABASE_DIR, 'import_schedule', '_teachers.txt'), 'r') as f:
+        with open(os.path.join(DATABASE_DIR, 'start_db', 'teachers.txt'), 'r') as f:
             lines = f.readlines()
             teacher_number = len(lines)
             for i in range(teacher_number):
@@ -77,6 +80,7 @@ class ImportDialog(QtGui.QDialog):
                 teacher = lines[i][:-1]
                 teacher_update(session, teacher)
                 QtCore.QCoreApplication.processEvents()
+        update_departments(session)
         self.deleteLater()
 
     def updateDepDb(self):
@@ -108,16 +112,20 @@ class ImportDialog(QtGui.QDialog):
 
             if teacher.id == 1:
                 # meta = MetaData()
-                for table in reversed(Base.metadata.sorted_tables):
-                    self.tmp_session.execute(table.delete())
-                    self.tmp_session.commit()
+                self.clear_database()
                 continue
 
-            teacher_update(self.tmp_session, teacher_name, True)
+            update_result = teacher_update(self.tmp_session, teacher_name, True)
+            if update_result == -1:
+                logger.debug('Update failed')
+                self.clear_database()
+                continue
             temp_teacher = Teachers.read(self.tmp_session, all_=True)[-1]
 
+            data = get_table(self.tmp_session, 'teachers', temp_teacher.id)
+
             pop_out.week_tool_window.set_table(
-                get_table(self.tmp_session, 'teachers', temp_teacher.id), 'teachers', pass_check=False
+                data, 'teachers', pass_check=False
             )
             pop_out.setWindowTitle(QtCore.QString(teacher_name))
             pop_out.show()
@@ -131,15 +139,17 @@ class ImportDialog(QtGui.QDialog):
             self.pro_bar.setValue(100 * j / teachers_number)
             self.pro_bar.update()
 
-            for table in reversed(Base.metadata.sorted_tables):
-                self.tmp_session.execute(table.delete())
-                self.tmp_session.commit()
+            self.clear_database()
             if pop_out.quit:
                 break
-        self.tmp_session.close()
-        self.deleteLater()
+
+    def clear_database(self):
+        for table in reversed(Base.metadata.sorted_tables):
+            self.tmp_session.execute(table.delete())
+            self.tmp_session.commit()
         
     def closeEvent(self, QCloseEvent):
-        if hasattr(self.tmp_session, 'close'):
-            self.tmp_session.close()
+        if hasattr(self, 'tmp_session'):
+            if hasattr(self.tmp_session, 'close'):
+                self.tmp_session.close()
         self.deleteLater()

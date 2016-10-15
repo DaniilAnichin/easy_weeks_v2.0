@@ -1,5 +1,6 @@
-from database.structure.db_structure import *
-from database import Logger, db_codes, db_codes_output
+from database import Logger, db_codes
+from database.structure import *
+
 __all__ = ['get_table', 'check_table', 'save_table', 'recover_empty',
            'clear_empty', 'clear_temp', 'find_free', 'undefined_lp']
 logger = Logger()

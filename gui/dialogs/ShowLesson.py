@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from database import Logger
-from database.structure.db_structure import *
+from database.structure import *
 from gui.dialogs.WeeksDialog import WeeksDialog
 from gui.translate import fromUtf8
 logger = Logger()

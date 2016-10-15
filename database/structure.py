@@ -213,18 +213,6 @@ class Users(Base):
     message = Column(String)   # Message when giving an methodist request
     translated = u'Користувач'
 
-    # def __init__(self, *args, **kwargs):
-    #     password = kwargs.pop('password', '')
-    #
-    #     if not password:
-    #         logger.error('No password passed')
-    #         raise ValueError('No password passed')
-    #     hashed = bcrypt.hashpw(password, bcrypt.gensalt())
-    #
-    #     kwargs.update(hashed_password=hashed)
-    #     super(Users, self).__init__(*args, **kwargs)
-    #     logger.info('Hashed user %s password' % self.nickname)
-
     @classmethod
     def create(cls, session, **kwargs):
         password = kwargs.pop('password', '')
@@ -253,7 +241,6 @@ class Users(Base):
 
     _columns = ['id', 'nickname', 'hashed_password', 'message', 'status']
     _associations = ['departments']
-    # error = db_codes['user']
 
 
 class UserDepartments(Base):
@@ -265,7 +252,6 @@ class UserDepartments(Base):
         return u'%d in %d' % (self.id_user, self.id_department)
 
     _columns = ['id_user', 'id_department']
-    # error = db_codes['user_department']
 
 
 class Universities(Base):
@@ -282,7 +268,6 @@ class Universities(Base):
 
     _columns = ['id', 'full_name', 'short_name']
     _links = ['faculties']
-    # error = db_codes['university']
 
 
 class Faculties(Base):
@@ -300,7 +285,6 @@ class Faculties(Base):
 
     _columns = ['id', 'full_name', 'short_name', 'id_university']
     _links = ['departments', 'university']
-    # error = db_codes['faculty']
 
 
 class DepartmentRooms(Base):
@@ -312,7 +296,6 @@ class DepartmentRooms(Base):
         return u'%d in %d' % (self.id_room, self.id_department)
 
     _columns = ['id_room', 'id_department']
-    # error = db_codes['user']
 
 
 class Departments(Base):
@@ -337,7 +320,6 @@ class Departments(Base):
     _columns = ['id', 'full_name', 'short_name']
     _links = ['groups', 'teachers', 'faculty']
     _associations = ['rooms']
-    # error = db_codes['department']
 
 
 class GroupPlans(Base):
@@ -349,7 +331,6 @@ class GroupPlans(Base):
         return u'%d in %d' % (self.id_group, self.id_lesson_plan)
 
     _columns = ['id_group', 'id_lesson_plan']
-    # error = db_codes['user']
 
 
 class TeacherPlans(Base):
@@ -361,16 +342,6 @@ class TeacherPlans(Base):
         return u'%d in %d' % (self.id_teacher, self.id_lesson_plan)
 
     _columns = ['id_teacher', 'id_lesson_plan']
-    # error = db_codes['user']
-
-# lesson_groups = Table('lesson_groups', Base.metadata,
-#                       Column('id_lesson_plan', Integer, ForeignKey('lesson_plans.id')),
-#                       Column('id_group', Integer, ForeignKey('groups.id')))
-#
-#
-# lesson_teachers = Table('lesson_teachers', Base.metadata,
-#                         Column('id_lesson_plan', Integer, ForeignKey('lesson_plans.id')),
-#                         Column('id_teacher', Integer, ForeignKey('teachers.id')))
 
 
 class Groups(Base):
@@ -415,7 +386,6 @@ class Teachers(Base):
     _columns = ['id', 'full_name', 'short_name', 'id_department', 'id_degree']
     _links = ['department', 'degree']
     _associations = ['lesson_plans']
-    # error = db_codes['teacher']
 
 
 class Subjects(Base):
@@ -430,7 +400,6 @@ class Subjects(Base):
 
     _columns = ['id', 'full_name', 'short_name']
     _links = ['lesson_plans']
-    # error = db_codes['subject']
 
 
 class Rooms(Base):
@@ -447,7 +416,6 @@ class Rooms(Base):
     _columns = ['id', 'name', 'capacity', 'additional_stuff']
     _links = ['lessons']
     _associations = ['departments']
-    # error = db_codes['room']
 
     @classmethod
     def read(cls, session, all_=False, **kwargs):
@@ -471,8 +439,17 @@ class Rooms(Base):
                             kwargs[key] = [lesson.id for lesson in kwargs[key]]
                     except IndexError:
                         pass
-                    result = result.filter(LessonPlans.lessons.any(
+                    result = result.filter(Rooms.lessons.any(
                         Lessons.id.in_(kwargs[key])
+                    ))
+                elif key == 'departments':
+                    try:
+                        if not isinstance(kwargs[key][0], int):
+                            kwargs[key] = [dep.id for dep in kwargs[key]]
+                    except IndexError:
+                        pass
+                    result = result.filter(Rooms.departments.any(
+                        Departments.id.in_(kwargs[key])
                     ))
                 else:
                     result = result.filter(getattr(cls, key).in_(kwargs[key]))
@@ -480,12 +457,20 @@ class Rooms(Base):
                 if key == 'lessons':
                     if not isinstance(kwargs[key], int):
                         kwargs[key] = [lesson.id for lesson in kwargs[key]]
-                    result = result.filter(LessonPlans.lessons.any(
+                    result = result.filter(Rooms.lessons.any(
                         Lessons.id.in_(kwargs[key])
+                    ))
+                elif key == 'departments':
+                    try:
+                        if not isinstance(kwargs[key], int):
+                            kwargs[key] = [dep.id for dep in kwargs[key]]
+                    except IndexError:
+                        pass
+                    result = result.filter(Rooms.departments.any(
+                        Departments.id.in_(kwargs[key])
                     ))
                 else:
                     result = result.filter(getattr(cls, key) == kwargs[key])
-
         return result.all()
 
 
@@ -572,8 +557,6 @@ class LessonPlans(Base):
     lessons = relationship('Lessons', backref='lesson_plan', cascade='all, delete-orphan')
     groups = relationship('Groups', secondary='group_plans', backref='lesson_plans')
     teachers = relationship('Teachers', secondary='teacher_plans', backref='lesson_plans')
-    # groups = relationship('Groups', secondary='lesson_groups', backref='lesson_plans')
-    # teachers = relationship('Teachers', secondary='lesson_teachers', backref='lesson_plans')
 
     _columns = ['id', 'id_subject', 'id_lesson_type', 'amount',
                 'needed_stuff', 'capacity', 'split_groups', 'param_checker']
@@ -597,16 +580,34 @@ class LessonPlans(Base):
         else:
             if not kwargs.get('split_groups'):
                 kwargs.update(dict(split_groups=0))
-            t_checker = u','.join([str(elem.id) for elem in kwargs.get('teachers', [])])
-            g_checker = u','.join([str(elem.id) for elem in kwargs.get('groups', [])])
-            kwargs.update(dict(param_checker=u'%d,%d,%s,%s,%d,%d,%d' % (
-                kwargs['id_subject'], kwargs['id_lesson_type'],
-                g_checker, t_checker, kwargs['amount'],
-                kwargs['split_groups'], kwargs['capacity']
-            )))
             elem = cls(**kwargs)
             session.add(elem)
+            session.commit()
+        cls.update_params(session, elem.id)
         return elem
+
+    @classmethod
+    def update_params(cls, session, main_id):
+        elem = cls.read(session, id=main_id)
+        if isinstance(elem, list):
+            elem = elem[0]
+        if not isinstance(elem, cls):
+            return
+
+        t_checker = u','.join([str(teach.id) for teach in elem.teachers])
+        g_checker = u','.join([str(group.id) for group in elem.groups])
+
+        cls.update(session, main_id, param_checker=u'%d,%d,%s,%s,%d,%d,%d' % (
+            elem.id_subject, elem.id_lesson_type,
+            g_checker, t_checker, elem.amount,
+            elem.split_groups, elem.capacity
+        ))
+
+    @classmethod
+    def update(cls, session, main_id, **kwargs):
+        res = super(LessonPlans, cls).update(session, main_id, **kwargs)
+        cls.update_params(session, main_id)
+        return res
 
     @classmethod
     def read(cls, session, all_=False, **kwargs):
@@ -628,7 +629,7 @@ class LessonPlans(Base):
                 if key == 'groups':
                     try:
                         if not isinstance(kwargs[key][0], int):
-                            kwargs[key] = [lesson.id for lesson in kwargs[key]]
+                            kwargs[key] = [group.id for group in kwargs[key]]
                     except IndexError:
                         pass
                     result = result.filter(LessonPlans.groups.any(
@@ -636,7 +637,7 @@ class LessonPlans(Base):
                 elif key == 'teachers':
                     try:
                         if not isinstance(kwargs[key][0], int):
-                            kwargs[key] = [lesson.id for lesson in kwargs[key]]
+                            kwargs[key] = [teacher.id for teacher in kwargs[key]]
                     except IndexError:
                         pass
                     result = result.filter(LessonPlans.teachers.any(
@@ -655,12 +656,12 @@ class LessonPlans(Base):
             else:
                 if key == 'groups':
                     if not isinstance(kwargs[key], int):
-                        kwargs[key] = [lesson.id for lesson in kwargs[key]]
+                        kwargs[key] = [teacher.id for teacher in kwargs[key]]
                     result = result.filter(getattr(LessonPlans, key).any(
                              Groups.id == kwargs[key]))
                 elif key == 'teachers':
                     if not isinstance(kwargs[key], int):
-                        kwargs[key] = [lesson.id for lesson in kwargs[key]]
+                        kwargs[key] = [group.id for group in kwargs[key]]
                     result = result.filter(getattr(LessonPlans, key).any(
                              Teachers.id == kwargs[key]))
                 elif key == 'lessons':
@@ -779,19 +780,6 @@ class Lessons(Base):
             return Lessons.read(session, id_lesson_plan=self.id_lesson_plan,
                                 is_temp=True, id_room=self.id_room, **time)[0]
         return temp_lesson
-
-    # @classmethod
-    # def get_plan(cls, session, **data):
-    #     needed_keys = list(set(data.keys()) & set(LessonPlans.fields()))
-    #     exists = LessonPlans.read(session, **{key: data[key] for key in needed_keys})
-    #     if isinstance(exists, list):
-    #         return exists[0]
-    #
-    #     lesson_plan = LessonPlans.create(session, **{key: data[key] for key in needed_keys})
-    #     if isinstance(lesson_plan, int):
-    #         return lesson_plan
-    #
-    #     return lesson_plan
 
     def to_table(self, *args):
         # Make lesson to string to view it on the table

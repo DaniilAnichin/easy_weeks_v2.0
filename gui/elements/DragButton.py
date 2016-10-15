@@ -1,11 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui, QtCore
-from database import Logger, db_codes_output
-from database.structure import db_structure
-from database.structure.db_structure import *
-from gui.dialogs.ShowLesson import ShowLesson
+
+from database import Logger, structure
+from database.structure import *
 from gui.dialogs.EditLesson import EditLesson
+from gui.dialogs.ShowLesson import ShowLesson
+
 logger = Logger()
 
 
@@ -137,9 +138,9 @@ class DragButton(QtGui.QPushButton):
 
     def set_time(self, time):
         self.time = dict(
-            id_week=db_structure.Lessons.week_ids[time[0]],
-            id_week_day=db_structure.Lessons.day_ids[time[1]],
-            id_lesson_time=db_structure.Lessons.time_ids[time[2]]
+            id_week=structure.Lessons.week_ids[time[0]],
+            id_week_day=structure.Lessons.day_ids[time[1]],
+            id_lesson_time=structure.Lessons.time_ids[time[2]]
         )
 
     def before_close(self):

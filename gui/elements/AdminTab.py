@@ -1,12 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui
-from database import Logger, db_codes_output
-from database.structure import db_structure
-from gui.elements.CompleterCombo import CompleterCombo
+
+from database import Logger, db_codes_output, structure
 from gui.dialogs.AdminEditor import AdminEditor
 from gui.dialogs.RUSureDelete import RUSureDelete
+from gui.elements.CompleterCombo import CompleterCombo
 from gui.translate import fromUtf8
+
 logger = Logger()
 
 
@@ -56,7 +57,7 @@ class AdminTab(QtGui.QWidget):
         self.editButton.setText(fromUtf8('Редагувати'))
 
     def set_objects(self):
-        self.objects.items = [getattr(db_structure, item) for item in db_structure.__all__]
+        self.objects.items = [getattr(structure, item) for item in structure.__all__]
         for item in self.objects.items:
             columns = item.columns()
             if len(columns) == 2 and columns[0][:3] == columns[1][:3] == 'id_':

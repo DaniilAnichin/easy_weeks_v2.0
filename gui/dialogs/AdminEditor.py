@@ -1,10 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui, QtCore
-from database import Logger
-from database.structure import db_structure
+
+from database import Logger, structure
 from gui.dialogs.WeeksDialog import WeeksDialog
 from gui.translate import fromUtf8
+
 logger = Logger()
 
 
@@ -19,7 +20,7 @@ class AdminEditor(WeeksDialog):
         self.example_element = self.cls.read(self.session, id=1)[0]
         self.element = self.cls.read(self.session, id=1)[0] if empty else element
 
-        if self.cls_name not in db_structure.__all__:
+        if self.cls_name not in structure.__all__:
             logger.debug('Wrong params')
         else:
             logger.debug('All right')
@@ -36,7 +37,7 @@ class AdminEditor(WeeksDialog):
         exp_result = getattr(self.example_element, param)
         if isinstance(exp_result, list):
             self.default_list_pair(param)
-        elif isinstance(exp_result, db_structure.Base):
+        elif isinstance(exp_result, structure.Base):
             self.default_combo_pair(param)
         elif isinstance(exp_result, int):
             self.default_int_pair(param)
@@ -52,7 +53,7 @@ class AdminEditor(WeeksDialog):
         exp_result = getattr(self.example_element, param)
         if isinstance(exp_result, list):
             return getattr(self, param).view_items
-        elif isinstance(exp_result, db_structure.Base):
+        elif isinstance(exp_result, structure.Base):
             return getattr(self, param).items[getattr(self, param).currentIndex()]
         elif isinstance(exp_result, int):
             return int(getattr(self, param).value())

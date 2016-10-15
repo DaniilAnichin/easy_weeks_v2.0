@@ -24,9 +24,9 @@
 import os.path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from database.structure.db_structure import Base
 from database import DATABASE_DIR, DATABASE_NAME
 from database.start_db.seeds import *
+from database.structure import Base
 
 
 def create_new_database(path=DATABASE_NAME):
@@ -65,11 +65,3 @@ def main():
     s = create_common(s)
     # s = create_custom(s)
     return 0
-
-
-if __name__ == '__main__':
-    from database.import_schedule.department_data import *
-    # update_departments(session=connect_database(), cls_name='Teachers', **department_teachers)
-    # update_departments(session=connect_database(), cls_name='Groups', **department_groups)
-    # update_departments(session=connect_database(), cls_name='Rooms', **department_groups)
-    drop_departments(session=connect_database(), cls_name='Rooms')

@@ -1,10 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from database import Logger
+from database.structure import Lessons, LessonPlans
 from database.select_table import undefined_lp
-from database.structure.db_structure import Lessons, LessonPlans
 from gui.dialogs.WeeksDialog import WeeksDialog
 from gui.translate import fromUtf8
+
 logger = Logger()
 
 

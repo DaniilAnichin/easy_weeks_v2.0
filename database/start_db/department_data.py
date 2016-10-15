@@ -4,8 +4,8 @@
 
 def get_teachers():
     from database import Logger
-    from database.structure.db_structure import Teachers
-    from database.start_db.New_db_startup import connect_database
+    from database.structure import Teachers
+    from database.start_db.db_startup import connect_database
     logger = Logger()
     session = connect_database()
     teachers = Teachers.read(session, all_=True)
@@ -16,8 +16,8 @@ def get_teachers():
 
 def get_groops():
     from database import Logger
-    from database.structure.db_structure import Groups
-    from database.start_db.New_db_startup import connect_database
+    from database.structure import Groups
+    from database.start_db.db_startup import connect_database
     logger = Logger()
     session = connect_database()
     groups = Groups.read(session, all_=True)
@@ -72,7 +72,6 @@ department_teachers = {
         u'Мухін Вадим Євгенійович',
         u'Новотарський Михайло Анатолійович',
         u'Ординська Зоя Павлівна',
-        u'Павлов Олександр Анатолійович (АСОІтаУ) #5528',
         u'Панченко Марія Мирославівна',
         u'Порєв Віктор Миколайович',
         u'Праховнік Наталія Артурівна',
@@ -109,16 +108,13 @@ department_teachers = {
         u'Хмелюк Володимир Сергійович',
         u'Дорошенко Катерина Сергіївна',
         u'Тимофєєва Юлія Сергіївна',
-        u'Хмелюк М. С.',
+        u'Хмелюк Марина Сергіївна',
         u'Галушко Дмитро Олександрович'
     ],
     u'АСОІУ': [
-        u'Корнійчук Віктор Іванович (АСОІтаУ, ОТ) #8514',
-        u'Павлов Олександр Анатолійович (АСОІтаУ) #5528',
         u'Баклан І. В.',
         u'Гавриленко Олена Валеріївна',
         u'Коган А. В.',
-        u'Гриша Олена Василівна',
         u'Жданова Олена Григорівна',
         u'Ковалюк Тетяна Володимирівна',
         u'Новікова Поліна Анатоліївна',
@@ -127,7 +123,6 @@ department_teachers = {
         u'Муха Ірина Павлівна',
         u'Тєлишева Тамара Олексіївна',
         u'Олійник Ю. О.',
-        u'Сперкач Майя Олегівна',
         u'Халус Олена Андріївна',
         u'Тєлишева Тамара Олексіївна'
     ]
