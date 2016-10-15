@@ -1,11 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui, QtCore
-
 from database import Logger, structure
 from gui.dialogs.WeeksDialog import WeeksDialog
 from gui.translate import fromUtf8
-
 logger = Logger()
 
 

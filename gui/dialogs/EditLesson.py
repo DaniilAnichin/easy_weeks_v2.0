@@ -5,7 +5,6 @@ from database.structure import Lessons, LessonPlans
 from database.select_table import undefined_lp
 from gui.dialogs.WeeksDialog import WeeksDialog
 from gui.translate import fromUtf8
-
 logger = Logger()
 
 

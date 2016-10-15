@@ -1,13 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui
-
 from database import Logger, db_codes_output, structure
 from gui.dialogs.AdminEditor import AdminEditor
 from gui.dialogs.RUSureDelete import RUSureDelete
 from gui.elements.CompleterCombo import CompleterCombo
 from gui.translate import fromUtf8
-
 logger = Logger()
 
 

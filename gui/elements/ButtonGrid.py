@@ -1,11 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui
-
 from database import Logger
 from database.structure import WeekDays, LessonTimes
 from gui.elements.DragButton import DragButton
-
 logger = Logger()
 
 

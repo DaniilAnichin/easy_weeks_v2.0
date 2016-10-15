@@ -1,11 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui, QtCore
-
 from database import Logger, db_codes_output
 from database.structure import Departments, Users
 from gui.translate import fromUtf8
-
 logger = Logger()
 
 

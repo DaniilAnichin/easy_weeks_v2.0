@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*- #
 import sys
 from PyQt4 import QtGui
-
 from database import Logger
 from database.start_db.db_startup import connect_database
 from database.select_table import *
@@ -11,7 +10,6 @@ from gui.dialogs.ImportDialog import ImportDialog
 from gui.elements.EasyTab import EasyTab
 from gui.elements.WeekMenuBar import WeekMenuBar
 from gui.translate import fromUtf8
-
 logger = Logger()
 
 

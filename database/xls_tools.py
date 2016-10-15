@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
 import xlsxwriter
-
 from database.structure import *
 
 

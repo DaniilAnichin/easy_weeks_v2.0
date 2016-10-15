@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 import os
 from PyQt4 import QtGui, QtCore
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
 from database import Logger, DATABASE_NAME, DATABASE_DIR
 from database.start_db.import_db import teacher_update
 from database.start_db.db_startup import create_new_database
@@ -16,7 +14,6 @@ from database.structure import Base
 from gui.dialogs.ImportDiffDialog import ImportDiffDialog
 from gui.elements.CompleterCombo import CompleterCombo
 from gui.translate import fromUtf8
-
 logger = Logger()
 
 

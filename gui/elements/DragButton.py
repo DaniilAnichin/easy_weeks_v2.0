@@ -1,12 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui, QtCore
-
 from database import Logger, structure
 from database.structure import *
 from gui.dialogs.EditLesson import EditLesson
 from gui.dialogs.ShowLesson import ShowLesson
-
 logger = Logger()
 
 

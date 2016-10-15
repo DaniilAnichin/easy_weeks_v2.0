@@ -1,12 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui
-
 from database import Logger
 from database import db_codes_output
 from database.structure import *
 from gui.elements.WeekTool import WeekTool
-
 logger = Logger()
 
 
