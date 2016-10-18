@@ -554,43 +554,93 @@ class LessonPlans(Base):
         if not set(kwargs.keys()) < set(cls.fields()):
             return db_codes['wrong']
 
-        result = cls.read(session, **kwargs)
+        if not kwargs.get('split_groups'):
+            kwargs.update(dict(split_groups=0))
+        checker = LessonPlans.make_params(**kwargs)
+        if not checker:
+            return db_codes['params']
+
+        result = cls.read(session, param_checker=checker)
 
         if isinstance(result, int):
             return result
         elif result:
             return db_codes['exists']
         else:
-            if not kwargs.get('split_groups'):
-                kwargs.update(dict(split_groups=0))
+            kwargs.update(dict(param_checker=checker))
             elem = cls(**kwargs)
             session.add(elem)
             session.commit()
-        cls.update_params(session, elem.id)
+
         return elem
+        # result = cls.read(session, **kwargs)
+        #
+        # if isinstance(result, int):
+        #     return result
+        # elif result:
+        #     return db_codes['exists']
+        # else:
+        #     if not kwargs.get('split_groups'):
+        #         kwargs.update(dict(split_groups=0))
+        #     elem = cls(**kwargs)
+        #     session.add(elem)
+        #     session.commit()
+        # return elem
 
-    @classmethod
-    def update_params(cls, session, main_id):
-        elem = cls.read(session, id=main_id)
-        if isinstance(elem, list):
-            elem = elem[0]
-        if not isinstance(elem, cls):
-            return
-
-        t_checker = u','.join([str(teach.id) for teach in elem.teachers])
-        g_checker = u','.join([str(group.id) for group in elem.groups])
-
-        cls.update(session, main_id, param_checker=u'%d,%d,%s,%s,%d,%d,%d' % (
-            elem.id_subject, elem.id_lesson_type,
-            g_checker, t_checker, elem.amount,
-            elem.split_groups, elem.capacity
-        ))
+    @staticmethod
+    def make_params(**kwargs):
+        for key in ['subject', 'lesson_type']:
+            if key in kwargs.keys():
+                kwargs.update({'id_' + key: kwargs[key].id})
+        try:
+            t_checker = u','.join([str(teach.id) for teach in kwargs['teachers']])
+            g_checker = u','.join([str(group.id) for group in kwargs['groups']])
+            # Added two letters to avoid groups & teacher rearranging
+            checker = u'%d,%d,g%s,t%s,%d,%d,%d' % (
+                kwargs['id_subject'], kwargs['id_lesson_type'],
+                g_checker, t_checker, kwargs['amount'],
+                kwargs['split_groups'], kwargs['capacity']
+            )
+        except KeyError:
+            checker = u''
+        return checker
 
     @classmethod
     def update(cls, session, main_id, **kwargs):
-        res = super(LessonPlans, cls).update(session, main_id, **kwargs)
-        cls.update_params(session, main_id)
-        return res
+        if main_id == 1:
+            return db_codes['reserved']
+
+        result = cls.read(session, id=main_id)
+
+        # Check for existence:
+        if not result:
+            return db_codes['absent']
+        if isinstance(result, int):
+            return result
+        result = result[0]
+
+        data = {}
+        for field in cls.fields():
+            data.update({field: getattr(result, field)})
+        for key in kwargs.keys():
+            if key not in cls.fields():
+                return db_codes['wrong']
+            data.update({key: kwargs[key]})
+
+        checker = LessonPlans.make_params(**data)
+        if not checker:
+            return db_codes['params']
+        if cls.read(session, param_checker=checker):
+            return db_codes['exists']
+
+        # Global filter loop:
+        for key in kwargs.keys():
+            setattr(result, key, kwargs[key])
+        setattr(result, 'param_checker', checker)
+
+        session.commit()
+
+        return db_codes['success']
 
     @classmethod
     def read(cls, session, all_=False, **kwargs):
@@ -602,6 +652,10 @@ class LessonPlans(Base):
         if all_:
             # return result.all()
             return result.all()[1:]
+
+        if 'param_checker' in kwargs.keys():
+            result = result.filter(LessonPlans.param_checker == kwargs['param_checker'])
+            return result.all()
 
         # Global filter loop:
         # This one have to become simplified

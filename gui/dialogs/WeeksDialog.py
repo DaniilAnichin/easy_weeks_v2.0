@@ -20,7 +20,6 @@ class WeeksDialog(QtGui.QDialog):
             this_text = ', '.join(unicode(item) for item in element)
         else:
             this_text = unicode(element)
-
         return this_text
 
     def make_button(self, data, callback, *args, **kwargs):
@@ -36,12 +35,12 @@ class WeeksDialog(QtGui.QDialog):
         setattr(self, name, combo)
         if selected:
             combo.setCurrentIndex(combo.items.index(selected))
-        logger.info('Added combobox with name "%s"' % name)
+        # logger.info('Added combobox with name "%s"' % name)
         return combo
 
     def make_list(self, values_list, choice_list, name):
         items_list = EditableList(self, values_list, choice_list, name)
-        logger.info('Added list widget with name "%s"' % name)
+        # logger.info('Added list widget with name "%s"' % name)
         return items_list
 
     def set_pair(self, first_data, second_data):

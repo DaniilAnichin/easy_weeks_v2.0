@@ -58,7 +58,6 @@ class ImportDiffDialog(QtGui.QDialog):
             LessonPlans.delete(self.session, main_id=old_lp.id)
         self.is_done = True
         for lp in LessonPlans.read(self.tmp_session, all_=True):
-            logger.debug(unicode(str(lp)) + lp.subject.full_name)
             new_lp = LessonPlans.create(
                 self.session,
                 amount=lp.amount,

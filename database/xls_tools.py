@@ -6,11 +6,13 @@ from database.structure import *
 
 def print_table(session, save_dest, table, data_type, data_id):
     book = xlsxwriter.Workbook(save_dest)
+
     page = book.add_worksheet(u'Розклад')
     lformat = book.add_format()
     lformat.set_align('center')
     lformat.set_font_size(15)
     lformat.set_border()
+
     sformat = book.add_format()
     sformat.set_border()
     page.set_column(0, 0, 10)
@@ -26,9 +28,10 @@ def print_table(session, save_dest, table, data_type, data_id):
     for i in range(10, 15):
         page.write(i, 0, LessonTimes.read(session, id=i - 8)[0].full_name, sformat)
     if data_type == u'teachers':
-        page.merge_range(0, 0, 0, 6,
-                         u'Розклад занять, викладач: %s' % Teachers.read(session, id=data_id)[0].full_name,
-                         lformat)
+        page.merge_range(
+            0, 0, 0, 6,
+            u'Розклад занять, викладач: %s' % Teachers.read(session, id=data_id)[0].full_name,
+            lformat)
         for w in range(2):
             for l in range(5):
                 for d in range(6):

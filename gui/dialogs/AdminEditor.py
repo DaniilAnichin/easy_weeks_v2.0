@@ -17,13 +17,18 @@ class AdminEditor(WeeksDialog):
         self.cls_name = self.cls.__name__
         self.example_element = self.cls.read(self.session, id=1)[0]
         self.element = self.cls.read(self.session, id=1)[0] if empty else element
+        self.fields = [column for column in self.cls.fields()
+                       if not (column.startswith('id_')
+                               or column.startswith('is_')
+                               or column == 'id'
+                               or column == 'row_time'
+                               or column == 'param_checker')]
 
         if self.cls_name not in structure.__all__:
             logger.debug('Wrong params')
         else:
             logger.debug('All right')
-            for column in self.cls.fields():
-                if not (column.startswith('id_') or column == 'id' or column == 'row_time'):
+            for column in self.fields:
                     self.make_pair(column)
             self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.accept))
             if self.empty:
@@ -44,8 +49,7 @@ class AdminEditor(WeeksDialog):
         elif isinstance(exp_result, bool):
             self.default_bool_pair(param)
         else:
-            logger.info("What is this - %s, man?" % exp_result)
-            logger.info("It is %s" % type(exp_result))
+            logger.info("%s is %s" % (param, type(exp_result)))
 
     def get_pair(self, param):
         exp_result = getattr(self.example_element, param)
@@ -60,8 +64,7 @@ class AdminEditor(WeeksDialog):
         elif isinstance(exp_result, bool):
             return getattr(self, param).isChecked()
         else:
-            logger.info("What is this - %s, man?" % exp_result)
-            logger.info("It is %s" % type(exp_result))
+            logger.info("%s is %s" % (param, type(exp_result)))
 
     def default_combo_pair(self, param):
         cls = type(getattr(self.example_element, param))
@@ -112,9 +115,9 @@ class AdminEditor(WeeksDialog):
         self.vbox.addLayout(hbox, 1)
 
     def accept(self):
-        logger.debug('Here must be editor saving')
-        logger.debug('Values are:')
-        for column in self.cls.fields():
-            if not (column.startswith('id_') or column == 'id' or column == 'row_time'):
-                logger.debug('%s - "%s"' % (column, self.make_text(self.get_pair(column))))
+        logger.debug('Here is editor saving')
+        # logger.debug('Values are:')
+        # for column in self.cls.fields():
+        #     if not (column.startswith('id_') or column == 'id' or column == 'row_time'):
+        #         logger.debug('%s - "%s"' % (column, self.make_text(self.get_pair(column))))
         super(AdminEditor, self).accept()

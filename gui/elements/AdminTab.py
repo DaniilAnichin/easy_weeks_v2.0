@@ -79,7 +79,7 @@ class AdminTab(QtGui.QWidget):
         self.editor = AdminEditor(cls, self.session, empty=True)
         if self.editor.exec_() == AdminEditor.Accepted:
             logger.info('Adding accepted')
-            fields = [elem for elem in cls.fields() if not (elem.startswith('id_') or elem == 'id' or elem == 'row_time')]
+            fields = self.editor.fields
             values = {key: self.editor.get_pair(key) for key in fields}
             result = cls.create(self.session, **values)
             logger.debug('Result: "%s"' % unicode(result))
@@ -111,7 +111,7 @@ class AdminTab(QtGui.QWidget):
         self.editor = AdminEditor(element, self.session)
         if self.editor.exec_() == AdminEditor.Accepted:
             logger.info('Editing accepted')
-            fields = [elem for elem in type(element).fields() if not (elem.startswith('id_') or elem == 'id' or elem == 'row_time')]
+            fields = self.editor.fields
             values = {key: self.editor.get_pair(key) for key in fields}
             logger.debug(db_codes_output[type(element).update(
                 self.session, main_id=element.id, **values
