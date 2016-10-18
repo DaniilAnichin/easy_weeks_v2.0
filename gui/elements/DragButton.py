@@ -57,8 +57,9 @@ class DragButton(QtGui.QPushButton):
                     self.show_dial = ShowLesson(self.lesson)
                     self.show_dial.exec_()
                 else:
-                    logger.debug('Are you kiddig me?')
-            logger.info('Pressed: %s' % self.__str__())
+                    pass
+                    # logger.debug('Are you kiddig me?')
+            # logger.info('Pressed: %s' % self.__str__())
 
     def mouseMoveEvent(self, e):
         if e.buttons() != QtCore.Qt.LeftButton or not self.draggable:

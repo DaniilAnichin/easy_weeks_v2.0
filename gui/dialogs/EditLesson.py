@@ -19,7 +19,7 @@ class EditLesson(WeeksDialog):
             logger.info('Wrong object passed: not a lesson')
             raise ValueError
 
-        logger.info('Setting lesson data')
+        # logger.info('Setting lesson data')
         self.lesson = element
         self.lp = self.lesson.lesson_plan
 
@@ -34,6 +34,7 @@ class EditLesson(WeeksDialog):
             self.default_combo_pair(elem)
 
         self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.accept))
+        self.vbox.addWidget(self.make_button(fromUtf8('Видалити'), self.delete))
         self.setWindowTitle(fromUtf8('Редагування заняття'))
 
     def lp_combo_pair(self):
@@ -77,3 +78,6 @@ class EditLesson(WeeksDialog):
         # self.lesson.room = room
         Lessons.update(self.session, main_id=self.lesson.id, id_lesson_plan=lp.id, id_room=room.id)
         super(EditLesson, self).accept()
+
+    def delete(self):
+        pass

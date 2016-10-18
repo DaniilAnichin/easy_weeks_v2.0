@@ -5,7 +5,7 @@ import logging
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 DATABASE_DIR = os.path.join(BASE_DIR, 'database')
 DATABASE_NAME = 'FICT_timetable.db'
-
+README = os.path.join(BASE_DIR, 'README.md')
 
 class Logger(logging.Logger):
     def __init__(self):

@@ -3,7 +3,7 @@
 from PyQt4 import QtGui
 from database import Logger
 from database.structure import *
-from database.select_table import get_table
+from database.select_table import get_table, get_name
 from database.xls_tools import print_table
 from gui.elements.CompleterCombo import CompleterCombo
 from gui.translate import fromUtf8
@@ -11,12 +11,11 @@ logger = Logger()
 
 
 class PrintDialog(QtGui.QDialog):
-    def __init__(self, s, d, td, cdt, parent=None):
+    def __init__(self, session, element, table_data, parent=None):
         super(PrintDialog, self).__init__(parent)
 
-        self.cur_data = d
-        self.table_data = td
-        self.cur_data_type = cdt
+        self.element = element
+        self.table_data = table_data
 
         self.layout = QtGui.QGridLayout(self)
         self.one_button = QtGui.QPushButton(fromUtf8('Друк поточного розкладу'), self)
@@ -26,7 +25,7 @@ class PrintDialog(QtGui.QDialog):
         self.layout.addWidget(self.dep_button, 0, 1)
         self.dep_button.clicked.connect(self.print_dep)
         self.setWindowTitle(fromUtf8('Друк'))
-        self.session = s
+        self.session = session
         self.dep_choiseer = self.make_combo(Departments.read(self.session, True), None, u'Department',
                                             lambda a: unicode(a))
         self.layout.addWidget(self.dep_choiseer, 1, 1)
@@ -45,12 +44,8 @@ class PrintDialog(QtGui.QDialog):
 
     def print_cur(self):
         note = u'Збереження файлу для друку'
-        if self.cur_data_type == u'teachers':
-            teacher_name = Teachers.read(self.session, id=self.cur_data)[0].short_name.replace(u' ', u'_')[:-1]
-            name = u'Розклад_%s.xlsx' % teacher_name
-        elif self.cur_data_type == u'groups':
-            group_name = Groups.read(self.session, id=self.cur_data)[0].name
-            name = u'Розклад_%s.xlsx' % group_name
+        if type(self.element) in [Teachers, Groups, Rooms]:
+            name = u'Розклад_%s.xlsx' % get_name(self.element)
         else:
             return
         save_dest = QtGui.QFileDialog.getSaveFileName(
@@ -59,7 +54,7 @@ class PrintDialog(QtGui.QDialog):
         save_dest = unicode(save_dest)
         if not save_dest.endswith(u'.xlsx'):
             save_dest += u'.xlsx'
-        print_table(self.session, save_dest, self.table_data, self.cur_data_type, self.cur_data)
+        print_table(self.session, save_dest, self.table_data, self.element)
         self.close()
 
     def print_dep(self):
@@ -69,15 +64,12 @@ class PrintDialog(QtGui.QDialog):
         )
         save_dir = unicode(save_dir)
         dep_id = Departments.read(self.session, short_name=unicode(self.dep_choiseer.currentText()))[0].id
-        for t in Teachers.read(self.session, id_department=dep_id):
-            teacher_name = t.short_name.replace(u' ', u'_')[:-1]
-            name = u'/Розклад_%s.xlsx' % teacher_name
-            import os.path
-            save_dest = os.path.join(save_dir, name)
 
-            self.cur_data = t.id
-            self.table_data = get_table(self.session, 'teachers', t.id)
-            self.cur_data_type = 'teachers'
-
-            print_table(self.session, save_dest, self.table_data, self.cur_data_type, self.cur_data)
+        if self.data_chooser.currentText() == Teachers.translated:
+            for teacher in Teachers.read(self.session, id_department=dep_id):
+                name = u'/Розклад_%s.xlsx' % get_name(teacher)
+                import os.path
+                save_dest = os.path.join(save_dir, name)
+                self.table_data = get_table(self.session, teacher)
+                print_table(self.session, save_dest, self.table_data, teacher)
         self.close()

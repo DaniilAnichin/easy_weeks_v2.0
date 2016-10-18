@@ -8,10 +8,9 @@ logger = Logger()
 
 
 class AccountQuery(QtGui.QDialog):
-    def __init__(self):
-        from main_file import WeeksMenu
+    def __init__(self, parent):
         super(AccountQuery, self).__init__()
-        self.session = WeeksMenu().session
+        self.session = parent.session
         self.submit_button = QtGui.QPushButton()
         self.submit_button.clicked.connect(self.accept)
 

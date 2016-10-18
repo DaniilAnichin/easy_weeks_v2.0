@@ -1,11 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
 import xlsxwriter
+from database.select_table import get_name
 from database.structure import *
 
 
-def print_table(session, save_dest, table, data_type, data_id):
+def print_table(session, save_dest, table, element):
     book = xlsxwriter.Workbook(save_dest)
+    data_type = element.__tablename__
 
     page = book.add_worksheet(u'Розклад')
     lformat = book.add_format()
@@ -30,7 +32,7 @@ def print_table(session, save_dest, table, data_type, data_id):
     if data_type == u'teachers':
         page.merge_range(
             0, 0, 0, 6,
-            u'Розклад занять, викладач: %s' % Teachers.read(session, id=data_id)[0].full_name,
+            u'Розклад занять, викладач: %s' % get_name(element),
             lformat)
         for w in range(2):
             for l in range(5):
@@ -51,7 +53,7 @@ def print_table(session, save_dest, table, data_type, data_id):
 
     elif data_type == u'groups':
         page.merge_range(0, 0, 0, 6,
-                         u'Розклад занять, група: %s' % Groups.read(session, id=data_id)[0].name,
+                         u'Розклад занять, група: %s' % get_name(element),
                          lformat)
         for w in range(2):
             for l in range(5):

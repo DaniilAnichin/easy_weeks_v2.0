@@ -1,19 +1,25 @@
-from database import Logger, db_codes
+#!/usr/bin/python
+# -*- coding: utf-8 -*- #
+from database import Logger, db_codes, structure
 from database.structure import *
 __all__ = ['get_table', 'check_table', 'save_table', 'recover_empty',
-           'clear_empty', 'clear_temp', 'find_free', 'undefined_lp']
+           'clear_empty', 'clear_temp', 'find_free', 'undefined_lp',
+           'get_element', 'get_name']
 logger = Logger()
 
 
-def get_table(session, data_type, data):
+def get_table(session, element):
     if isinstance(session, int):
         return db_codes['session']
     # check data_type and data
-    logger.debug('Data type: "%s", data: "%s"' % (data_type, data))
+    data_type = element.__tablename__
+    logger.debug('Data: %s' % get_name(element))
     if data_type == 'rooms':
-        params = dict(id_room=data)
+        params = dict(id_room=element.id)
     else:
-        lesson_plan_ids = [lp.id for lp in LessonPlans.read(session, **{data_type: data})]
+        lesson_plan_ids = [lp.id for lp in LessonPlans.read(
+            session, **{data_type: element.id}
+        )]
         params = dict(id_lesson_plan=lesson_plan_ids)
 
     rettable = [[[None
@@ -43,16 +49,17 @@ def get_table(session, data_type, data):
     return rettable
 
 
-def undefined_lp(session, data_type=None, data=None):
+def undefined_lp(session, element=None):
     if isinstance(session, int):
         return db_codes['session']
 
+    data_type = element.__tablename__
     result = []
     # check data_type and data
-    if not (data_type and data):
+    if not element:
         lesson_plans = LessonPlans.read(session, all_=True)
     else:
-        lesson_plans = LessonPlans.read(session, **{data_type: data})
+        lesson_plans = LessonPlans.read(session, **{data_type: element.id})
     for plan in lesson_plans:
         unsorted = plan.amount - len(Lessons.read(session, id_lesson_plan=plan.id))
         if unsorted > 0:
@@ -203,4 +210,25 @@ def find_free(session, cls, **kwargs):
         if department in departments and is_free(session, cls, classmate.id, **kwargs):
             result.append(classmate)
 
+    return result
+
+
+def get_element(session, data_type, data_id):
+    if isinstance(session, int):
+        return db_codes['session']
+
+    result = getattr(structure, data_type.capitalize()).read(session, id=data_id)
+
+    if isinstance(result, list) and len(result) > 0:
+        result = result[0]
+    return result
+
+
+def get_name(element):
+    if hasattr(element, 'name'):
+        result = element.name
+    elif hasattr(element, 'full_name'):
+        result = element.full_name
+    else:
+        result = str(element)
     return result
