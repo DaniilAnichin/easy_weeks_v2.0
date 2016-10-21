@@ -132,7 +132,6 @@ class WeeksMenu(QtGui.QMainWindow):
 
     def check_database(self):
         logger.info('Started database check function')
-        # check_table(self.session, only_temp=False)
         check_table(self.session, only_temp=True)
 
     def save_database(self):

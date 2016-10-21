@@ -150,7 +150,3 @@ def update_departments(session):
     part_departments(session, cls_name='Teachers', **department_teachers)
     part_departments(session, cls_name='Groups', **department_groups)
     part_departments(session, cls_name='Rooms', **department_rooms)
-
-if __name__ == '__main__':
-    from database.start_db.db_startup import connect_database
-    update_departments(connect_database())

@@ -4,7 +4,6 @@ import json
 import urllib
 from database import Logger, db_codes, db_codes_output, GROUPS, TEACHERS
 from database.structure import *
-from database.start_db.db_startup import connect_database
 logger = Logger()
 
 lessons_url = "http://api.rozklad.org.ua/v2/teachers/%d/lessons"
