@@ -16,9 +16,9 @@ logger = Logger()
 
 class WeeksMenu(QtGui.QMainWindow):
     def __init__(self):
-        super(QtGui.QMainWindow, self).__init__()
+        super(WeeksMenu, self).__init__()
         self.resize(805, 600)
-        self.session = connect_database()
+        self.session = connect_database(hard=True)
         self.center = QtGui.QWidget(self)
         self.hbox = QtGui.QHBoxLayout(self.center)
 
@@ -96,9 +96,9 @@ class WeeksMenu(QtGui.QMainWindow):
     def login(self):
         logger.info('Started user login function')
         from gui.dialogs.LoginDialog import LoginDialog
-        self.login = LoginDialog(Users.read(self.session, all_=True))
-        if self.login.exec_() == QtGui.QDialog.Accepted:
-            self.set_user(self.login.user)
+        self.login_dialog = LoginDialog(Users.read(self.session, all_=True))
+        if self.login_dialog.exec_() == QtGui.QDialog.Accepted:
+            self.set_user(self.login_dialog.user)
             logger.info("Logged in as %s" % self.user.nickname)
 
     def make_account_query(self):
@@ -132,6 +132,7 @@ class WeeksMenu(QtGui.QMainWindow):
 
     def check_database(self):
         logger.info('Started database check function')
+        # check_table(self.session, only_temp=False)
         check_table(self.session, only_temp=True)
 
     def save_database(self):

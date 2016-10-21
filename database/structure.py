@@ -852,7 +852,9 @@ class Lessons(Base):
             return db_codes['wrong']
         if 'row_time' not in kwargs.keys():
             kwargs.update(row_time=cls.to_row(kwargs))
-            # logger.debug('No row_time passed')
+
+        if 'is_temp' not in kwargs.keys():
+            kwargs.update(is_temp=False)
 
         result = cls.read(session, **kwargs)
 
@@ -864,15 +866,15 @@ class Lessons(Base):
         if not kwargs.get('is_temp', True):
             try:
                 cur_lp = kwargs['lesson_plan']
-                lesson_num = Lessons.read(session, lesson_plan=kwargs['lesson_plan'])
             except KeyError:
                 cur_lp = LessonPlans.read(session, id=kwargs['id_lesson_plan'])[0]
-                lesson_num = Lessons.read(session, id_lesson_plan=kwargs['id_lesson_plan'])
+            lessons = Lessons.read(session, id_lesson_plan=cur_lp.id)
+            lesson_num = len(lessons)
 
             if kwargs['row_time'] < 0 or kwargs['row_time'] > cls.table_size:
                 return db_codes['time']
             if cur_lp.amount <= lesson_num:
-                return db_codes['wrong']
+                return db_codes['amount']
 
             exists = cls.exists(session, **kwargs)
             if exists:
@@ -924,7 +926,7 @@ class Lessons(Base):
         return db_codes['success']
 
     @classmethod
-    def exists(cls, session, main_id, **kwargs):
+    def exists(cls, session, main_id=None, **kwargs):
         cur_lp = LessonPlans.read(session, id=kwargs['id_lesson_plan'])[0]
         params = {'is_temp': False}
         if not kwargs.get('is_empty', False):
@@ -934,20 +936,20 @@ class Lessons(Base):
             lp.id for lp in LessonPlans.read(session, groups=cur_lp.groups)
         ], **params):
             if lesson.row_time == kwargs['row_time']:
-                if lesson.id != main_id:
+                if not main_id or lesson.id != main_id:
                     return db_codes['group']
 
         for lesson in Lessons.read(session, id_lesson_plan=[
             lp.id for lp in LessonPlans.read(session, teachers=cur_lp.teachers)
         ], **params):
             if lesson.row_time == kwargs['row_time']:
-                if lesson.id != main_id:
+                if not main_id or lesson.id != main_id:
                     return db_codes['teacher']
 
         if kwargs['id_room'] != 1:
             for lesson in Lessons.read(session, row_time=kwargs['row_time'], **params):
                 if lesson.id_room == kwargs['id_room']:
-                    if lesson.id != main_id:
+                    if not main_id or lesson.id != main_id:
                         return db_codes['room']
 
-        return None
+        return False

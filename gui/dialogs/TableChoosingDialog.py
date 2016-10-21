@@ -22,7 +22,7 @@ class TableChoosingDialog(WeeksDialog):
     def set_list(self):
         self.data_type = self.type.items[self.type.currentIndex()]
         self.values = self.data_type.read(self.session, all_=True)[:]
-        self.values.sort(key=lambda a: unicode(a))
+        self.values.sort(key=unicode)
         self.data_choice.clear()
         self.data_choice.addItems([unicode(item) for item in self.values])
 

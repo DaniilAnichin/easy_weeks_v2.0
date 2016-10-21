@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
+__all__ = ['department_teachers', 'department_rooms', 'department_groups']
 
 
 def get_teachers():

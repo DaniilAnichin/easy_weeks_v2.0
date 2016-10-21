@@ -69,7 +69,7 @@ class AdminTab(QtGui.QWidget):
         logger.info('Setting admin list for %s' % cls.__name__)
         self.items_list.clear()
         self.view_items = cls.read(self.session, all_=True)
-        self.view_items.sort(key=lambda a: unicode(a))
+        self.view_items.sort(key=unicode)
         self.items_list.addItems([unicode(item) for item in self.view_items])
 
     def show_add(self):
@@ -84,7 +84,7 @@ class AdminTab(QtGui.QWidget):
             result = cls.create(self.session, **values)
             logger.debug('Result: "%s"' % unicode(result))
             self.view_items.append(result)
-            self.view_items.sort(key=lambda a: unicode(a))
+            self.view_items.sort(key=unicode)
             new_index = self.view_items.index(result)
             self.items_list.insertItem(new_index, unicode(result))
 
@@ -116,7 +116,7 @@ class AdminTab(QtGui.QWidget):
             logger.debug(db_codes_output[type(element).update(
                 self.session, main_id=element.id, **values
             )])
-            self.view_items.sort(key=lambda a: unicode(a))
+            self.view_items.sort(key=unicode)
             new_index = self.view_items.index(element)
             self.items_list.takeItem(index)
             self.items_list.insertItem(new_index, unicode(element))

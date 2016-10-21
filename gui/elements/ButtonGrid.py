@@ -21,9 +21,9 @@ class ButtonGrid(QtGui.QGridLayout):
             self.addWidget(l, j+1, 0)
 
     def set_table(self, lesson_set, view_args, week, drag_enabled=False):
-        for i in range(len(lesson_set)):
-            for j in range(len(lesson_set[i])):
+        for i, day in enumerate(lesson_set):
+            for j, lesson in enumerate(day):
                 time = [week, i, j]
                 lesson_button = DragButton(self.weekToolRef, view_args, drag_enabled, time)
-                self.addWidget(lesson_button, j+1, i+1, 1, 1)
-                lesson_button.set_lesson(lesson_set[i][j])
+                self.addWidget(lesson_button, j + 1, i + 1, 1, 1)
+                lesson_button.set_lesson(lesson)

@@ -6,6 +6,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 DATABASE_DIR = os.path.join(BASE_DIR, 'database')
 DATABASE_NAME = 'FICT_timetable.db'
 README = os.path.join(BASE_DIR, 'README.md')
+GROUPS = os.path.join(DATABASE_DIR, 'start_db', 'groups.txt')
+TEACHERS = os.path.join(DATABASE_DIR, 'start_db', 'teachers.txt')
+
 
 class Logger(logging.Logger):
     def __init__(self):
@@ -47,7 +50,7 @@ db_codes = {
     'user': 17,
     'temp_lesson': 18,
     'time': 19,
-    '': 20,
+    'amount': 20,
 }
 
 db_codes_output = {
@@ -70,5 +73,6 @@ db_codes_output = {
     16: 'This data may not be edited in any way',
     17: 'Problem with users',
     18: 'Problem with temporary_lessons',
-    19: 'Too many lessons'
+    19: 'Problem with time',
+    20: 'Too many lessons',
 }

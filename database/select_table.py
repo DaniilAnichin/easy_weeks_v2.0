@@ -38,9 +38,9 @@ def get_table(session, element):
                     session, id_week=week_id, id_week_day=day_id,
                     id_lesson_time=time_id, **params
                 )
-                if isinstance(lessons, int):
-                    pass
-                elif lessons:
+                if isinstance(lessons, list) and lessons:
+                    # logger.debug('On %d we have %d lessons for %s' %
+                    #              (lessons[0].row_time, len(lessons), get_name(element)))
                     rettable[week][day][time] = lessons[0].make_temp(session)
                     res = Lessons.update(session, lessons[0].id, is_empty=True)
                     # logger.debug('Lesson empted?: {}'.format(db_codes_output[res]))
@@ -53,12 +53,12 @@ def undefined_lp(session, element=None):
     if isinstance(session, int):
         return db_codes['session']
 
-    data_type = element.__tablename__
     result = []
     # check data_type and data
     if not element:
         lesson_plans = LessonPlans.read(session, all_=True)
     else:
+        data_type = element.__tablename__
         lesson_plans = LessonPlans.read(session, **{data_type: element.id})
     for plan in lesson_plans:
         unsorted = plan.amount - len(Lessons.read(session, id_lesson_plan=plan.id))
@@ -67,7 +67,14 @@ def undefined_lp(session, element=None):
     return result
 
 
-def check_part(session, name, element, **part_data):
+def check_part(session, name, element):
+    data = {
+        'group': lambda group: dict(id_lesson_plan=[lp.id for lp in group.lesson_plans]),
+        'teacher': lambda teach: dict(id_lesson_plan=[lp.id for lp in teach.lesson_plans]),
+        'room': lambda room: dict(id_room=room.id)
+    }
+
+    part_data = data[name](element)
     lessons = Lessons.read(session, is_temp=[False, True], is_empty=False, **part_data)
     time_list = [lesson.row_time for lesson in lessons]
     duplicates = [time for time in set(time_list) if time_list.count(time) > 1]
@@ -78,7 +85,8 @@ def check_part(session, name, element, **part_data):
         else:
             logger.info('Problem with %s at %s' % (element.name, time))
 
-        return db_codes[name]
+        # return db_codes[name]
+        return u'Накладаються заняття у %s в %d' % (name, time)
     return db_codes['success']
 
 
@@ -100,35 +108,20 @@ def check_table(session, only_temp=False):
         teachers = Teachers.read(session, all_=True)
         rooms = Rooms.read(session, all_=True)
 
-    data = {
-        'group': lambda group: dict(id_lesson_plan=[lp.id for lp in group.lesson_plans]),
-        'teacher': lambda teach: dict(id_lesson_plan=[lp.id for lp in teach.lesson_plans]),
-        'room': lambda room: dict(id_room=room.id)
+    elements = {
+        'group': groups,
+        'teacher': teachers,
+        'room': rooms,
     }
 
     # This is awful for now
-    for group in groups:
-        name = 'group'
-        part_data = data[name](group)
-        res = check_part(session, name, group, **part_data)
-        if res != db_codes['success']:
-            return res
-
-    for teach in teachers:
-        name = 'teacher'
-        part_data = data[name](teach)
-        res = check_part(session, name, teach, **part_data)
-        if res != db_codes['success']:
-            return res
-
-    for room in rooms:
-        if room.capacity >= 256:
-            continue
-        name = 'room'
-        part_data = data[name](room)
-        res = check_part(session, name, room, **part_data)
-        if res != db_codes['success']:
-            return res
+    for key in elements.keys():
+        for element in elements[key]:
+            if hasattr(element, 'capacity') and element.capacity >= 256:
+                continue
+            res = check_part(session, key, element)
+            if res != db_codes['success']:
+                return res
 
     logger.info('Database is correct')
     return db_codes['success']

@@ -49,7 +49,7 @@ class WeeksDialog(QtGui.QDialog):
         hbox.addWidget(QtGui.QLabel(self.make_text(second_data)), 1)
         self.vbox.addLayout(hbox, 1)
 
-    def set_combo_pair(self, first_data, second_data, name, key=lambda a: unicode(a), selected=None):
+    def set_combo_pair(self, first_data, second_data, name, key=unicode, selected=None):
         hbox = QtGui.QHBoxLayout()
         hbox.addWidget(QtGui.QLabel(self.make_text(first_data)), 1)
         hbox.addWidget(self.make_combo(second_data, selected, name, key), 1)

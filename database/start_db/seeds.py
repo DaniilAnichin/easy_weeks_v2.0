@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from database import Logger, db_codes, db_codes_output, structure
-from database.start_db.department_data import \
-    department_groups, department_rooms, department_teachers
+from database.start_db.department_data import *
 from database.structure import *
 __all__ = ['create_common', 'create_custom', 'create_empty',
            'update_departments', 'drop_departments']
@@ -122,10 +121,9 @@ def part_departments(session, cls_name, **data):
         for element_name in data[dept_name]:
             param = 'full_name' if cls_name == 'Teachers' else 'name'
             element = cls.read(session, **{param: element_name})[0]
-            try:
-                element.departments
+            if hasattr(element, 'departments'):
                 result = cls.update(session, main_id=element.id, departments=[department])
-            except AttributeError:
+            else:
                 result = cls.update(session, main_id=element.id, department=department)
             if result not in [db_codes['exists'], db_codes['success']]:
                 logger.debug(db_codes_output[result])
@@ -136,10 +134,9 @@ def drop_departments(session, cls_name, department_id=2):
     cls = getattr(structure, cls_name)
     elements = cls.read(session, all_=True)
     for element in elements:
-        try:
-            element.departments
+        if hasattr(element, 'departments'):
             result = cls.update(session, main_id=element.id, departments=[department])
-        except AttributeError:
+        else:
             result = cls.update(session, main_id=element.id, department=department)
         if result not in [db_codes['exists'], db_codes['success']]:
             logger.debug(db_codes_output[result])

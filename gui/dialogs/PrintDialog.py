@@ -26,8 +26,8 @@ class PrintDialog(QtGui.QDialog):
         self.dep_button.clicked.connect(self.print_dep)
         self.setWindowTitle(fromUtf8('Друк'))
         self.session = session
-        self.dep_choiseer = self.make_combo(Departments.read(self.session, True), None, u'Department',
-                                            lambda a: unicode(a))
+        self.dep_choiseer = self.make_combo(
+            Departments.read(self.session, True), None, u'Department', unicode)
         self.layout.addWidget(self.dep_choiseer, 1, 1)
         self.setLayout(self.layout)
 
@@ -44,7 +44,7 @@ class PrintDialog(QtGui.QDialog):
 
     def print_cur(self):
         note = u'Збереження файлу для друку'
-        if type(self.element) in [Teachers, Groups, Rooms]:
+        if isinstance(self.element, (Teachers, Groups, Rooms)):
             name = u'Розклад_%s.xlsx' % get_name(self.element)
         else:
             return
@@ -65,9 +65,10 @@ class PrintDialog(QtGui.QDialog):
         save_dir = unicode(save_dir)
         dep_id = Departments.read(self.session, short_name=unicode(self.dep_choiseer.currentText()))[0].id
 
-        if self.data_chooser.currentText() == Teachers.translated:
+        if True:
+        # if self.data_chooser.currentText() == Teachers.translated:
             for teacher in Teachers.read(self.session, id_department=dep_id):
-                name = u'/Розклад_%s.xlsx' % get_name(teacher)
+                name = u'Розклад_%s.xlsx' % get_name(teacher)
                 import os.path
                 save_dest = os.path.join(save_dir, name)
                 self.table_data = get_table(self.session, teacher)

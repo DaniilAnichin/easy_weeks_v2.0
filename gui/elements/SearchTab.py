@@ -95,4 +95,4 @@ class SearchTab(QtGui.QWidget):
         logger.debug('%s' % self.search_list.row(args[0]))
         item = self.search_list.view_items[self.search_list.row(args[0])]
         cls_name = type(item).__tablename__
-        self.parent().parent().set_table(get_table(self.session, cls_name, item.id), cls_name)
+        self.parent().parent().set_table(get_table(self.session, item), cls_name)

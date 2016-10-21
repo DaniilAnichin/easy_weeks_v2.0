@@ -4,10 +4,10 @@ import os
 from PyQt4 import QtGui, QtCore
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from database import Logger, DATABASE_NAME, DATABASE_DIR
+from database import Logger, TEACHERS
 from database.start_db.import_db import teacher_update
-from database.start_db.db_startup import create_new_database
-from database.start_db.seeds import *
+from database.start_db.db_startup import create_database
+from database.start_db.seeds import create_empty, create_common, update_departments
 from database.select_table import get_table
 from database.structure import *
 from database.structure import Base
@@ -63,20 +63,17 @@ class ImportDialog(QtGui.QDialog):
 
     def updatedb(self):
         self.pro_bar.show()
-        os.remove(os.path.join(DATABASE_DIR, DATABASE_NAME))
-        session = create_new_database(os.path.join(DATABASE_DIR, DATABASE_NAME))
-        session = create_empty(session)
-        session = create_common(session)
-        session = create_custom(session)
-        with open(os.path.join(DATABASE_DIR, 'start_db', 'teachers.txt'), 'r') as f:
-            lines = f.readlines()
-            teacher_number = len(lines)
-            for i in range(teacher_number):
-                self.pro_bar.setValue(100 * i / teacher_number)
-                self.pro_bar.update()
-                teacher = lines[i][:-1]
-                teacher_update(session, teacher)
-                QtCore.QCoreApplication.processEvents()
+        session = create_database(delete_past=True)
+        with open(TEACHERS, 'r') as out:
+            lines = [line[:-1] for line in out.readlines()]
+
+        teacher_number = len(lines)
+        for i in range(teacher_number):
+            self.pro_bar.setValue(100 * i / teacher_number)
+            self.pro_bar.update()
+            teacher = lines[i]
+            teacher_update(session, teacher)
+            QtCore.QCoreApplication.processEvents()
         update_departments(session)
         self.deleteLater()
 
@@ -119,14 +116,14 @@ class ImportDialog(QtGui.QDialog):
                 continue
             temp_teacher = Teachers.read(self.tmp_session, all_=True)[-1]
 
-            data = get_table(self.tmp_session, 'teachers', temp_teacher.id)
+            data = get_table(self.tmp_session, temp_teacher)
 
             pop_out.week_tool_window.set_table(
                 data, 'teachers', pass_check=False
             )
             pop_out.setWindowTitle(QtCore.QString(teacher_name))
             pop_out.show()
-            self.window.tabs.set_table(get_table(self.session, 'teachers', teacher.id), 'teachers')
+            self.window.tabs.set_table(get_table(self.session, teacher), 'teachers')
             self.window.tabs.setCurrentIndex(1)
 
             while not pop_out.is_done:

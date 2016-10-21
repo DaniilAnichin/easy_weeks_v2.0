@@ -59,10 +59,7 @@ class WeekTool(QtGui.QToolBox):
         if self.edited():
             logger.debug('Show dialog asking about table change')
             self.rusure = RUSureChangeTable()
-            if self.rusure.exec_() == RUSureChangeTable.Yes:
-                result = True
-            else:
-                result = False
+            result = self.rusure.exec_() == RUSureChangeTable.Yes
         else:
             # logger.debug('Not edited')
             result = True

@@ -16,8 +16,8 @@ class EasyTab(QtGui.QTabWidget):
         self.parent_name = parent.objectName()
         self.initUI()
 
-    def setTabEnabled(self, p_int, bool):
-        super(EasyTab, self).setTabEnabled(p_int, bool)
+    def setTabEnabled(self, p_int, enabled):
+        super(EasyTab, self).setTabEnabled(p_int, enabled)
         self.setStyleSheet(
             'QTabBar::tab::disabled{width: 0; height: 0; margin: 0; '
             'padding: 0; border: none;}'

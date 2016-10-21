@@ -2,13 +2,15 @@
 # -*- coding: utf-8 -*-#
 import json
 import urllib
-from database import Logger, db_codes_output
+from database import Logger, db_codes, db_codes_output, GROUPS, TEACHERS
 from database.structure import *
-
+from database.start_db.db_startup import connect_database
 logger = Logger()
 
 lessons_url = "http://api.rozklad.org.ua/v2/teachers/%d/lessons"
+gr_lessons_url = "http://api.rozklad.org.ua/v2/groups/%d/lessons"
 teachers_url = "http://api.rozklad.org.ua/v2/teachers/?search={'query': '%s'}"
+groups_url = "http://api.rozklad.org.ua/v2/groups/?search={'query': '%s'}"
 
 
 def get_teacher_id(session, teacher_short_name, add_teacher=True):
@@ -48,6 +50,76 @@ def get_teacher_id(session, teacher_short_name, add_teacher=True):
 
     logger.info('Empty response: ' + teacher_url.decode('utf-8'))
     return -1
+
+
+def get_group_id(session, group_name, add_group=True):
+    # Already checking in outer function
+    # if isinstance(teacher_short_name, unicode):
+    #     teacher_short_name = teacher_short_name.encode('utf-8')
+    group_url = groups_url % group_name
+    info = json.load(urllib.urlopen(group_url))
+
+    if info['statusCode'] != 200:
+        logger.debug('Bad response: ' + info['statusCode'] + ' ' + group_url.decode('utf-8'))
+        return -1
+
+    for row in info['data']:
+        if row['group_full_name'] == group_name:
+            group_id = int(row['teacher_id'])
+            if add_group:
+                Groups.create(session, name=group_name)
+            return group_id
+
+    logger.info('Empty response: ' + group_url.decode('utf-8'))
+    return -1
+
+
+def create_groups(session, groups_path=GROUPS):
+    if isinstance(session, int):
+        return db_codes['session']
+
+    with open(groups_path, 'r') as out:
+        group_names = [line[:-1] for line in out.readlines()]
+
+    ids = []
+
+    for name in group_names:
+        group_name = unicode(name, 'utf-8')
+        created = False
+        info = json.load(urllib.urlopen(groups_url % name))
+        if info['statusCode'] != 200:
+            logger.debug('Bad response: ' + group_name.decode('utf-8'))
+            return -1
+
+        for row in info['data']:
+            if row['group_full_name'] == group_name:
+                created = True
+                res = Groups.create(session, name=group_name)
+                if isinstance(res, int):
+                    logger.debug('Creating groups: ' + db_codes_output[res])
+                ids.append(int(row['group_id']))
+
+        if not created:
+            logger.info('Empty response: ' + group_name.decode('utf-8'))
+
+    return ids
+
+
+def create_teachers(session, teachers_path=TEACHERS):
+    if isinstance(session, int):
+        return db_codes['session']
+
+    with open(teachers_path, 'r') as out:
+        teacher_names = [line[:-1] for line in out.readlines()]
+
+    ids = []
+
+    for name in teacher_names:
+        teacher_name = name
+        # teacher_name = name.encode('utf-8')
+        ids.append(get_teacher_id(session, teacher_name))
+
+    return ids
 
 
 def create_teacher(session, row, teacher_short_name):
@@ -95,11 +167,6 @@ def teacher_update(session, teacher_name, add_teacher=True):
         logger.debug('Teacher model not found')
         return -1
 
-    # Hacking:
-    if 'Павлов' in teacher_name:
-        teacher_id = 2421
-    if 'Стіренко' in teacher_name:
-        teacher_id = 3147
     cur_url = lessons_url % teacher_id
     info = json.load(urllib.urlopen(cur_url))
     if info['statusCode'] != 200:
@@ -205,5 +272,6 @@ def teacher_update(session, teacher_name, add_teacher=True):
         )
         if isinstance(new_lesson, int):
             logger.debug('Error while creating Lesson: ' + db_codes_output[new_lesson])
+            # logger.debug('LP amount: ' + str(lesson_plan.amount))
+            # logger.debug('id: %d, Subject: %s' % (lesson_plan.id, db_subject.full_name))
         # logger.debug(new_lesson)
-
