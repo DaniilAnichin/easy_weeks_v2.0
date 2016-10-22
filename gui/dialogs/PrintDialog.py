@@ -5,6 +5,7 @@ from database import Logger
 from database.structure import *
 from database.select_table import get_table, get_name
 from database.xls_tools import print_table
+from database.xls_tools import print_department_table
 from gui.elements.CompleterCombo import CompleterCombo
 from gui.translate import fromUtf8
 logger = Logger()
@@ -21,14 +22,19 @@ class PrintDialog(QtGui.QDialog):
         self.one_button = QtGui.QPushButton(fromUtf8('Друк поточного розкладу'), self)
         self.layout.addWidget(self.one_button, 0, 0)
         self.one_button.clicked.connect(self.print_cur)
-        self.dep_button = QtGui.QPushButton(fromUtf8('Друк розкладу кафедри\nкафедри'))
+        self.dep_button = QtGui.QPushButton(fromUtf8('Друк розкладу кафедри'))
         self.layout.addWidget(self.dep_button, 0, 1)
         self.dep_button.clicked.connect(self.print_dep)
         self.setWindowTitle(fromUtf8('Друк'))
         self.session = session
-        self.dep_choiseer = self.make_combo(
+        self.dep_chooser = self.make_combo(
             Departments.read(self.session, True), None, u'Department', unicode)
-        self.layout.addWidget(self.dep_choiseer, 1, 1)
+        self.layout.addWidget(self.dep_chooser, 1, 1)
+        self.teacherChooser = QtGui.QRadioButton(fromUtf8('Вчикладачі'), self)
+        self.teacherChooser.setChecked(True)
+        self.groupChooser = QtGui.QRadioButton(fromUtf8('Групи'), self)
+        self.layout.addWidget(self.teacherChooser, 0, 2)
+        self.layout.addWidget(self.groupChooser, 1, 2)
         self.setLayout(self.layout)
 
     def make_combo(self, choice_list, selected, name, sort_key):
@@ -59,18 +65,28 @@ class PrintDialog(QtGui.QDialog):
 
     def print_dep(self):
         note = u'Збереження файлу для друку'
-        save_dir = QtGui.QFileDialog.getExistingDirectory(
-            None, note, options=QtGui.QFileDialog.ShowDirsOnly
+        data_type = u''
+        if self.teacherChooser.isChecked():
+            name = u'Розклад_виклавачів_кафедри_%s.xlsx' % unicode(self.dep_chooser.currentText())
+            data_type = u'teachers'
+        else:
+            name = u'Розклад_груп_кафедри_%s.xlsx' % unicode(self.dep_chooser.currentText())
+            data_type = u'groups'
+        save_dest = QtGui.QFileDialog.getSaveFileName(
+            None, note, directory=name, filter=u'ExcelFiles (*.xlsx)'
         )
-        save_dir = unicode(save_dir)
-        dep_id = Departments.read(self.session, short_name=unicode(self.dep_choiseer.currentText()))[0].id
+        save_dest = unicode(save_dest)
+        if not save_dest.endswith(u'.xlsx'):
+            save_dest += u'.xlsx'
+        dep_id = Departments.read(self.session, short_name=unicode(self.dep_chooser.currentText()))[0].id
 
-        if True:
-        # if self.data_chooser.currentText() == Teachers.translated:
-            for teacher in Teachers.read(self.session, id_department=dep_id):
-                name = u'Розклад_%s.xlsx' % get_name(teacher)
-                import os.path
-                save_dest = os.path.join(save_dir, name)
-                self.table_data = get_table(self.session, teacher)
-                print_table(self.session, save_dest, self.table_data, teacher)
+        print_department_table(self.session, save_dest, data_type, dep_id)
+        # if True:
+        # # if self.data_chooser.currentText() == Teachers.translated:
+        #     for teacher in Teachers.read(self.session, id_department=dep_id):
+        #         name = u'Розклад_%s.xlsx' % get_name(teacher)
+        #         import os.path
+        #         save_dest = os.path.join(save_dir, name)
+        #         self.table_data = get_table(self.session, teacher)
+        #         print_table(self.session, save_dest, self.table_data, teacher)
         self.close()
