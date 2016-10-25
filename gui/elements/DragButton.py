@@ -48,9 +48,14 @@ class DragButton(QtGui.QPushButton):
                     self.edit_dial = EditLesson(lesson, self.parent().session, empty=True)
                 else:
                     self.edit_dial = EditLesson(self.lesson, self.parent().session)
-                if self.edit_dial.exec_() == EditLesson.Accepted:
+                result = self.edit_dial.exec_()
+                if result == EditLesson.Accepted:
                     if self.lesson.is_empty:
                         self.lesson = lesson
+                    self.save_changes()
+                elif result == self.edit_dial.result():
+                    if not self.lesson.is_empty:
+                        self.lesson = Lessons.read(self.parent().session, id=1)[0]
                     self.save_changes()
             else:
                 if not self.lesson.is_empty:
@@ -111,7 +116,15 @@ class DragButton(QtGui.QPushButton):
     def dropEvent(self, e):
         if self != e.source():
             if e.keyboardModifiers() & QtCore.Qt.ShiftModifier:
+                # Perform swap:
+                content = e.source().lesson
+                # e.source().set_lesson(self.lesson)
+                self.set_lesson(content.make_temp(self.parent().session, self.time))
+
+                # tell the QDrag we accepted it
                 e.setDropAction(QtCore.Qt.CopyAction)
+                self.save_changes()
+                e.accept()
             else:
                 # Perform swap:
                 content = e.source().lesson

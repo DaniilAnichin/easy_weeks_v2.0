@@ -1,9 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from PyQt4 import QtGui
 from database import Logger
 from database.structure import Lessons, LessonPlans
 from database.select_table import undefined_lp
 from gui.dialogs.WeeksDialog import WeeksDialog
+from gui.dialogs.RUSureDelete import RUSureDelete
 from gui.translate import fromUtf8
 logger = Logger()
 
@@ -80,4 +82,9 @@ class EditLesson(WeeksDialog):
         super(EditLesson, self).accept()
 
     def delete(self):
-        pass
+        self.rusure = RUSureDelete(self.lesson)
+        if self.rusure.exec_() == QtGui.QMessageBox.Yes:
+            Lessons.delete(self.session, main_id=self.lesson.id)
+            del self.lesson
+            super(EditLesson, self).result()
+            self.close()
