@@ -8,6 +8,7 @@ from database.select_table import *
 from database.structure import *
 from gui.dialogs.ImportDialog import ImportDialog
 from gui.dialogs.FileReadingDialog import FileReadingDialog
+from gui.dialogs.InfoDialog import InfoDialog
 from gui.elements.EasyTab import EasyTab
 from gui.elements.WeekMenuBar import WeekMenuBar
 from gui.translate import fromUtf8
@@ -132,12 +133,24 @@ class WeeksMenu(QtGui.QMainWindow):
 
     def check_database(self):
         logger.info('Started database check function')
-        check_table(self.session, only_temp=True)
+        ret = check_table(self.session, only_temp=True)
+        if ret == 0:
+            msg = 'Перевірка успішна'
+        else:
+            msg = ret
+        self.info = InfoDialog(msg)
+        self.info.show()
 
     def save_database(self):
         logger.info('Started database saving function')
-        save_table(self.session)
+        ret = save_table(self.session)
         self.tabs.method_table.set_edited(False)
+        if ret == 0:
+            msg = 'Збережено успішно'
+        else:
+            msg = ret
+        self.info = InfoDialog(msg)
+        self.info.show()
 
     def print_database(self):
         from gui.dialogs.PrintDialog import PrintDialog
