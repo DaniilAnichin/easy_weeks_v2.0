@@ -72,13 +72,17 @@ class WeeksMenu(QtGui.QMainWindow):
         logger.info('Passed MainMenu TranslateUI function')
 
     def set_tabs_table(self, element=None):
+        self.setCursor(QtGui.QCursor(3))
         self.clear_tabs()
+        self.setCursor(QtGui.QCursor(0))
 
         while not type(element) in [Teachers, Rooms, Groups]:
             logger.debug('Incorrect data passed')
             element = self.show_table_dialog()
 
+        self.setCursor(QtGui.QCursor(3))
         self.table_data = get_table(self.session, element)
+        self.setCursor(QtGui.QCursor(0))
         if not self.tabs.set_table(self.table_data, element.__tablename__):
             self.element = element
             self.data_label.setText(get_name(element))
@@ -132,12 +136,16 @@ class WeeksMenu(QtGui.QMainWindow):
 
     def check_database(self):
         logger.info('Started database check function')
+        self.setCursor(QtGui.QCursor(3))
         check_table(self.session, only_temp=True)
+        self.setCursor(QtGui.QCursor(0))
 
     def save_database(self):
         logger.info('Started database saving function')
+        self.setCursor(QtGui.QCursor(3))
         save_table(self.session)
         self.tabs.method_table.set_edited(False)
+        self.setCursor(QtGui.QCursor(0))
 
     def print_database(self):
         from gui.dialogs.PrintDialog import PrintDialog
