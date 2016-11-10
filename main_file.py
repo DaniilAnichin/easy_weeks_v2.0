@@ -73,10 +73,6 @@ class WeeksMenu(QtGui.QMainWindow):
         logger.info('Passed MainMenu TranslateUI function')
 
     def set_tabs_table(self, element=None):
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
-        self.clear_tabs()
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
-
         if not type(element) in [Teachers, Rooms, Groups]:
             logger.debug('Incorrect data passed')
             element = self.show_table_dialog()
@@ -85,6 +81,7 @@ class WeeksMenu(QtGui.QMainWindow):
             return
 
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
+        self.clear_tabs()
         self.table_data = get_table(self.session, element)
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
 
