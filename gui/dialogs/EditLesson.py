@@ -7,6 +7,7 @@ from database.select_table import undefined_lp
 from gui.dialogs.WeeksDialog import WeeksDialog
 from gui.dialogs.RUSureDelete import RUSureDelete
 from gui.translate import fromUtf8
+from PyQt4.QtGui import QCursor
 logger = Logger()
 
 
@@ -14,6 +15,7 @@ class EditLesson(WeeksDialog):
     def __init__(self, element, session, empty=False, time=False, *args, **kwargs):
         super(EditLesson, self).__init__(*args, **kwargs)
 
+        self.setCursor(QCursor(3))
         self.session = session
         self.empty = empty
 
@@ -38,6 +40,7 @@ class EditLesson(WeeksDialog):
         self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.accept))
         self.vbox.addWidget(self.make_button(fromUtf8('Видалити'), self.delete))
         self.setWindowTitle(fromUtf8('Редагування заняття'))
+        self.setCursor(QCursor(0))
 
     def lp_combo_pair(self):
         cls = LessonPlans
