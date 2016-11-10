@@ -3,7 +3,7 @@
 from PyQt4 import QtGui, QtCore
 from database import Logger, structure
 from gui.dialogs.WeeksDialog import WeeksDialog
-from gui.translate import fromUtf8
+from gui.translate import fromUtf8, translates
 logger = Logger()
 
 
@@ -15,7 +15,10 @@ class AdminEditor(WeeksDialog):
         self.empty = empty
         self.cls = element if empty else type(element)
         self.cls_name = self.cls.__name__
-        self.example_element = self.cls.read(self.session, id=1)[0]
+        if self.cls_name in ['Weeks', 'WeekDays', 'LessonTimes']:
+            self.example_element = self.cls.read(self.session, id=2)[0]
+        else:
+            self.example_element = self.cls.read(self.session, id=1)[0]
         self.element = self.cls.read(self.session, id=1)[0] if empty else element
         self.fields = [column for column in self.cls.fields()
                        if not (column.startswith('id_')
@@ -88,7 +91,7 @@ class AdminEditor(WeeksDialog):
         setattr(self, param, spin)
 
         hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(QtGui.QLabel(param), 1)
+        hbox.addWidget(QtGui.QLabel(translates[param]), 1)
         hbox.addWidget(spin, 1)
         self.vbox.addLayout(hbox, 1)
 
@@ -99,7 +102,7 @@ class AdminEditor(WeeksDialog):
         setattr(self, param, line)
 
         hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(QtGui.QLabel(param), 1)
+        hbox.addWidget(QtGui.QLabel(translates[param]), 1)
         hbox.addWidget(line, 1)
         self.vbox.addLayout(hbox, 1)
 
@@ -110,7 +113,7 @@ class AdminEditor(WeeksDialog):
         setattr(self, param, check)
 
         hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(QtGui.QLabel(param), 1)
+        hbox.addWidget(QtGui.QLabel(translates[param]), 1)
         hbox.addWidget(check, 1)
         self.vbox.addLayout(hbox, 1)
 

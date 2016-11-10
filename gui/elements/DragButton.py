@@ -7,19 +7,35 @@ from gui.dialogs.EditLesson import EditLesson
 from gui.dialogs.ShowLesson import ShowLesson
 logger = Logger()
 
+#
+# color_start = '''border: 1px solid #8f8f91;
+#     color: #eeeeee;
+#     border-radius: 6px;
+#     background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
+#                                       stop: 0 #{}, stop: 1 #{});
+#     min-width: 80px;'''
+color_start = '''
+    border: 1px solid #8f8f91;
+    color: #ffffff;
+    font-weight: 500;
+    background-color: {};
+    min-width: 80px;
+'''
 
-color_start = '''border: 1px solid #8f8f91;
-    border-radius: 6px;
-    background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
-                                      stop: 0 #{}, stop: 1 #{});
-    min-width: 80px;'''
 
 # need other colors, looks ugly
+# button_colors = {
+#     u'Unknown': ['ffffff', 'dddddd'],
+#     u'Лек': ['7777ff', '1111ff'],
+#     u'Прак': ['77ff77', '11ff11'],
+#     u'Лаб': ['ff7777', 'ff1111']
+# }
+
 button_colors = {
-    u'Unknown': ['ffffff', 'dddddd'],
-    u'Лек': ['7777ff', '1111ff'],
-    u'Прак': ['77ff77', '11ff11'],
-    u'Лаб': ['ff7777', 'ff1111']
+    u'Unknown': QtGui.QColor('white').name(),
+    u'Лек': QtGui.QColor(0, 110, 179).name(),
+    u'Прак': QtGui.QColor(0, 166, 152).name(),
+    u'Лаб': QtGui.QColor(181, 95, 124).name()
 }
 
 size_policy = QtGui.QSizePolicy(
@@ -146,7 +162,7 @@ class DragButton(QtGui.QPushButton):
         self.redraw()
 
     def set_bg_color(self, lesson_type):
-        self.setStyleSheet(color_start.format(*button_colors[lesson_type]))
+        self.setStyleSheet(color_start.format(button_colors[lesson_type]))
 
     def set_time(self, time):
         self.time = dict(

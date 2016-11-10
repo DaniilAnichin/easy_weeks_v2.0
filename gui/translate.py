@@ -22,3 +22,17 @@ except AttributeError:
 
 def shorten(line, number):
     return line[:number] + (line[number:] and '...')
+
+translates = {
+    'name': u'Назва',
+    'capacity': u'Місткість',
+    'amount': u'Пар за 2 тиждні',
+    'additional_stuff': u'Додатковво',
+    'full_name': u'Повне ім\'я',
+    'short_name': u'Скорочене ім\'я',
+    'nickname': u'Логін',
+    'status': u'Статус',
+    'hashed_password': u'Закодований пароль',
+    'needed_stuff': u'Додатково',
+    'split_groups': u'Розбивати групи'
+}

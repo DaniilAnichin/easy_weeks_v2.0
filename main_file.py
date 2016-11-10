@@ -18,7 +18,7 @@ logger = Logger()
 class WeeksMenu(QtGui.QMainWindow):
     def __init__(self):
         super(WeeksMenu, self).__init__()
-        self.resize(805, 600)
+        self.resize(1024, 700)
         self.session = connect_database(hard=True)
         self.center = QtGui.QWidget(self)
         self.hbox = QtGui.QHBoxLayout(self.center)
@@ -63,7 +63,7 @@ class WeeksMenu(QtGui.QMainWindow):
         self.menubar = WeekMenuBar(self, menu_data=menu_data)
         self.setMenuBar(self.menubar)
 
-        self.element = Teachers.read(self.session, id=2)[0]
+        self.element = Groups.read(self.session, id=173)[0]
         self.set_tabs_table(self.element)
 
         self.retranslateUi()
@@ -75,7 +75,7 @@ class WeeksMenu(QtGui.QMainWindow):
     def set_tabs_table(self, element=None):
         self.clear_tabs()
 
-        while not type(element) in [Teachers, Rooms, Groups]:
+        if not type(element) in [Teachers, Rooms, Groups]:
             logger.debug('Incorrect data passed')
             element = self.show_table_dialog()
 
