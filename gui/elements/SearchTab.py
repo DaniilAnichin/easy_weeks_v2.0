@@ -92,9 +92,5 @@ class SearchTab(QtGui.QWidget):
             self.search_list.addItem(fromUtf8('На жаль, усі(усе) зайнято'))
 
     def set_table_by_item(self, *args):
-        logger.debug(', '.join([str(arg) for arg in args]))
-        logger.debug('%s' % args[0].text())
-        logger.debug('%s' % self.search_list.row(args[0]))
         item = self.search_list.view_items[self.search_list.row(args[0])]
-        cls_name = type(item).__tablename__
-        self.parent().parent().set_table(get_table(self.session, item), cls_name)
+        self.parent().parent().parent().parent().set_tabs_table(item)

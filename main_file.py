@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
 import sys
-from PyQt4 import QtGui, QtCore
+from PyQt4 import QtGui
 from database import Logger, README
 from database.start_db.db_startup import connect_database
 from database.select_table import *

@@ -68,12 +68,15 @@ class DragButton(QtGui.QPushButton):
                     self.edit_dial = EditLesson(self.lesson, self.parent().session)
                 result = self.edit_dial.exec_()
                 if result == EditLesson.Accepted:
+                    if self.edit_dial.deleting:
+                        logger.debug('deleting')
+                        if not self.lesson.is_empty:
+                            self.lesson = Lessons.read(self.parent().session, id=1)[0]
+                        self.save_changes()
+                        return
+                    logger.debug('accepted')
                     if self.lesson.is_empty:
                         self.lesson = lesson
-                    self.save_changes()
-                elif result == self.edit_dial.result():
-                    if not self.lesson.is_empty:
-                        self.lesson = Lessons.read(self.parent().session, id=1)[0]
                     self.save_changes()
             else:
                 if not self.lesson.is_empty:

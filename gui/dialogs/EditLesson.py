@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui
-from database import Logger
+from database import Logger, db_codes_output
 from database.structure import Lessons, LessonPlans
 from database.select_table import undefined_lp
 from gui.dialogs.WeeksDialog import WeeksDialog
@@ -76,6 +76,7 @@ class EditLesson(WeeksDialog):
         self.set_list_pair(label, selected_values, values, name)
 
     def accept(self):
+        self.deleting = False
         logger.debug('Here is editor saving')
         lp = self.lesson_plans.items[self.lesson_plans.currentIndex()]
         room = self.rooms.items[self.rooms.currentIndex()]
@@ -87,7 +88,9 @@ class EditLesson(WeeksDialog):
     def delete(self):
         self.rusure = RUSureDelete(self.lesson)
         if self.rusure.exec_() == QtGui.QMessageBox.Yes:
-            Lessons.delete(self.session, main_id=self.lesson.id)
+            res = Lessons.delete(self.session, main_id=self.lesson.id)
+            # logger.debug(db_codes_output[res])
             del self.lesson
-            super(EditLesson, self).result()
+            self.deleting = True
+            super(EditLesson, self).accept()
             self.close()
