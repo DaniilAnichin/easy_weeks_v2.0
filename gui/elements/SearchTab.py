@@ -78,7 +78,9 @@ class SearchTab(QtGui.QWidget):
         params = self.get_time()
         params.update(self.department())
         cls = self.object_choice.items[self.object_choice.currentIndex()]
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
         result = find_free(self.session, cls, **params)
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
         logger.debug('Number of free: "%d"' % len(result))
         self.show_results(result)
 

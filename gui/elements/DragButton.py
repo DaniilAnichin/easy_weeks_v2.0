@@ -60,9 +60,9 @@ class DragButton(QtGui.QPushButton):
             # Pressing callback
             if self.draggable:
                 if self.lesson.is_empty:
-                    self.setCursor(QtGui.QCursor(3))
+                    QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
                     lesson = Lessons.create(self.parent().session, is_temp=True, **self.time)
-                    self.setCursor(QtGui.QCursor(0))
+                    QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
                     self.edit_dial = EditLesson(lesson, self.parent().session, empty=True)
                 else:
                     self.edit_dial = EditLesson(self.lesson, self.parent().session)

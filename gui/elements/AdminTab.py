@@ -55,6 +55,7 @@ class AdminTab(QtGui.QWidget):
         self.editButton.setText(fromUtf8('Редагувати'))
 
     def set_objects(self):
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
         self.objects.items = [getattr(structure, item) for item in structure.__all__]
         for item in self.objects.items:
             columns = item.columns()
@@ -63,14 +64,18 @@ class AdminTab(QtGui.QWidget):
 
         self.objects.items.sort(key=lambda a: a.translated)
         self.objects.addItems([item.translated for item in self.objects.items])
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
+
 
     def set_list(self):
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
         cls = self.objects.items[self.objects.currentIndex()]
         logger.info('Setting admin list for %s' % cls.__name__)
         self.items_list.clear()
         self.view_items = cls.read(self.session, all_=True)
         self.view_items.sort(key=unicode)
         self.items_list.addItems([unicode(item) for item in self.view_items])
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
 
     def show_add(self):
         cls = self.objects.items[self.objects.currentIndex()]
@@ -108,7 +113,9 @@ class AdminTab(QtGui.QWidget):
         element = self.view_items[index]
         logger.info('Running edit dialog for %s' % unicode(element))
 
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
         self.editor = AdminEditor(element, self.session)
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
         if self.editor.exec_() == AdminEditor.Accepted:
             logger.info('Editing accepted')
             fields = self.editor.fields

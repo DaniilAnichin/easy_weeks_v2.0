@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
 import sys
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from database import Logger, README
 from database.start_db.db_startup import connect_database
 from database.select_table import *
@@ -73,17 +73,21 @@ class WeeksMenu(QtGui.QMainWindow):
         logger.info('Passed MainMenu TranslateUI function')
 
     def set_tabs_table(self, element=None):
-        self.setCursor(QtGui.QCursor(3))
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
         self.clear_tabs()
-        self.setCursor(QtGui.QCursor(0))
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
 
         if not type(element) in [Teachers, Rooms, Groups]:
             logger.debug('Incorrect data passed')
             element = self.show_table_dialog()
 
-        self.setCursor(QtGui.QCursor(3))
+        if not type(element) in [Teachers, Rooms, Groups]:
+            return
+
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
         self.table_data = get_table(self.session, element)
-        self.setCursor(QtGui.QCursor(0))
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
+
         if not self.tabs.set_table(self.table_data, element.__tablename__):
             self.element = element
             self.data_label.setText(get_name(element))
@@ -144,17 +148,17 @@ class WeeksMenu(QtGui.QMainWindow):
             msg = ret
         self.info = InfoDialog(msg)
         self.info.show()
-        self.setCursor(QtGui.QCursor(3))
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
         check_table(self.session, only_temp=True)
-        self.setCursor(QtGui.QCursor(0))
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
 
     def save_database(self):
         logger.info('Started database saving function')
-        self.setCursor(QtGui.QCursor(3))
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
         save_table(self.session)
         ret = save_table(self.session)
         self.tabs.method_table.set_edited(False)
-        self.setCursor(QtGui.QCursor(0))
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
         if ret == 0:
             msg = 'Збережено успішно'
         else:
