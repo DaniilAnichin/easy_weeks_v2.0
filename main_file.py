@@ -138,6 +138,7 @@ class WeeksMenu(QtGui.QMainWindow):
 
     def check_database(self):
         logger.info('Started database check function')
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
         ret = check_table(self.session, only_temp=True)
         if ret == 0:
             msg = 'Перевірка успішна'
@@ -145,8 +146,7 @@ class WeeksMenu(QtGui.QMainWindow):
             msg = ret
         self.info = InfoDialog(msg)
         self.info.show()
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
-        check_table(self.session, only_temp=True)
+        # check_table(self.session, only_temp=True)
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
 
     def save_database(self):

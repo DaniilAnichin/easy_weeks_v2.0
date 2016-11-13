@@ -5,6 +5,7 @@ from database import Logger, structure
 from database.structure import *
 from gui.dialogs.EditLesson import EditLesson
 from gui.dialogs.ShowLesson import ShowLesson
+from database.select_table import check_table_after_swap
 logger = Logger()
 
 #
@@ -35,7 +36,8 @@ button_colors = {
     u'Unknown': QtGui.QColor('white').name(),
     u'Лек': QtGui.QColor(0, 110, 179).name(),
     u'Прак': QtGui.QColor(0, 166, 152).name(),
-    u'Лаб': QtGui.QColor(181, 95, 124).name()
+    u'Лаб': QtGui.QColor(181, 95, 124).name(),
+    u'issue': QtGui.QColor('red').name()
 }
 
 size_policy = QtGui.QSizePolicy(
@@ -155,6 +157,15 @@ class DragButton(QtGui.QPushButton):
                 # tell the QDrag we accepted it
                 e.setDropAction(QtCore.Qt.MoveAction)
                 e.accept()
+            ret = check_table_after_swap(self.parent().session, self.lesson if self.lesson.id != 1 else self.time, \
+                                         e.source().lesson if e.source().lesson.id != 1 else e.source().time)
+            self.redraw()
+            e.source().redraw()
+            if ret != [[], [], [], [], [], []]:
+                if ret[0] or ret[1] or ret[2]:
+                    e.source().set_bg_color(u'issue')
+                if ret[3] or ret[4] or ret[5]:
+                    self.set_bg_color(u'issue')
         else:
             e.ignore()
 
