@@ -45,7 +45,7 @@ class WeeksMenu(QtGui.QMainWindow):
             ],
             [
                 'Допомога',
-                ['Керівництво користувача', self.docs]
+                ['Посібник користувача', self.docs]
             ]
         ]
         self.tabs = EasyTab(self.center, self.session)
