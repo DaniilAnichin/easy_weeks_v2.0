@@ -143,7 +143,7 @@ class WeeksMenu(QtGui.QMainWindow):
         if ret == 0:
             msg = 'Перевірка успішна'
         else:
-            msg = ret
+            msg = "Перекриття у заняттях номер: %s" % ret
         self.info = InfoDialog(msg)
         self.info.show()
         # check_table(self.session, only_temp=True)
@@ -152,14 +152,13 @@ class WeeksMenu(QtGui.QMainWindow):
     def save_database(self):
         logger.info('Started database saving function')
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
-        save_table(self.session)
         ret = save_table(self.session)
-        self.tabs.method_table.set_edited(False)
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
         if ret == 0:
+            self.tabs.method_table.set_edited(False)
             msg = 'Збережено успішно'
         else:
-            msg = ret
+            msg = 'Перекриття у заннятях: %s' % ret
         self.info = InfoDialog(msg)
         self.info.show()
 

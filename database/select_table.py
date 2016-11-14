@@ -86,7 +86,7 @@ def check_part(session, name, element):
             logger.info('Problem with %s at %s' % (element.name, time))
 
         # return db_codes[name]
-        return u'Накладаються заняття у %s в %d' % (name, time)
+        return duplicates
     return db_codes['success']
 
 
@@ -96,13 +96,19 @@ def check_table(session, only_temp=False):
 
     # Can optimize by reading not the all groups/teachers/rooms
     if only_temp:
-        groups = Groups.read(session, lesson_plans=LessonPlans.read(
-            session, lessons=Lessons.read(session, is_temp=True)
-        ))
-        teachers = Teachers.read(session, lesson_plans=LessonPlans.read(
-            session, lessons=Lessons.read(session, is_temp=True)
-        ))
-        rooms = Rooms.read(session, lessons=Lessons.read(session, is_temp=True))
+        lessons = Lessons.read(session, is_temp=True)
+        groups = []
+        teachers = []
+        rooms = []
+        for l in lessons:
+            for g in l.lesson_plan.groups:
+                if not groups.count(g):
+                    groups.append(g)
+            for t in l.lesson_plan.teachers:
+                if not teachers.count(t):
+                    teachers.append(t)
+            if not rooms.count(l.room):
+                rooms.append(l.room)
     else:
         groups = Groups.read(session, all_=True)
         teachers = Teachers.read(session, all_=True)
@@ -115,13 +121,18 @@ def check_table(session, only_temp=False):
     }
 
     # This is awful for now
+    overlaying = []
     for key in elements.keys():
         for element in elements[key]:
             if hasattr(element, 'capacity') and element.capacity >= 256:
                 continue
             res = check_part(session, key, element)
             if res != db_codes['success']:
-                return res
+                for time in res:
+                    if not overlaying.count(time):
+                        overlaying.append(time)
+    if overlaying:
+        return overlaying
 
     logger.info('Database is correct')
     return db_codes['success']

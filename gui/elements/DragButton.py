@@ -1,11 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui, QtCore
-from database import Logger, structure
+from database import Logger, structure, db_codes
 from database.structure import *
 from gui.dialogs.EditLesson import EditLesson
 from gui.dialogs.ShowLesson import ShowLesson
-from database.select_table import check_table_after_swap
+from database.select_table import check_table
 logger = Logger()
 
 #
@@ -157,15 +157,18 @@ class DragButton(QtGui.QPushButton):
                 # tell the QDrag we accepted it
                 e.setDropAction(QtCore.Qt.MoveAction)
                 e.accept()
-            ret = check_table_after_swap(self.parent().session, self.lesson if self.lesson.id != 1 else self.time, \
-                                         e.source().lesson if e.source().lesson.id != 1 else e.source().time)
+            # QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
+            overlaying = check_table(self.parent().session, True)
+            # QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
             self.redraw()
             e.source().redraw()
-            if ret != [[], [], [], [], [], []]:
-                if ret[0] or ret[1] or ret[2]:
-                    e.source().set_bg_color(u'issue')
-                if ret[3] or ret[4] or ret[5]:
-                    self.set_bg_color(u'issue')
+            if overlaying != db_codes['success']:
+                if e.source().lesson.id != 1:
+                    if overlaying.count(e.source().lesson.row_time):
+                        e.source().set_bg_color(u'issue')
+                if self.lesson.id != 1:
+                    if overlaying.count(self.lesson.row_time):
+                        self.set_bg_color(u'issue')
         else:
             e.ignore()
 
