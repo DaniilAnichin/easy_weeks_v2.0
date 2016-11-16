@@ -63,6 +63,7 @@ class ImportDialog(QtGui.QDialog):
 
     def updatedb(self):
         self.pro_bar.show()
+        self.session.close_all()
         session = create_database(delete_past=True)
         with open(TEACHERS, 'r') as out:
             lines = [line[:-1] for line in out.readlines()]
