@@ -238,67 +238,6 @@ def get_name(element):
     return result
 
 
-def check_table_after_swap(session, lesson1, lesson2):
-
-    if isinstance(session, int):
-        return db_codes['session']
-
-    bad_lessons = []
-    if not isinstance(lesson2, dict):
-        lpidg2 = [lp.id for lp in LessonPlans.read(session, groups=[g.id for g in lesson2.lesson_plan.groups])]
-        lpidt2 = [lp.id for lp in LessonPlans.read(session, teachers=[g.id for g in lesson2.lesson_plan.teachers])]
-        lpidg2.remove(lesson2.lesson_plan.id) if lpidg2.count(lesson2.lesson_plan.id) else None
-        lpidt2.remove(lesson2.lesson_plan.id) if lpidt2.count(lesson2.lesson_plan.id) else None
-        if not isinstance(lesson1, dict):
-            lpidt2.remove(lesson1.lesson_plan.id) if lpidt2.count(lesson1.lesson_plan.id) else None
-            lpidg2.remove(lesson1.lesson_plan.id) if lpidg2.count(lesson1.lesson_plan.id) else None
-        rl = Lessons.read(session, row_time=lesson2.row_time, is_temp=False, id_room=lesson2.id_room)
-        for l in rl:
-            if l.lesson_plan.id == lesson2.lesson_plan.id:
-                rl.remove(l)
-                break
-            if not isinstance(lesson1, dict):
-                if l.lesson_plan.id == lesson1.lesson_plan.id:
-                    rl.remove(l)
-                    break
-        bad_lessons.append(rl)
-        bad_lessons.append(Lessons.read(session, row_time=lesson2.row_time, is_temp=False,
-                                        id_lesson_plan=lpidg2))
-        bad_lessons.append(Lessons.read(session, row_time=lesson2.row_time, is_temp=False,
-                                        id_lesson_plan=lpidt2))
-    else:
-        bad_lessons.append([])
-        bad_lessons.append([])
-        bad_lessons.append([])
-    if not isinstance(lesson1, dict):
-        lpidg1 = [lp.id for lp in LessonPlans.read(session, groups=[g.id for g in lesson1.lesson_plan.groups])]
-        lpidt1 = [lp.id for lp in LessonPlans.read(session, teachers=[g.id for g in lesson1.lesson_plan.teachers])]
-        lpidg1.remove(lesson1.lesson_plan.id) if lpidg1.count(lesson1.lesson_plan.id) else None
-        lpidt1.remove(lesson1.lesson_plan.id) if lpidt1.count(lesson1.lesson_plan.id) else None
-        if not isinstance(lesson2, dict):
-            lpidt1.remove(lesson2.lesson_plan.id) if lpidt1.count(lesson2.lesson_plan.id) else None
-            lpidg1.remove(lesson2.lesson_plan.id) if lpidg1.count(lesson2.lesson_plan.id) else None
-        rl = Lessons.read(session, row_time=lesson1.row_time, is_temp=False, id_room=lesson1.id_room)
-        for l in rl:
-            if l.lesson_plan.id == lesson1.lesson_plan.id:
-                rl.remove(l)
-                break
-            if not isinstance(lesson2, dict):
-                if l.lesson_plan.id == lesson2.lesson_plan.id:
-                    rl.remove(l)
-                    break
-        bad_lessons.append(rl)
-        bad_lessons.append(Lessons.read(session, row_time=lesson1.row_time, is_temp=False,
-                                        id_lesson_plan=lpidg1))
-        bad_lessons.append(Lessons.read(session, row_time=lesson1.row_time, is_temp=False,
-                                        id_lesson_plan=lpidt1))
-    else:
-        bad_lessons.append([])
-        bad_lessons.append([])
-        bad_lessons.append([])
-    return bad_lessons
-
-
 def same_tables(first_session, second_session, teacher):
     first_table = get_table(first_session, teacher)
     second_table = get_table(second_session, Teachers.read(
