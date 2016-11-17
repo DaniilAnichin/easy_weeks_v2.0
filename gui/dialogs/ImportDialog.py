@@ -8,7 +8,7 @@ from database import Logger, TEACHERS
 from database.start_db.import_db import teacher_update
 from database.start_db.db_startup import create_database
 from database.start_db.seeds import create_empty, create_common, update_departments
-from database.select_table import get_table
+from database.select_table import get_table, same_tables
 from database.structure import *
 from database.structure import Base
 from gui.dialogs.ImportDiffDialog import ImportDiffDialog
@@ -106,6 +106,10 @@ class ImportDialog(QtGui.QDialog):
 
             if teacher.id == 1:
                 # meta = MetaData()
+                self.clear_database()
+                continue
+
+            if same_tables(self.session, self.tmp_session, teacher):
                 self.clear_database()
                 continue
 

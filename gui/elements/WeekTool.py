@@ -66,6 +66,7 @@ class WeekTool(QtGui.QToolBox):
         return result
 
     def clear_table(self):
+        self.set_edited(False)
         for child in self.first_panel.findChildren(DragButton):
             child.before_close()
             del child

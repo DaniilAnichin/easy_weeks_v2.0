@@ -297,3 +297,31 @@ def check_table_after_swap(session, lesson1, lesson2):
         bad_lessons.append([])
         bad_lessons.append([])
     return bad_lessons
+
+
+def same_tables(first_session, second_session, teacher):
+    first_table = get_table(first_session, teacher)
+    second_table = get_table(second_session, Teachers.read(
+        second_session, short_name=teacher.short_name
+    )[0])
+    for i in range(len(first_table)):
+        for j in range(len(first_table[i])):
+            for k in range(len(first_table[i][j])):
+                lesson = first_table[i][j][k]
+                second = second_table[i][j][k]
+                if lesson.is_empty and second.is_empty:
+                    continue
+                if lesson.is_empty or second.is_empty:
+                    return False
+                if not lesson == second:
+                    return False
+    return True
+
+if __name__ == '__main__':
+    from database.start_db.db_startup import connect_database
+
+    first_db = connect_database()
+    second_db = connect_database('FICT_timetable2.db')
+
+    teacher = Teachers.read(first_db, id=20)[0]
+    logger.debug(same_tables(first_db, second_db, teacher))

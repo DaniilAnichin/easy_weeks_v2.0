@@ -746,9 +746,21 @@ class Lessons(Base):
         fields.pop(fields.index('id'))
         fields.pop(fields.index('is_temp'))
         result = True
-        for field in fields:
-            result = result and (getattr(self, field) == getattr(other, field))
-        return result
+        if self.row_time != other.row_time:
+            return False
+        if self.room.name != other.room.name:
+            return False
+        teacher_set = set([teacher.short_name for teacher in self.lesson_plan.teachers])
+        teacher_set2 = set([teacher.short_name for teacher in other.lesson_plan.teachers])
+        if not teacher_set == teacher_set2:
+            return False
+        group_set = set([group.name for group in self.lesson_plan.groups])
+        group_set2 = set([group.name for group in other.lesson_plan.groups])
+        if not group_set == group_set2:
+            return False
+        if self.lesson_plan.subject.short_name != other.lesson_plan.subject.short_name:
+            return False
+        return True
 
     def time(self):
         return dict(
