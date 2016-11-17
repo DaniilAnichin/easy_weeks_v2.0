@@ -49,6 +49,7 @@ class ImportDiffDialog(QtGui.QDialog):
         self.is_done = True
 
     def acceptTT(self):
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
         t_lessons = Lessons.read(self.session, id_lesson_plan=[
             old_lp.id for old_lp in LessonPlans.read(self.session, teachers=self.teacher.id)
         ])
@@ -72,6 +73,7 @@ class ImportDiffDialog(QtGui.QDialog):
                 logger.debug(db_codes_output[new_lp])
             else:
                 for lesson in Lessons.read(self.tmp_session, id_lesson_plan=lp.id):
+                    # TODO: delete overlaying lesson
                     new_lesson = Lessons.create(
                         self.session,
                         row_time=lesson.row_time,
@@ -80,3 +82,5 @@ class ImportDiffDialog(QtGui.QDialog):
                     )
                     if isinstance(new_lesson, int):
                         logger.debug(db_codes_output[new_lesson])
+
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))

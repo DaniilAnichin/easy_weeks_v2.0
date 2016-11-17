@@ -95,6 +95,7 @@ class ImportDialog(QtGui.QDialog):
         pop_out.setTmpSession(self.tmp_session)
 
         for i in range(teachers_number):
+            QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
             create_empty(self.tmp_session)
             create_common(self.tmp_session)
             teacher = teachers[i]
@@ -109,13 +110,13 @@ class ImportDialog(QtGui.QDialog):
                 self.clear_database()
                 continue
 
-            if same_tables(self.session, self.tmp_session, teacher):
-                self.clear_database()
-                continue
-
             update_result = teacher_update(self.tmp_session, teacher_name, True)
             if update_result == -1:
                 logger.debug('Update failed')
+                self.clear_database()
+                continue
+
+            if same_tables(self.session, self.tmp_session, teacher):
                 self.clear_database()
                 continue
             temp_teacher = Teachers.read(self.tmp_session, all_=True)[-1]
@@ -129,6 +130,7 @@ class ImportDialog(QtGui.QDialog):
             pop_out.show()
             self.window.tabs.set_table(get_table(self.session, teacher), 'teachers')
             self.window.tabs.setCurrentIndex(1)
+            QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
 
             while not pop_out.is_done:
                 QtCore.QCoreApplication.processEvents()
@@ -150,4 +152,5 @@ class ImportDialog(QtGui.QDialog):
         if hasattr(self, 'tmp_session'):
             if hasattr(self.tmp_session, 'close'):
                 self.tmp_session.close()
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
         self.deleteLater()
