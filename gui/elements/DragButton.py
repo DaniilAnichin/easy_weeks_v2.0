@@ -8,13 +8,6 @@ from gui.dialogs.ShowLesson import ShowLesson
 from database.select_table import check_table
 logger = Logger()
 
-#
-# color_start = '''border: 1px solid #8f8f91;
-#     color: #eeeeee;
-#     border-radius: 6px;
-#     background-color: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 1,
-#                                       stop: 0 #{}, stop: 1 #{});
-#     min-width: 80px;'''
 color_start = '''
     border: 1px solid #8f8f91;
     color: #ffffff;
@@ -22,15 +15,6 @@ color_start = '''
     background-color: {};
     min-width: 80px;
 '''
-
-
-# need other colors, looks ugly
-# button_colors = {
-#     u'Unknown': ['ffffff', 'dddddd'],
-#     u'Лек': ['7777ff', '1111ff'],
-#     u'Прак': ['77ff77', '11ff11'],
-#     u'Лаб': ['ff7777', 'ff1111']
-# }
 
 button_colors = {
     u'Unknown': QtGui.QColor('white').name(),
