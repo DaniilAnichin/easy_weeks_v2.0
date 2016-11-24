@@ -27,3 +27,10 @@ class ButtonGrid(QtGui.QGridLayout):
                 lesson_button = DragButton(self.weekToolRef, view_args, drag_enabled, time)
                 self.addWidget(lesson_button, j + 1, i + 1, 1, 1)
                 lesson_button.set_lesson(lesson)
+
+    def draw_duplicates(self, duplicates):
+        for time in duplicates:
+            button = self.itemAtPosition(
+                time % 5 + 1, time / 5 + 1
+            ).widget()
+            button.set_error()

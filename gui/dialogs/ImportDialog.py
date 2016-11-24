@@ -8,7 +8,7 @@ from database import Logger, TEACHERS
 from database.start_db.import_db import teacher_update
 from database.start_db.db_startup import create_database
 from database.start_db.seeds import create_empty, create_common, update_departments
-from database.select_table import get_table, same_tables
+from database.select_table import get_table, same_tables, clear_temp, find_duplicates
 from database.structure import *
 from database.structure import Base
 from gui.dialogs.ImportDiffDialog import ImportDiffDialog
@@ -36,7 +36,7 @@ class ImportDialog(QtGui.QDialog):
         self.import_dep_button.clicked.connect(self.updateDepDb)
 
         self.dep_chooser = self.make_combo(
-            Departments.read(self.session, True), None, u'Department', lambda a: unicode(a)
+            Departments.read(self.session, True), None, u'Department', unicode
         )
         self.layout.addWidget(self.dep_chooser)
 
@@ -89,6 +89,7 @@ class ImportDialog(QtGui.QDialog):
         teachers_number = len(teachers)
 
         new_engine = create_engine('sqlite:///:memory:')
+        # new_engine = create_engine('sqlite:///FICT_tmp.db')
         Base.metadata.create_all(new_engine)
         session_m = sessionmaker(bind=new_engine)
         self.tmp_session = session_m()
@@ -97,6 +98,10 @@ class ImportDialog(QtGui.QDialog):
 
         for i in range(teachers_number):
             QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
+
+            self.pro_bar.setValue(100 * j / teachers_number)
+            self.pro_bar.update()
+
             create_empty(self.tmp_session)
             create_common(self.tmp_session)
             teacher = teachers[i]
@@ -120,14 +125,19 @@ class ImportDialog(QtGui.QDialog):
             if same_tables(self.session, self.tmp_session, teacher):
                 self.clear_database()
                 continue
+            else:
+                clear_temp(self.tmp_session)
             temp_teacher = Teachers.read(self.tmp_session, all_=True)[-1]
-
+            duplicates = find_duplicates(self.tmp_session, self.session, temp_teacher)
             data = get_table(self.tmp_session, temp_teacher)
 
             pop_out.week_tool_window.set_table(
                 data, 'teachers', pass_check=False
             )
+            pop_out.week_tool_window.draw_duplicates(duplicates)
             pop_out.setWindowTitle(QtCore.QString(teacher_name))
+            if duplicates:
+                pop_out.ybutton.setDisabled(True)
             pop_out.show()
             self.window.tabs.set_table(get_table(self.session, teacher), 'teachers')
             self.window.tabs.setCurrentIndex(1)
@@ -136,9 +146,6 @@ class ImportDialog(QtGui.QDialog):
             while not pop_out.is_done:
                 QtCore.QCoreApplication.processEvents()
             pop_out.is_done = False
-
-            self.pro_bar.setValue(100 * j / teachers_number)
-            self.pro_bar.update()
 
             self.clear_database()
             if pop_out.quit:

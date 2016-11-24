@@ -74,6 +74,10 @@ class WeekTool(QtGui.QToolBox):
             child.before_close()
             del child
 
+    def draw_duplicates(self, duplicates):
+        self.first_table.draw_duplicates([x for x in duplicates if x < 30])
+        self.second_table.draw_duplicates([x - 30 for x in duplicates if x >= 30])
+
     def translateUI(self):
         self.setItemText(0, fromUtf8('Перший тиждень'))
         self.setItemText(1, fromUtf8('Другий тиждень'))

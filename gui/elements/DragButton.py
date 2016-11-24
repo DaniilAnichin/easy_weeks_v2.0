@@ -149,10 +149,10 @@ class DragButton(QtGui.QPushButton):
             if overlaying != db_codes['success']:
                 if e.source().lesson.id != 1:
                     if overlaying.count(e.source().lesson.row_time):
-                        e.source().set_bg_color(u'issue')
+                        e.source().set_error()
                 if self.lesson.id != 1:
                     if overlaying.count(self.lesson.row_time):
-                        self.set_bg_color(u'issue')
+                        self.set_error()
         else:
             e.ignore()
 
@@ -163,6 +163,9 @@ class DragButton(QtGui.QPushButton):
                 self.parent().edited = True
                 Lessons.update(self.parent().session, main_id=self.lesson.id, **self.time)
         self.redraw()
+
+    def set_error(self):
+        self.set_bg_color(u'issue')
 
     def set_bg_color(self, lesson_type):
         self.setStyleSheet(color_start.format(button_colors[lesson_type]))

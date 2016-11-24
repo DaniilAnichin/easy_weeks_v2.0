@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
-from database import Logger, db_codes, structure
+from database import Logger, db_codes, db_codes_output, structure
 from database.structure import *
 __all__ = ['get_table', 'check_table', 'save_table', 'recover_empty',
            'clear_empty', 'clear_temp', 'find_free', 'undefined_lp',
@@ -67,14 +67,14 @@ def undefined_lp(session, element=None):
     return result
 
 
-def check_part(session, name, element):
+def check_part(session, element):
     data = {
-        'group': lambda group: dict(id_lesson_plan=[lp.id for lp in group.lesson_plans]),
-        'teacher': lambda teach: dict(id_lesson_plan=[lp.id for lp in teach.lesson_plans]),
-        'room': lambda room: dict(id_room=room.id)
+        'Groups': lambda group: dict(id_lesson_plan=[lp.id for lp in group.lesson_plans]),
+        'Teachers': lambda teach: dict(id_lesson_plan=[lp.id for lp in teach.lesson_plans]),
+        'Rooms': lambda room: dict(id_room=room.id)
     }
 
-    part_data = data[name](element)
+    part_data = data[element.__class__.__name__](element)
     lessons = Lessons.read(session, is_temp=[False, True], is_empty=False, **part_data)
     time_list = [lesson.row_time for lesson in lessons]
     duplicates = [time for time in set(time_list) if time_list.count(time) > 1]
@@ -84,9 +84,8 @@ def check_part(session, name, element):
             logger.info('Problem with %s at %s' % (element.short_name, time))
         else:
             logger.info('Problem with %s at %s' % (element.name, time))
-
-        # return db_codes[name]
         return duplicates
+
     return db_codes['success']
 
 
@@ -115,9 +114,9 @@ def check_table(session, only_temp=False):
         rooms = Rooms.read(session, all_=True)
 
     elements = {
-        'group': groups,
-        'teacher': teachers,
-        'room': rooms,
+        'Group': groups,
+        'Teacher': teachers,
+        'Room': rooms,
     }
 
     # This is awful for now
@@ -126,7 +125,7 @@ def check_table(session, only_temp=False):
         for element in elements[key]:
             if hasattr(element, 'capacity') and element.capacity >= 256:
                 continue
-            res = check_part(session, key, element)
+            res = check_part(session, element)
             if res != db_codes['success']:
                 for time in res:
                     if not overlaying.count(time):
@@ -136,6 +135,46 @@ def check_table(session, only_temp=False):
 
     logger.info('Database is correct')
     return db_codes['success']
+
+
+def find_duplicates(session, old_session, main_teacher):
+    new_lessons = Lessons.read(
+        session,
+        id_lesson_plan=[lp.id for lp in LessonPlans.read(session, teachers=[main_teacher.id])]
+    )
+    duplicates = []
+    for lesson in new_lessons:
+        params = {
+            'row_time': lesson.row_time,
+            'id_lesson_plan': [
+                lp.id for lp in LessonPlans.read(
+                    old_session,
+                    groups=[
+                        group.id for group in Groups.read(
+                            old_session, name=[
+                                gro.name for gro in lesson.lesson_plan.groups
+                                ]
+                        )
+                        ]
+                )
+                ]
+        }
+        grouper = Lessons.read(old_session, **params)
+        if grouper and not isinstance(grouper, int):
+            if not lesson.lesson_plan.teachers[0].short_name == \
+                    grouper[0].lesson_plan.teachers[0].short_name:
+                duplicates.append(lesson.row_time)
+                continue
+        params = {
+            'row_time': lesson.row_time,
+            'room': Rooms.read(old_session, name=lesson.room.name)[0]
+        }
+        roomer = Lessons.read(old_session, **params)
+        if roomer:
+            if not lesson.lesson_plan.teachers[0].short_name == \
+                    roomer[0].lesson_plan.teachers[0].short_name:
+                duplicates.append(lesson.row_time)
+    return duplicates
 
 
 def save_table(session):
