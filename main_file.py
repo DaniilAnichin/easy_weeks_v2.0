@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
 import sys
+import hotshot
 from PyQt4 import QtGui
 from database import Logger, README
 from database.start_db.db_startup import connect_database
@@ -13,6 +14,8 @@ from gui.elements.EasyTab import EasyTab
 from gui.elements.WeekMenuBar import WeekMenuBar
 from gui.translate import fromUtf8
 logger = Logger()
+profile = hotshot.Profile("easy_weeks.prof")
+profile.start()
 
 
 class WeeksMenu(QtGui.QMainWindow):
@@ -173,6 +176,8 @@ class WeeksMenu(QtGui.QMainWindow):
         if not self.clear_tabs():
             event.ignore()
         else:
+            profile.stop()
+            profile.close()
             event.accept()
 
     def clear_tabs(self):

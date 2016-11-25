@@ -11,7 +11,6 @@ logger = Logger()
 def get_table(session, element):
     if isinstance(session, int):
         return db_codes['session']
-    # check data_type and data
     data_type = element.__tablename__
     logger.debug('Data: %s' % get_name(element))
     if data_type == 'rooms':
@@ -22,30 +21,21 @@ def get_table(session, element):
         )]
         params = dict(id_lesson_plan=lesson_plan_ids)
 
-    rettable = [[[None
+    empty = Lessons.read(session, id=1)[0]
+    full = Lessons.read(session, **params)
+    rettable = [[[empty
                   for i in range(len(Lessons.time_ids))]
                  for j in range(len(Lessons.day_ids))]
                 for k in range(len(Lessons.week_ids))]
 
-    for week_id in Lessons.week_ids:
-        for day_id in Lessons.day_ids:
-            for time_id in Lessons.time_ids:
-                week = Lessons.week_ids.index(week_id)
-                day = Lessons.day_ids.index(day_id)
-                time = Lessons.time_ids.index(time_id)
-
-                lessons = Lessons.read(
-                    session, id_week=week_id, id_week_day=day_id,
-                    id_lesson_time=time_id, **params
-                )
-                if isinstance(lessons, list) and lessons:
-                    # logger.debug('On %d we have %d lessons for %s' %
-                    #              (lesson1.row_time, len(lessons), get_name(element)))
-                    rettable[week][day][time] = lessons[0].make_temp(session)
-                    res = Lessons.update(session, lessons[0].id, is_empty=True)
-                    # logger.debug('Lesson empted?: {}'.format(db_codes_output[res]))
-                else:
-                    rettable[week][day][time] = Lessons.read(session, id=1)[0]
+    for i, week in enumerate(rettable):
+        for j, day in enumerate(week):
+            for k in range(len(day)):
+                row_time = k + 5 * j + 30 * i
+                lesson = [x for x in full if x.row_time == row_time]
+                if lesson:
+                    day[k] = lesson[0].make_temp(session)
+                    res = Lessons.update(session, lesson[0].id, is_empty=True)
     return rettable
 
 
