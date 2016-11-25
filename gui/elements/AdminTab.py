@@ -21,7 +21,7 @@ class AdminTab(QtGui.QWidget):
         self.objects = CompleterCombo(self)
         self.objects.items = []
         self.objects.currentIndexChanged.connect(self.set_list)
-        self.objects.setCurrentIndex(1)
+        # self.objects.setCurrentIndex(1)
         self.hbox.addWidget(self.objects)
 
         spacer = QtGui.QSpacerItem(
@@ -48,6 +48,7 @@ class AdminTab(QtGui.QWidget):
         self.vbox.addWidget(self.items_list)
         self.translateUI()
         self.set_objects()
+        # self.objects.setCurrentIndex(3)
 
     def translateUI(self):
         self.addButton.setText(fromUtf8('Додати'))
@@ -65,7 +66,6 @@ class AdminTab(QtGui.QWidget):
         self.objects.items.sort(key=lambda a: a.translated)
         self.objects.addItems([item.translated for item in self.objects.items])
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
-
 
     def set_list(self):
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))

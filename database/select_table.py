@@ -4,7 +4,7 @@ from database import Logger, db_codes, db_codes_output, structure
 from database.structure import *
 __all__ = ['get_table', 'check_table', 'save_table', 'recover_empty',
            'clear_empty', 'clear_temp', 'find_free', 'undefined_lp',
-           'get_element', 'get_name']
+           'get_element', 'get_name', 'same_tables', 'find_duplicates']
 logger = Logger()
 
 
@@ -278,21 +278,33 @@ def get_name(element):
 
 
 def same_tables(first_session, second_session, teacher):
-    first_table = get_table(first_session, teacher)
-    second_table = get_table(second_session, Teachers.read(
-        second_session, short_name=teacher.short_name
-    )[0])
-    for i in range(len(first_table)):
-        for j in range(len(first_table[i])):
-            for k in range(len(first_table[i][j])):
-                lesson = first_table[i][j][k]
-                second = second_table[i][j][k]
-                if lesson.is_empty and second.is_empty:
-                    continue
-                if lesson.is_empty or second.is_empty:
-                    return False
-                if not lesson == second:
-                    return False
+    first_table = Lessons.read(
+        first_session,
+        id_lesson_plan=[
+            lp.id for lp in LessonPlans.read(
+                first_session, teachers=[teacher.id]
+            )
+        ]
+    )
+    first_table.sort(key=lambda a: a.row_time)
+    second_table = Lessons.read(
+        second_session,
+        id_lesson_plan=[
+            lp.id for lp in LessonPlans.read(
+                second_session, teachers=[Teachers.read(
+                    second_session, short_name=teacher.short_name
+                )[0].id]
+            )
+        ]
+    )
+    second_table.sort(key=lambda a: a.row_time)
+    for first, second in zip(first_table, second_table):
+        if first.is_empty and second.is_empty:
+            continue
+        if first.is_empty or second.is_empty:
+            return False
+        if not first == second:
+            return False
     return True
 
 if __name__ == '__main__':
