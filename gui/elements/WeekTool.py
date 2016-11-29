@@ -67,12 +67,10 @@ class WeekTool(QtGui.QToolBox):
 
     def clear_table(self):
         self.set_edited(False)
-        for child in self.first_panel.findChildren(DragButton):
-            child.before_close()
-            del child
-        for child in self.second_panel.findChildren(DragButton):
-            child.before_close()
-            del child
+        # for child in self.first_panel.findChildren(DragButton):
+        #     child.before_close()
+        # for child in self.second_panel.findChildren(DragButton):
+        #     child.before_close()
 
     def draw_duplicates(self, duplicates):
         self.first_table.draw_duplicates([x for x in duplicates if x < 30])

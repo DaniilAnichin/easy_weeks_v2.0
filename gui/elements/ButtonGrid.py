@@ -8,6 +8,8 @@ logger = Logger()
 
 
 class ButtonGrid(QtGui.QGridLayout):
+    created = False
+
     def __init__(self, parent, weekToolRef):
         super(ButtonGrid, self).__init__(parent)
         self.weekToolRef = weekToolRef
@@ -23,10 +25,16 @@ class ButtonGrid(QtGui.QGridLayout):
     def set_table(self, lesson_set, view_args, week, drag_enabled=False):
         for i, day in enumerate(lesson_set):
             for j, lesson in enumerate(day):
-                time = [week, i, j]
-                lesson_button = DragButton(self.weekToolRef, view_args, drag_enabled, time)
-                self.addWidget(lesson_button, j + 1, i + 1, 1, 1)
+                if self.created:
+                    lesson_button = self.itemAtPosition(
+                        j + 1, i + 1
+                    ).widget()
+                else:
+                    time = [week, i, j]
+                    lesson_button = DragButton(self.weekToolRef, view_args, drag_enabled, time)
+                    self.addWidget(lesson_button, j + 1, i + 1, 1, 1)
                 lesson_button.set_lesson(lesson)
+        self.created = True
 
     def draw_duplicates(self, duplicates):
         for time in duplicates:
