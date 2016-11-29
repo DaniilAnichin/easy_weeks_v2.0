@@ -26,9 +26,7 @@ class ButtonGrid(QtGui.QGridLayout):
         for i, day in enumerate(lesson_set):
             for j, lesson in enumerate(day):
                 if self.created:
-                    lesson_button = self.itemAtPosition(
-                        j + 1, i + 1
-                    ).widget()
+                    lesson_button = self.itemAtPosition(j + 1, i + 1).widget()
                 else:
                     time = [week, i, j]
                     lesson_button = DragButton(self.weekToolRef, view_args, drag_enabled, time)
