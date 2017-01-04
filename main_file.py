@@ -192,8 +192,15 @@ class WeeksMenu(QtGui.QMainWindow):
             return True
 
     def docs(self):
-        self.docs_window = FileReadingDialog(README)
-        self.docs_window.show()
+        # self.docs_window = FileReadingDialog(README)
+        # self.docs_window.show()
+        from PyQt4.QtCore import QUrl
+        QtGui.QDesktopServices.openUrl(QUrl("User_manual.PDF"))
+
+    def keyPressEvent(self, e):
+        if e.key() == 0x01000030:  # Qt::KEY_F1
+            self.docs()
+
 
 
 def main():

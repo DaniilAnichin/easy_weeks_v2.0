@@ -14,5 +14,12 @@ class FileReadingDialog(QtGui.QMessageBox):
             text = out.readlines()
 
         info = ''.join(text)
-        self.setInformativeText(fromUtf8(info))
+        linfo = QtGui.QTextEdit()
+        linfo.setPlainText(fromUtf8(info))
+        linfo.setFixedHeight(600)
+        linfo.setFixedWidth(450)
+        linfo.setReadOnly(True)
+
+        # self.layout().addWidget(linfo)
+        self.layout().addWidget(linfo, 1, 1)
         self.setWindowTitle(fromUtf8(shorten(text[0], 50)))

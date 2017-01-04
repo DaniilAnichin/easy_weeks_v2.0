@@ -134,11 +134,13 @@ class ImportDialog(QtGui.QDialog):
             pop_out.week_tool_window.set_table(
                 data, 'teachers', pass_check=False
             )
-            pop_out.week_tool_window.draw_duplicates(duplicates)
             pop_out.setWindowTitle(QtCore.QString(teacher_name))
             if duplicates:
                 pop_out.ybutton.setDisabled(True)
             pop_out.show()
+            QtCore.QCoreApplication.processEvents()
+            pop_out.week_tool_window.draw_duplicates(duplicates)
+            QtCore.QCoreApplication.processEvents()
             self.window.tabs.set_table(get_table(self.session, teacher), 'teachers')
             self.window.tabs.setCurrentIndex(1)
             QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
