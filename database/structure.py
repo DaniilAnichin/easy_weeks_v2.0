@@ -198,7 +198,7 @@ class Users(Base):
 
     @classmethod
     def create(cls, session, **kwargs):
-        password = kwargs['password'].encode('utf-8')
+        password = kwargs.pop('password', '').encode('utf-8')
         if not password:
             logger.error('No password passed')
             raise ValueError('No password passed')

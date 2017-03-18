@@ -120,7 +120,12 @@ def part_departments(session, cls_name, **data):
         cls = getattr(structure, cls_name)
         for element_name in data[dept_name]:
             param = 'full_name' if cls_name == 'Teachers' else 'name'
-            element = cls.read(session, **{param: element_name})[0]
+            try:
+                element = cls.read(session, **{param: element_name})[0]
+            except IndexError:
+                logger.error('No such element: %s' % element_name)
+                continue
+
             if hasattr(element, 'departments'):
                 result = cls.update(session, main_id=element.id, departments=[department])
             else:

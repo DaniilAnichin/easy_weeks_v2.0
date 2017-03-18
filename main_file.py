@@ -1,21 +1,18 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
 import sys
-import hotshot
 from PyQt4 import QtGui
-from database import Logger, README
+from database import Logger
 from database.start_db.db_startup import connect_database
+from database.start_db.seeds import update_departments
 from database.select_table import *
 from database.structure import *
 from gui.dialogs.ImportDialog import ImportDialog
-from gui.dialogs.FileReadingDialog import FileReadingDialog
 from gui.dialogs.InfoDialog import InfoDialog
 from gui.elements.EasyTab import EasyTab
 from gui.elements.WeekMenuBar import WeekMenuBar
 from gui.translate import fromUtf8
 logger = Logger()
-profile = hotshot.Profile("easy_weeks.prof")
-profile.start()
 
 
 class WeeksMenu(QtGui.QMainWindow):
@@ -41,6 +38,7 @@ class WeeksMenu(QtGui.QMainWindow):
             [
                 'База даних',
                 ['Завантаження',  self.load_database],
+                ['Задати кафедри', self.set_departments],
                 [],
                 ['Перевірка', self.check_database],
                 ['Збереження', self.save_database],
@@ -91,6 +89,11 @@ class WeeksMenu(QtGui.QMainWindow):
         if not self.tabs.set_table(self.table_data, element.__tablename__):
             self.element = element
             self.data_label.setText(get_name(element))
+
+    def set_departments(self):
+        logger.info('Started department setting function')
+        update_departments(self.session)
+        logger.info('Success')
 
     def show_table_dialog(self):
         logger.info('Started table choosing dialog function')
@@ -176,8 +179,6 @@ class WeeksMenu(QtGui.QMainWindow):
         if not self.clear_tabs():
             event.ignore()
         else:
-            profile.stop()
-            profile.close()
             event.accept()
 
     def clear_tabs(self):
@@ -187,20 +188,16 @@ class WeeksMenu(QtGui.QMainWindow):
         else:
             self.tabs.method_table.clear_table()
             clear_temp(self.session)
-            # self.tabs.user_table.clear_table()
             recover_empty(self.session)
             return True
 
     def docs(self):
-        # self.docs_window = FileReadingDialog(README)
-        # self.docs_window.show()
         from PyQt4.QtCore import QUrl
         QtGui.QDesktopServices.openUrl(QUrl("User_manual.PDF"))
 
     def keyPressEvent(self, e):
         if e.key() == 0x01000030:  # Qt::KEY_F1
             self.docs()
-
 
 
 def main():
