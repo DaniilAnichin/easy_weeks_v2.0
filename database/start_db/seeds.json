@@ -1,0 +1,94 @@
+{
+    "common": {
+        "Universities": [
+            {
+                "short_name": "Невизначено",
+                "full_name": "Невизначено"
+            }
+        ],
+        "Faculties": [
+            {
+                "short_name": "Невизначено",
+                "full_name": "Невизначено",
+                "id_university": 2
+            }
+        ],
+        "Departments": [
+            {
+                "short_name": "Невизначено",
+                "full_name": "Невизначено",
+                "id_faculty": 2
+            }
+        ],
+        "Rooms": [
+            { 
+                "name": "Невизначено", 
+                "capacity": 320, 
+                "additional_stuff": ""
+            }
+        ],
+
+        "Degrees": [
+            {"short_name": "ас.", "full_name": "асистент"},
+            {"short_name": "вик.", "full_name": "викладач"},
+            {"short_name": "доц.", "full_name": "доцент"},
+            {"short_name": "дек.", "full_name": "декан"},
+            {"short_name": "зав.каф.", "full_name": "завідувач кафедри"},
+            {"short_name": "проф.", "full_name": "професор"},
+            {"short_name": "ст.вик.", "full_name": "старший викладач"},
+            {"short_name": "пос.", "full_name":  "посада"}
+        ],
+        "LessonTypes": [
+            {"short_name": "Лек", "full_name": "Лекція"},
+            {"short_name": "Прак", "full_name": "Практика"},
+            {"short_name": "Лаб", "full_name": "Лабораторна"}
+        ],
+
+        "Weeks": [
+            {"short_name": "І", "full_name": "Перший тиждень"},
+            {"short_name": "ІІ", "full_name": "Другий тиждень"}
+        ],
+
+        "WeekDays": [
+            {"short_name": "Пн", "full_name": "Понеділок"},
+            {"short_name": "Вт", "full_name": "Вівторок"},
+            {"short_name": "Ср", "full_name": "Середа"},
+            {"short_name": "Чт", "full_name": "Четвер"},
+            {"short_name": "Пт", "full_name": "П\"ятниця"},
+            {"short_name": "Сб", "full_name": "Субота"},
+            {"short_name": "Нд", "full_name": "Неділя"}
+        ],
+
+        "LessonTimes": [
+            {"short_name": "1", "full_name": "8:30-10:05"},
+            {"short_name": "2", "full_name": "10:25-12:00"},
+            {"short_name": "3", "full_name": "12:20-13:55"},
+            {"short_name": "4", "full_name": "14:15-15:50"},
+            {"short_name": "5", "full_name": "16:10-17:45"},
+            {"short_name": "6", "full_name": "18:05-19:40"}
+        ]
+    }, 
+    "custom": {
+        "Universities": [
+            {
+                "short_name": "НТУУ «КПІ»",
+                "full_name": "Національний технічний університет України «Київський політехнічний інститут»"
+            }
+        ],
+
+        "Faculties": [
+            {
+                "id_university": 3,
+                "short_name": "ФІОТ",
+                "full_name": "Інформатики та обчислюваної техніки"
+            }
+        ],
+
+        "Departments": [
+            {"id_faculty": 3, "short_name": "ТК", "full_name": "Технiчної кiбернетики"},
+            {"id_faculty": 3, "short_name": "ОТ", "full_name": "Обчислювальної технiки"},
+            {"id_faculty": 3, "short_name": "АУТС", "full_name": "Автоматики i управлiння в технiчних системах"},
+            {"id_faculty": 3, "short_name": "АСОІУ", "full_name": "Автоматизованих систем обробки iнформацiї та управлiння"}
+        ]
+    }
+}

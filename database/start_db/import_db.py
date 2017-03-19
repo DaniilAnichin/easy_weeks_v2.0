@@ -78,12 +78,17 @@ def create_groups(session, groups_path=GROUPS):
         return db_codes['session']
 
     with open(groups_path, 'r') as out:
-        group_names = [line[:-1] for line in out.readlines()]
+        group_names = json.load(out)
 
     ids = []
 
     for name in group_names:
+        if isinstance(name, list):
+            ids.append(name[1])
+            continue
+
         group_name = unicode(name, 'utf-8')
+
         created = False
         info = json.load(urllib.urlopen(groups_url % name))
         if info['statusCode'] != 200:
@@ -109,14 +114,15 @@ def create_teachers(session, teachers_path=TEACHERS):
         return db_codes['session']
 
     with open(teachers_path, 'r') as out:
-        teacher_names = [line[:-1] for line in out.readlines()]
+        teacher_names = json.load(out)
 
     ids = []
 
     for name in teacher_names:
-        teacher_name = name
-        # teacher_name = name.encode('utf-8')
-        ids.append(get_teacher_id(session, teacher_name))
+        if isinstance(name, list):
+            ids.append(name[1])
+        else:
+            ids.append(get_teacher_id(session, name))
 
     return ids
 
@@ -149,16 +155,25 @@ def create_teacher(session, row, teacher_short_name):
 
 
 def teacher_update(session, teacher_name, add_teacher=True):
-    if isinstance(teacher_name, unicode):
-        teacher_name = teacher_name.encode('utf-8')
 
-    teacher_id = get_teacher_id(session, teacher_name, add_teacher)
+    if isinstance(teacher_name, list):
+        teacher_id = teacher_name[1]
+        teacher_name = teacher_name[0]
+        if isinstance(teacher_name, unicode):
+            teacher_name = teacher_name.encode('utf-8')
+        get_teacher_id(session, teacher_name, add_teacher)
+    else:
+        if isinstance(teacher_name, unicode):
+            teacher_name = teacher_name.encode('utf-8')
+        teacher_id = get_teacher_id(session, teacher_name, add_teacher)
+
+    teacher_name = unicode(' '.join(teacher_name.split(' ')[1:]), 'utf-8')
     if teacher_id == -1:
         # logger.debug('Teacher not found')
         return -1
     teacher = Teachers.read(
         session,
-        short_name=unicode(' '.join(teacher_name.split(' ')[1:]), 'utf-8')
+        short_name=teacher_name
     )
     if isinstance(teacher, list):
         teacher = teacher[0]
@@ -171,6 +186,7 @@ def teacher_update(session, teacher_name, add_teacher=True):
     if info['statusCode'] != 200:
         logger.debug('Bad response: ' + str(info['statusCode']) + ' ' + cur_url.decode('utf-8'))
         return -1
+    logger.debug('teacher: ' + teacher_name)
 
     department_id = 2
     for lesson in info['data']:
@@ -199,6 +215,8 @@ def teacher_update(session, teacher_name, add_teacher=True):
             cap = 256
 
         # Room:
+        if lesson['lesson_room'] in ['', '-18']:
+            lesson['lesson_room'] = teacher_name + lesson['lesson_id']
         db_room = Rooms.read(session, name=lesson['lesson_room'])
         if not db_room:
             db_room = Rooms.create(
@@ -236,23 +254,30 @@ def teacher_update(session, teacher_name, add_teacher=True):
             'id_subject': db_subject.id,  # Subject
             'id_lesson_type': lesson_type.id,     # Lesson Type
             'groups': groups,  # Groups
-            'teachers': [teacher]
         }
-        lesson_plan = LessonPlans.read(session, **lesson_plan_info)
-        if not lesson_plan:
-            lesson_plan = LessonPlans.create(
-                session,
-                amount=1,
-                split_groups=0,
-                capacity=32 * groups_number,
-                param_checker=u'',
-                **lesson_plan_info
-            )
-            if isinstance(lesson_plan, int):
-                logger.debug('Creating LP: ' + db_codes_output[lesson_plan])
-        elif isinstance(lesson_plan, list):
+        lesson_plan = LessonPlans.read(session, teachers=[teacher], **lesson_plan_info)
+        if isinstance(lesson_plan, list) and len(lesson_plan) > 0:
             lesson_plan = lesson_plan[0]
             LessonPlans.update(session, main_id=lesson_plan.id, amount=lesson_plan.amount + 1)
+        else:
+            lesson_plan = LessonPlans.read(session, **lesson_plan_info)
+            if isinstance(lesson_plan, list) and len(lesson_plan) > 0:
+                lesson_plan = lesson_plan[0]
+                LessonPlans.update(session, main_id=lesson_plan.id,
+                                   teachers=(lesson_plan.teachers + [teacher]))
+                continue
+            else:
+                lesson_plan = LessonPlans.create(
+                    session,
+                    amount=1,
+                    split_groups=0,
+                    capacity=32 * groups_number,
+                    param_checker=u'',
+                    teachers=[teacher],
+                    **lesson_plan_info
+                )
+                if isinstance(lesson_plan, int):
+                    logger.debug('Creating LP: ' + db_codes_output[lesson_plan])
 
         if not isinstance(lesson_plan, LessonPlans):
             logger.debug('Ploblem while loading LP model')
@@ -271,6 +296,6 @@ def teacher_update(session, teacher_name, add_teacher=True):
         )
         if isinstance(new_lesson, int):
             logger.debug('Error while creating Lesson: ' + db_codes_output[new_lesson])
+            logger.debug('At ' + str(row_time))
             # logger.debug('LP amount: ' + str(lesson_plan.amount))
             # logger.debug('id: %d, Subject: %s' % (lesson_plan.id, db_subject.full_name))
-        # logger.debug(new_lesson)

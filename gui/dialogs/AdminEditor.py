@@ -7,6 +7,15 @@ from gui.translate import fromUtf8, translates
 logger = Logger()
 
 
+def safe_column(column_name):
+    # May be added later
+    return not (column_name.startswith('id_')
+                or column_name.startswith('is_')
+                or column_name in
+                ['id', 'row_time', 'param_checker', 'additional_stuff',
+                 'split_groups', 'needed_stuff'])
+
+
 class AdminEditor(WeeksDialog):
     def __init__(self, element, session, empty=False, *args, **kwargs):
         super(AdminEditor, self).__init__(*args, **kwargs)
@@ -20,12 +29,7 @@ class AdminEditor(WeeksDialog):
         else:
             self.example_element = self.cls.read(self.session, id=1)[0]
         self.element = self.cls.read(self.session, id=1)[0] if empty else element
-        self.fields = [column for column in self.cls.fields()
-                       if not (column.startswith('id_')
-                               or column.startswith('is_')
-                               or column == 'id'
-                               or column == 'row_time'
-                               or column == 'param_checker')]
+        self.fields = [column for column in self.cls.fields() if safe_column(column)]
 
         if self.cls_name not in structure.__all__:
             logger.debug('Wrong params')

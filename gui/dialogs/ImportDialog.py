@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import os
+import json
 from PyQt4 import QtGui, QtCore
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -66,7 +66,7 @@ class ImportDialog(QtGui.QDialog):
         self.session.close_all()
         session = create_database(delete_past=True)
         with open(TEACHERS, 'r') as out:
-            lines = [line[:-1] for line in out.readlines()]
+            lines = json.load(out)
 
         teacher_number = len(lines)
         for i in range(teacher_number):
@@ -157,7 +157,7 @@ class ImportDialog(QtGui.QDialog):
         for table in reversed(Base.metadata.sorted_tables):
             self.tmp_session.execute(table.delete())
             self.tmp_session.commit()
-        
+
     def closeEvent(self, QCloseEvent):
         if hasattr(self, 'tmp_session'):
             if hasattr(self.tmp_session, 'close'):

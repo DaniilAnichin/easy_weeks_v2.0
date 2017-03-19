@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*- #
 import sys
 from PyQt4 import QtGui
-from database import Logger
+from database import Logger, EW_VERSION
 from database.start_db.db_startup import connect_database
-from database.start_db.seeds import update_departments
+from database.start_db.seeds import update_departments, save_departments
 from database.select_table import *
 from database.structure import *
 from gui.dialogs.ImportDialog import ImportDialog
@@ -39,6 +39,7 @@ class WeeksMenu(QtGui.QMainWindow):
                 'База даних',
                 ['Завантаження',  self.load_database],
                 ['Задати кафедри', self.set_departments],
+                ['Зберігти кафедри', self.save_departments],
                 [],
                 ['Перевірка', self.check_database],
                 ['Збереження', self.save_database],
@@ -46,7 +47,8 @@ class WeeksMenu(QtGui.QMainWindow):
             ],
             [
                 'Допомога',
-                ['Посібник користувача', self.docs]
+                ['Посібник користувача', self.docs],
+                [EW_VERSION, lambda x: x]
             ]
         ]
         self.tabs = EasyTab(self.center, self.session)
@@ -64,7 +66,7 @@ class WeeksMenu(QtGui.QMainWindow):
         self.menubar = WeekMenuBar(self, menu_data=menu_data)
         self.setMenuBar(self.menubar)
 
-        self.element = Groups.read(self.session, id=173)[0]
+        self.element = Groups.read(self.session, id=2)[0]
         self.set_tabs_table(self.element)
 
         self.retranslateUi()
@@ -93,6 +95,11 @@ class WeeksMenu(QtGui.QMainWindow):
     def set_departments(self):
         logger.info('Started department setting function')
         update_departments(self.session)
+        logger.info('Success')
+
+    def save_departments(self):
+        logger.info('Started department saving function')
+        save_departments(self.session)
         logger.info('Success')
 
     def show_table_dialog(self):

@@ -97,3 +97,6 @@ ENV/
 # Schedules
 *.xls
 *.xlsx
+
+# logs
+*.logs

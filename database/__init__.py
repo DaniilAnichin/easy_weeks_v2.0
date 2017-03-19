@@ -6,8 +6,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 DATABASE_DIR = os.path.join(BASE_DIR, 'database')
 DATABASE_NAME = 'FICT_timetable.db'
 README = os.path.join(BASE_DIR, 'README.md')
-GROUPS = os.path.join(DATABASE_DIR, 'start_db', 'groups.txt')
-TEACHERS = os.path.join(DATABASE_DIR, 'start_db', 'teachers.txt')
+with open(README) as out:
+    EW_VERSION = out.readline()
+DATA_DIR = os.path.join(DATABASE_DIR, 'start_db')
+GROUPS = os.path.join(DATA_DIR, 'groups.json')
+TEACHERS = os.path.join(DATA_DIR, 'teachers.json')
+DEPARTMENTS = os.path.join(DATA_DIR, 'departments.json')
+SEEDS = os.path.join(DATA_DIR, 'seeds.json')
 
 
 class Logger(logging.Logger):
