@@ -52,8 +52,8 @@ class WeeksMenu(QtGui.QMainWindow):
             ]
         ]
         self.tabs = EasyTab(self.center, self.session)
-        self.set_user(Users.read(self.session, nickname='Admin')[0])
-        # self.set_user()
+        # self.set_user(Users.read(self.session, nickname='Admin')[0])
+        self.set_user()
 
         self.hbox.addWidget(self.tabs)
         self.setCentralWidget(self.center)
@@ -156,7 +156,13 @@ class WeeksMenu(QtGui.QMainWindow):
         if ret == 0:
             msg = 'Перевірка успішна'
         else:
-            msg = "Перекриття у заняттях номер: %s" % ret
+            time = map(lambda x: Lessons.from_row(x), ret)
+            time_output = map(lambda x: '{0}/{1}/{2}'.format(
+                x['id_week'] - 1,
+                x['id_week_day'] - 1,
+                x['id_lesson_time'] - 1
+            ), time)
+            msg = "Перекриття у заняттях номер %s" % ', '.join(time_output)
         self.info = InfoDialog(msg)
         self.info.show()
         # check_table(self.session, only_temp=True)
