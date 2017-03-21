@@ -69,14 +69,13 @@ def check_part(session, element):
     time_list = [lesson.row_time for lesson in lessons]
     duplicates = [time for time in set(time_list) if time_list.count(time) > 1]
 
-    for time in duplicates:
+    if duplicates:
         if hasattr(element, 'short_name'):
-            logger.info('Problem with %s at %s' % (element.short_name, time))
+            return duplicates, element.short_name
         else:
-            logger.info('Problem with %s at %s' % (element.name, time))
-        return duplicates
+            return duplicates, element.name
 
-    return db_codes['success']
+    return db_codes['success'], db_codes['success']
 
 
 def check_table(session, only_temp=False):
@@ -110,16 +109,17 @@ def check_table(session, only_temp=False):
     }
 
     # This is awful for now
-    overlaying = []
+    overlaying = {}
     for key in elements.keys():
         for element in elements[key]:
             if hasattr(element, 'capacity') and element.capacity >= 256:
                 continue
-            res = check_part(session, element)
+            res, elem = check_part(session, element)
             if res != db_codes['success']:
-                for time in res:
-                    if not overlaying.count(time):
-                        overlaying.append(time)
+                if elem not in overlaying.keys():
+                    overlaying.update({elem: res})
+                else:
+                    overlaying[elem] += res
     if overlaying:
         return overlaying
 

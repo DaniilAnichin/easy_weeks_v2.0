@@ -142,11 +142,12 @@ class DragButton(QtGui.QPushButton):
                 e.setDropAction(QtCore.Qt.MoveAction)
                 e.accept()
             # QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
-            overlaying = check_table(self.parent().session, True)
+            overlay_dict = check_table(self.parent().session, True)
             # QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
             self.redraw()
             e.source().redraw()
-            if overlaying != db_codes['success']:
+            if overlay_dict != db_codes['success']:
+                overlaying = sum(overlay_dict.values(), [])
                 if e.source().lesson.id != 1:
                     if overlaying.count(e.source().lesson.row_time):
                         e.source().set_error()

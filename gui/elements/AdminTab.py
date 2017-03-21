@@ -4,7 +4,7 @@ from PyQt4 import QtGui
 from database import Logger, db_codes, db_codes_output, structure
 from gui.dialogs.AdminEditor import AdminEditor
 from gui.dialogs.RUSureDelete import RUSureDelete
-from gui.dialogs.GeneralWarning import GeneralWarning
+from gui.dialogs.InfoDialog import InfoDialog
 from gui.elements.CompleterCombo import CompleterCombo
 from gui.translate import fromUtf8
 logger = Logger()
@@ -22,7 +22,6 @@ class AdminTab(QtGui.QWidget):
         self.objects = CompleterCombo(self)
         self.objects.items = []
         self.objects.currentIndexChanged.connect(self.set_list)
-        # self.objects.setCurrentIndex(1)
         self.hbox.addWidget(self.objects)
 
         spacer = QtGui.QSpacerItem(
@@ -49,7 +48,6 @@ class AdminTab(QtGui.QWidget):
         self.vbox.addWidget(self.items_list)
         self.translateUI()
         self.set_objects()
-        # self.objects.setCurrentIndex(3)
 
     def translateUI(self):
         self.addButton.setText(fromUtf8('Додати'))
@@ -126,8 +124,8 @@ class AdminTab(QtGui.QWidget):
             )
             logger.debug(db_codes_output[result])
             if result == db_codes['exists']:
-                self.warning = GeneralWarning(fromUtf8(
-                    'Збереження не вдалос елемент вже існує'
+                self.warning = InfoDialog(fromUtf8(
+                    'Збереження не вдалось: елемент вже існує'
                 ))
             self.view_items.sort(key=unicode)
             new_index = self.view_items.index(element)
