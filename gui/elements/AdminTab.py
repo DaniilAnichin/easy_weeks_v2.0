@@ -1,9 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from PyQt4 import QtGui
-from database import Logger, db_codes_output, structure
+from database import Logger, db_codes, db_codes_output, structure
 from gui.dialogs.AdminEditor import AdminEditor
 from gui.dialogs.RUSureDelete import RUSureDelete
+from gui.dialogs.GeneralWarning import GeneralWarning
 from gui.elements.CompleterCombo import CompleterCombo
 from gui.translate import fromUtf8
 logger = Logger()
@@ -120,9 +121,14 @@ class AdminTab(QtGui.QWidget):
             logger.info('Editing accepted')
             fields = self.editor.fields
             values = {key: self.editor.get_pair(key) for key in fields}
-            logger.debug(db_codes_output[type(element).update(
+            result = type(element).update(
                 self.session, main_id=element.id, **values
-            )])
+            )
+            logger.debug(db_codes_output[result])
+            if result == db_codes['exists']:
+                self.warning = GeneralWarning(fromUtf8(
+                    'Збереження не вдалос елемент вже існує'
+                ))
             self.view_items.sort(key=unicode)
             new_index = self.view_items.index(element)
             self.items_list.takeItem(index)

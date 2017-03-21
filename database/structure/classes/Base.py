@@ -123,7 +123,8 @@ class Base(object):
             if key not in cls.fields():
                 return db_codes['wrong']
             data.update({key: kwargs[key]})
-        if cls.read(session, **data):
+        doubles = cls.read(session, **data)
+        if doubles and doubles[0].id != main_id:
             return db_codes['exists']
 
         # Global filter loop:

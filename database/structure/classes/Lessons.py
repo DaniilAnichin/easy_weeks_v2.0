@@ -211,12 +211,13 @@ class Lessons(Base):
         for field in cls.columns():
             data.update({field: getattr(result, field)})
         for key in kwargs.keys():
-            if key not in cls.columns():
+            if key not in cls.fields():
                 return db_codes['wrong']
             data.update({key: kwargs[key]})
 
         if not data['is_temp']:
-            if cls.read(session, **data):
+            doubles = cls.read(session, **data)
+            if doubles and doubles[0].id != main_id:
                 return db_codes['exists']
             exists = cls.exists(session, main_id, **data)
             if exists:
@@ -244,20 +245,20 @@ class Lessons(Base):
             lp.id for lp in LessonPlans.read(session, groups=cur_lp.groups)
         ], **params):
             if lesson.row_time == kwargs['row_time']:
-                if not main_id or lesson.id != main_id:
+                if lesson.id != main_id:
                     return db_codes['group']
 
         for lesson in Lessons.read(session, id_lesson_plan=[
             lp.id for lp in LessonPlans.read(session, teachers=cur_lp.teachers)
         ], **params):
             if lesson.row_time == kwargs['row_time']:
-                if not main_id or lesson.id != main_id:
+                if lesson.id != main_id:
                     return db_codes['teacher']
 
         if kwargs['id_room'] != 1:
             for lesson in Lessons.read(session, row_time=kwargs['row_time'], **params):
                 if lesson.id_room == kwargs['id_room']:
-                    if not main_id or lesson.id != main_id:
+                    if lesson.id != main_id:
                         return db_codes['room']
 
         return False

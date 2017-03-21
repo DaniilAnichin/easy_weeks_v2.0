@@ -4,6 +4,7 @@ import json
 import urllib
 from database import Logger, db_codes, db_codes_output, GROUPS, TEACHERS
 from database.structure import *
+from database.select_table import is_free
 logger = Logger()
 
 lessons_url = "http://api.rozklad.org.ua/v2/teachers/%d/lessons"
@@ -186,10 +187,12 @@ def teacher_update(session, teacher_name, add_teacher=True):
     if info['statusCode'] != 200:
         logger.debug('Bad response: ' + str(info['statusCode']) + ' ' + cur_url.decode('utf-8'))
         return -1
-    logger.debug('teacher: ' + teacher_name)
 
     department_id = 2
     for lesson in info['data']:
+        row_time = int(lesson['lesson_number']) - 1 + \
+            5 * (int(lesson['day_number']) - 1) + \
+            30 * (int(lesson['lesson_week']) - 1)
         # Creating Rooms, Groups and Subjects
         groups = []
         for group in lesson['groups']:
@@ -263,9 +266,11 @@ def teacher_update(session, teacher_name, add_teacher=True):
             lesson_plan = LessonPlans.read(session, **lesson_plan_info)
             if isinstance(lesson_plan, list) and len(lesson_plan) > 0:
                 lesson_plan = lesson_plan[0]
-                LessonPlans.update(session, main_id=lesson_plan.id,
-                                   teachers=(lesson_plan.teachers + [teacher]))
-                continue
+                LessonPlans.update(
+                    session, main_id=lesson_plan.id,
+                    teachers=(lesson_plan.teachers + [teacher])
+                )
+
             else:
                 lesson_plan = LessonPlans.create(
                     session,
@@ -284,10 +289,6 @@ def teacher_update(session, teacher_name, add_teacher=True):
             continue
 
         # Going to create lesson
-        row_time = int(lesson['lesson_number']) - 1 + \
-            5 * (int(lesson['day_number']) - 1) + \
-            30 * (int(lesson['lesson_week']) - 1)
-
         new_lesson = Lessons.create(
             session,
             id_lesson_plan=lesson_plan.id,

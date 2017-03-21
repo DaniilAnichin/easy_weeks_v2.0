@@ -103,7 +103,8 @@ class LessonPlans(Base):
         checker = LessonPlans.make_params(**data)
         if not checker:
             return db_codes['params']
-        if cls.read(session, param_checker=checker):
+        doubles = cls.read(session, param_checker=checker)
+        if doubles and doubles[0].id != main_id:
             return db_codes['exists']
 
         # Global filter loop:
