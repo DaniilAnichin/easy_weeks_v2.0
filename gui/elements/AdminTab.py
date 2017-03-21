@@ -24,6 +24,10 @@ class AdminTab(QtGui.QWidget):
         self.objects.currentIndexChanged.connect(self.set_list)
         self.hbox.addWidget(self.objects)
 
+        self.search = QtGui.QLineEdit()
+        self.search.textChanged.connect(self.set_search)
+        self.hbox.addWidget(self.search)
+
         spacer = QtGui.QSpacerItem(
             40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum
         )
@@ -44,6 +48,7 @@ class AdminTab(QtGui.QWidget):
         self.vbox.addLayout(self.hbox)
 
         self.items_list = QtGui.QListWidget(self)
+        self.database_items = []
         self.view_items = []
         self.vbox.addWidget(self.items_list)
         self.translateUI()
@@ -71,8 +76,9 @@ class AdminTab(QtGui.QWidget):
         cls = self.objects.items[self.objects.currentIndex()]
         logger.info('Setting admin list for %s' % cls.__name__)
         self.items_list.clear()
-        self.view_items = cls.read(self.session, all_=True)
-        self.view_items.sort(key=unicode)
+        self.database_items = cls.read(self.session, all_=True)
+        self.database_items.sort(key=unicode)
+        self.view_items = self.database_items[:]
         self.items_list.addItems([unicode(item) for item in self.view_items])
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
 
@@ -87,8 +93,9 @@ class AdminTab(QtGui.QWidget):
             values = {key: self.editor.get_pair(key) for key in fields}
             result = cls.create(self.session, **values)
             logger.debug('Result: "%s"' % unicode(result))
-            self.view_items.append(result)
-            self.view_items.sort(key=unicode)
+            self.database_items.append(result)
+            self.database_items.sort(key=unicode)
+            self.set_search()
             new_index = self.view_items.index(result)
             self.items_list.insertItem(new_index, unicode(result))
 
@@ -102,7 +109,7 @@ class AdminTab(QtGui.QWidget):
         if self.warning.exec_() == QtGui.QMessageBox.Yes:
             logger.info('Item %s deleted' % unicode(self.items_list.currentItem().text()))
             self.items_list.takeItem(index)
-            self.view_items.pop(index)
+            self.database_items.pop(index)
             logger.info(db_codes_output[cls.delete(self.session, main_id=element.id)])
 
     def show_edit(self):
@@ -124,10 +131,17 @@ class AdminTab(QtGui.QWidget):
             )
             logger.debug(db_codes_output[result])
             if result == db_codes['exists']:
-                self.warning = InfoDialog(fromUtf8(
+                InfoDialog(fromUtf8(
                     'Збереження не вдалось: елемент вже існує'
-                ))
-            self.view_items.sort(key=unicode)
+                )).show()
+            self.database_items.sort(key=unicode)
+            self.set_search()
             new_index = self.view_items.index(element)
             self.items_list.takeItem(index)
             self.items_list.insertItem(new_index, unicode(element))
+
+    def set_search(self):
+        text = unicode(self.search.text())
+        self.items_list.clear()
+        self.view_items = filter(lambda x: text in unicode(x), self.database_items)
+        self.items_list.addItems([unicode(item) for item in self.view_items])

@@ -118,7 +118,9 @@ class Base(object):
 
         data = {}
         for field in cls.fields():
-            data.update({field: getattr(result, field)})
+            value = getattr(result, field)
+            if not (isinstance(value, list) and len(value) > 20):
+                data.update({field: getattr(result, field)})
         for key in kwargs.keys():
             if key not in cls.fields():
                 return db_codes['wrong']
