@@ -62,6 +62,8 @@ class ImportDialog(QtGui.QDialog):
         return combo
 
     def updatedb(self):
+        self.import_all_button.setDisabled(True)
+        self.import_dep_button.setDisabled(True)
         self.pro_bar.show()
         self.session.close_all()
         session = create_database(delete_past=True)
@@ -76,9 +78,13 @@ class ImportDialog(QtGui.QDialog):
             teacher_update(session, teacher)
             QtCore.QCoreApplication.processEvents()
         update_departments(session)
+        self.import_all_button.setDisabled(False)
+        self.import_dep_button.setDisabled(False)
         self.deleteLater()
 
     def updateDepDb(self):
+        self.import_all_button.setDisabled(True)
+        self.import_dep_button.setDisabled(True)
         self.pro_bar.show()
         pop_out = ImportDiffDialog(self.session)
         j = 0
@@ -152,6 +158,8 @@ class ImportDialog(QtGui.QDialog):
             self.clear_database()
             if pop_out.quit:
                 break
+        self.import_all_button.setDisabled(False)
+        self.import_dep_button.setDisabled(False)
 
     def clear_database(self):
         for table in reversed(Base.metadata.sorted_tables):

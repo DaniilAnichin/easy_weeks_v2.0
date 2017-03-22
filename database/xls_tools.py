@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
 import xlsxwriter
-from database.select_table import get_name
 from database.select_table import get_table
 from database.structure import *
 
@@ -34,17 +33,17 @@ def print_table(session, save_dest, table, element):
     if data_type == u'teachers':
         page.merge_range(
             0, 0, 0, 7,
-            u'Розклад занять, викладач: %s' % get_name(element),
+            u'Розклад занять, викладач: %s' % unicode(element),
             lformat)
     elif data_type == u'groups':
         page.merge_range(
             0, 0, 0, 7,
-            u'Розклад занять, група: %s' % get_name(element),
+            u'Розклад занять, група: %s' % unicode(element),
             lformat)
     elif data_type == u'rooms':
         page.merge_range(
             0, 0, 0, 7,
-            u'Розклад занять, аудиторія: %s' % get_name(element),
+            u'Розклад занять, аудиторія: %s' % unicode(element),
             lformat)
     for l in range(5):
         for d in range(6):

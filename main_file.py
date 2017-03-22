@@ -52,8 +52,8 @@ class WeeksMenu(QtGui.QMainWindow):
             ]
         ]
         self.tabs = EasyTab(self.center, self.session)
-        self.set_user(Users.read(self.session, nickname='Admin')[0])
-        # self.set_user()
+        # self.set_user(Users.read(self.session, nickname='Admin')[0])
+        self.set_user()
 
         self.hbox.addWidget(self.tabs)
         self.setCentralWidget(self.center)
@@ -90,7 +90,7 @@ class WeeksMenu(QtGui.QMainWindow):
 
         if not self.tabs.set_table(self.table_data, element.__tablename__):
             self.element = element
-            self.data_label.setText(get_name(element))
+            self.data_label.setText(unicode(element))
 
     def set_departments(self):
         logger.info('Started department setting function')
@@ -109,7 +109,7 @@ class WeeksMenu(QtGui.QMainWindow):
         if self.table.exec_() == QtGui.QDialog.Accepted:
             data = [self.table.data_type, self.table.data_id]
             element = get_element(self.session, *data)
-            logger.debug('Schedule for %s' % get_name(self.element))
+            logger.debug('Schedule for %s' % unicode(self.element))
             return element
 
     def login(self):

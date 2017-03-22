@@ -1,10 +1,13 @@
 from distutils.core import setup
 from os.path import join as _
+from os import getcwd
 import py2exe
 
-PATH = __file__
+PATH = getcwd()
 DATA = [('database', [_(PATH, 'database', 'FICT_timetable.db')]),
-        ('', [_(PATH, 'easy_weeks.log'), _(PATH, 'README.md')]),
+        ('', [_(PATH, 'easy_weeks.log'),
+              _(PATH, 'README.md'),
+              _(PATH, 'User_manual.pdf')]),
         (_('database', 'start_db'), [_(PATH, 'database', 'start_db', 'teachers.json'),
                                      _(PATH, 'database', 'start_db', 'groups.json'),
                                      _(PATH, 'database', 'start_db', 'departments.json'),

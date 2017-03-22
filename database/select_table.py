@@ -1,10 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
-from database import Logger, db_codes, db_codes_output, structure
+from database import Logger, db_codes, structure
 from database.structure import *
 __all__ = ['get_table', 'check_table', 'save_table', 'recover_empty',
            'clear_empty', 'clear_temp', 'find_free', 'undefined_lp',
-           'get_element', 'get_name', 'same_tables', 'find_duplicates']
+           'get_element', 'same_tables', 'find_duplicates']
 logger = Logger()
 
 
@@ -12,7 +12,7 @@ def get_table(session, element):
     if isinstance(session, int):
         return db_codes['session']
     data_type = element.__tablename__
-    logger.debug('Data: %s' % get_name(element))
+    logger.debug('Data: %s' % unicode(element))
     if data_type == 'rooms':
         params = dict(id_room=element.id)
     else:
@@ -230,17 +230,17 @@ def is_free(session, cls, main_id, **kwargs):
 
 
 def find_free(session, cls, **kwargs):
-    classmates = cls.read(session, all_=True)
-    result = []
     department = kwargs.pop('department', None)
+    result = []
+    if hasattr(cls, 'department'):
+        classmates = cls.read(session, department=department)
+    elif hasattr(cls, 'departments'):
+        classmates = cls.read(session, departments=[department])
+    else:
+        return result
 
     for classmate in classmates:
-        if hasattr(classmate, 'departments'):
-            departments = classmate.departments
-        else:
-            departments = [classmate.department]
-
-        if department in departments and is_free(session, cls, classmate.id, **kwargs):
+        if is_free(session, cls, classmate.id, **kwargs):
             result.append(classmate)
 
     return result
@@ -254,16 +254,6 @@ def get_element(session, data_type, data_id):
 
     if isinstance(result, list) and len(result) > 0:
         result = result[0]
-    return result
-
-
-def get_name(element):
-    if hasattr(element, 'name'):
-        result = element.name
-    elif hasattr(element, 'full_name'):
-        result = element.full_name
-    else:
-        result = str(element)
     return result
 
 
