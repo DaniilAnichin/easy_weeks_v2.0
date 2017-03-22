@@ -130,15 +130,12 @@ class AdminTab(QtGui.QWidget):
                 self.session, main_id=element.id, **values
             )
             logger.debug(db_codes_output[result])
-            if result == db_codes['exists']:
+            if result != db_codes['success']:
                 InfoDialog(fromUtf8(
-                    'Збереження не вдалось: елемент вже існує'
+                    'Збереження не вдалось'
                 )).show()
             self.database_items.sort(key=unicode)
             self.set_search()
-            new_index = self.view_items.index(element)
-            self.items_list.takeItem(index)
-            self.items_list.insertItem(new_index, unicode(element))
 
     def set_search(self):
         text = unicode(self.search.text())
