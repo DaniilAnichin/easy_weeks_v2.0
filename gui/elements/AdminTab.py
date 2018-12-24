@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from database import Logger, db_codes, db_codes_output, structure
 from gui.dialogs.AdminEditor import AdminEditor
 from gui.dialogs.RUSureDelete import RUSureDelete
@@ -60,19 +60,23 @@ class AdminTab(QtGui.QWidget):
         self.editButton.setText(fromUtf8('Редагувати'))
 
     def set_objects(self):
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
-        self.objects.items = [getattr(structure, item) for item in structure.__all__]
-        for item in self.objects.items:
-            columns = item.columns()
-            if len(columns) == 2 and columns[0][:3] == columns[1][:3] == 'id_':
-                self.objects.items.pop(self.objects.items.index(item))
+        try:
+            QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+            self.objects.items = [getattr(structure, item) for item in structure.__all__]
+            for item in self.objects.items:
+                columns = item.columns()
+                if len(columns) == 2 and columns[0][:3] == columns[1][:3] == 'id_':
+                    self.objects.items.pop(self.objects.items.index(item))
 
-        self.objects.items.sort(key=lambda a: a.translated)
-        self.objects.addItems([item.translated for item in self.objects.items])
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
+            self.objects.items.sort(key=lambda a: a.translated)
+            self.objects.addItems([item.translated for item in self.objects.items])
+            QtGui.QApplication.restoreOverrideCursor()
+        except Exception as e:
+            logger.error(e)
+            QtGui.QApplication.restoreOverrideCursor()
 
     def set_list(self):
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         cls = self.objects.items[self.objects.currentIndex()]
         logger.info('Setting admin list for %s' % cls.__name__)
         self.items_list.clear()
@@ -80,7 +84,7 @@ class AdminTab(QtGui.QWidget):
         self.database_items.sort(key=unicode)
         self.view_items = self.database_items[:]
         self.items_list.addItems([unicode(item) for item in self.view_items])
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
+        QtGui.QApplication.restoreOverrideCursor()
 
     def show_add(self):
         cls = self.objects.items[self.objects.currentIndex()]
@@ -119,9 +123,9 @@ class AdminTab(QtGui.QWidget):
         element = self.view_items[index]
         logger.info('Running edit dialog for %s' % unicode(element))
 
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         self.editor = AdminEditor(element, self.session)
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
+        QtGui.QApplication.restoreOverrideCursor()
         if self.editor.exec_() == AdminEditor.Accepted:
             logger.info('Editing accepted')
             fields = self.editor.fields

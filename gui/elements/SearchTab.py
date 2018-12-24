@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from database import Logger
 from database.structure import *
 from database.select_table import find_free
@@ -78,9 +78,9 @@ class SearchTab(QtGui.QWidget):
         params = self.get_time()
         params.update(self.department())
         cls = self.object_choice.items[self.object_choice.currentIndex()]
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         result = find_free(self.session, cls, **params)
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
+        QtGui.QApplication.restoreOverrideCursor()
         logger.debug('Number of free: "%d"' % len(result))
         self.show_results(result)
 

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- #
 import sys
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from database import Logger, EW_VERSION
 from database.start_db.db_startup import connect_database
 from database.start_db.seeds import update_departments, save_departments
@@ -66,8 +66,11 @@ class WeeksMenu(QtGui.QMainWindow):
         self.menubar = WeekMenuBar(self, menu_data=menu_data)
         self.setMenuBar(self.menubar)
 
-        self.element = Groups.read(self.session, id=2)[0]
-        self.set_tabs_table(self.element)
+        try:
+            self.element = Groups.read(self.session, id=2)[0]
+            self.set_tabs_table(self.element)
+        except Exception as e:
+            logger.error(e)
 
         self.retranslateUi()
 
@@ -76,6 +79,7 @@ class WeeksMenu(QtGui.QMainWindow):
         logger.info('Passed MainMenu TranslateUI function')
 
     def set_tabs_table(self, element=None):
+        print(type(element))
         if not type(element) in [Teachers, Rooms, Groups]:
             logger.debug('Incorrect data passed')
             element = self.show_table_dialog()
@@ -83,10 +87,10 @@ class WeeksMenu(QtGui.QMainWindow):
         if not type(element) in [Teachers, Rooms, Groups]:
             return
 
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         self.clear_tabs()
         self.table_data = get_table(self.session, element)
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
+        QtGui.QApplication.restoreOverrideCursor()
 
         if not self.tabs.set_table(self.table_data, element.__tablename__):
             self.element = element
@@ -151,7 +155,7 @@ class WeeksMenu(QtGui.QMainWindow):
 
     def check_database(self):
         logger.info('Started database check function')
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         ret = check_table(self.session, only_temp=True)
         if ret == 0:
             msg = 'Перевірка успішна'
@@ -159,13 +163,13 @@ class WeeksMenu(QtGui.QMainWindow):
             msg = format_errors(ret)
         self.info = InfoDialog(msg)
         self.info.show()
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
+        QtGui.QApplication.restoreOverrideCursor()
 
     def save_database(self):
         logger.info('Started database saving function')
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         ret = save_table(self.session)
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
+        QtGui.QApplication.restoreOverrideCursor()
         if ret == 0:
             self.tabs.method_table.set_edited(False)
             msg = 'Збережено успішно'

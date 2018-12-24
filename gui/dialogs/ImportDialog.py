@@ -103,7 +103,7 @@ class ImportDialog(QtGui.QDialog):
         pop_out.setTmpSession(self.tmp_session)
 
         for i in range(teachers_number):
-            QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
+            QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
 
             self.pro_bar.setValue(100 * j / teachers_number)
             self.pro_bar.update()
@@ -149,7 +149,7 @@ class ImportDialog(QtGui.QDialog):
             QtCore.QCoreApplication.processEvents()
             self.window.tabs.set_table(get_table(self.session, teacher), 'teachers')
             self.window.tabs.setCurrentIndex(1)
-            QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
+            QtGui.QApplication.restoreOverrideCursor()
 
             while not pop_out.is_done:
                 QtCore.QCoreApplication.processEvents()
@@ -170,5 +170,5 @@ class ImportDialog(QtGui.QDialog):
         if hasattr(self, 'tmp_session'):
             if hasattr(self.tmp_session, 'close'):
                 self.tmp_session.close()
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
+        QtGui.QApplication.restoreOverrideCursor()
         self.deleteLater()

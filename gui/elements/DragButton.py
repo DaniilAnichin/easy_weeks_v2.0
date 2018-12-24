@@ -46,9 +46,9 @@ class DragButton(QtGui.QPushButton):
             # Pressing callback
             if self.draggable:
                 if self.lesson.is_empty:
-                    QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
+                    QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
                     lesson = Lessons.create(self.parent().session, is_temp=True, **self.time)
-                    QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
+                    QtGui.QApplication.restoreOverrideCursor()
                     self.edit_dial = EditLesson(lesson, self.parent().session, empty=True)
                 else:
                     self.edit_dial = EditLesson(self.lesson, self.parent().session)
@@ -141,9 +141,9 @@ class DragButton(QtGui.QPushButton):
                 # tell the QDrag we accepted it
                 e.setDropAction(QtCore.Qt.MoveAction)
                 e.accept()
-            # QtGui.QApplication.setOverrideCursor(QtGui.QCursor(3))
+            # QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
             overlay_dict = check_table(self.parent().session, True)
-            # QtGui.QApplication.setOverrideCursor(QtGui.QCursor(0))
+            # QtGui.QApplication.restoreOverrideCursor()
             self.redraw()
             e.source().redraw()
             if overlay_dict != db_codes['success']:
