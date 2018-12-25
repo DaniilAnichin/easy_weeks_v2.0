@@ -1,13 +1,12 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from PyQt4 import QtGui
+from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtWidgets import QApplication
 from database import Logger, db_codes_output
 from database.structure import Lessons, LessonPlans
 from database.select_table import undefined_lp
 from gui.dialogs.WeeksDialog import WeeksDialog
 from gui.dialogs.RUSureDelete import RUSureDelete
-from gui.translate import fromUtf8
-from PyQt4.QtGui import QCursor
 logger = Logger()
 
 
@@ -15,7 +14,7 @@ class EditLesson(WeeksDialog):
     def __init__(self, element, session, empty=False, time=False, *args, **kwargs):
         super(EditLesson, self).__init__(*args, **kwargs)
 
-        QtGui.QApplication.setOverrideCursor(QCursor(3))
+        QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         self.session = session
         self.empty = empty
 
@@ -37,10 +36,10 @@ class EditLesson(WeeksDialog):
         for elem in field_list:
             self.default_combo_pair(elem)
 
-        self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.accept))
-        self.vbox.addWidget(self.make_button(fromUtf8('Видалити'), self.delete))
-        self.setWindowTitle(fromUtf8('Редагування заняття'))
-        QtGui.QApplication.setOverrideCursor(QCursor(0))
+        self.vbox.addWidget(self.make_button('Підтвердити'), self.accept)
+        self.vbox.addWidget(self.make_button('Видалити'), self.delete)
+        self.setWindowTitle('Редагування заняття')
+        QApplication.restoreOverrideCursor()
 
     def lp_combo_pair(self):
         cls = LessonPlans
@@ -87,7 +86,7 @@ class EditLesson(WeeksDialog):
 
     def delete(self):
         self.rusure = RUSureDelete(self.lesson)
-        if self.rusure.exec_() == QtGui.QMessageBox.Yes:
+        if self.rusure.exec_() == QtWidgets.QMessageBox.Yes:
             res = Lessons.delete(self.session, main_id=self.lesson.id)
             # logger.debug(db_codes_output[res])
             del self.lesson

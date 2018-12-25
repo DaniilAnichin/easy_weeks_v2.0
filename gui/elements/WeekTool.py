@@ -1,28 +1,27 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from PyQt4 import QtGui
+from PyQt5 import QtWidgets
 from database import Logger
 from gui.elements.DragButton import DragButton
 from gui.elements.ButtonGrid import ButtonGrid
 from gui.dialogs.RUSureChangeTable import RUSureChangeTable
-from gui.translate import fromUtf8
 logger = Logger()
 
 
-class WeekTool(QtGui.QToolBox):
+class WeekTool(QtWidgets.QToolBox):
     def __init__(self, parent, session, *args, **kwargs):
         super(WeekTool, self).__init__(parent, *args, **kwargs)
         self.session = session
         self.initUI()
 
     def initUI(self):
-        self.first_panel = QtGui.QWidget(self)
+        self.first_panel = QtWidgets.QWidget(self)
         self.first_panel.acceptDrops()
         self.first_panel.session = self.session
         self.addItem(self.first_panel, '')
         self.first_table = ButtonGrid(self.first_panel, self)
 
-        self.second_panel = QtGui.QWidget(self)
+        self.second_panel = QtWidgets.QWidget(self)
         self.second_panel.acceptDrops()
         self.second_panel.session = self.session
         self.addItem(self.second_panel, '')
@@ -31,7 +30,7 @@ class WeekTool(QtGui.QToolBox):
         self.set_edited(False)
 
         self.setMouseTracking(True)
-        self.tabButtons = self.findChildren(QtGui.QAbstractButton)
+        self.tabButtons = self.findChildren(QtWidgets.QAbstractButton)
         for button in self.tabButtons:
             button.setMouseTracking(True)
 
@@ -77,8 +76,8 @@ class WeekTool(QtGui.QToolBox):
         self.second_table.draw_duplicates([x - 30 for x in duplicates if x >= 30])
 
     def translateUI(self):
-        self.setItemText(0, fromUtf8('Перший тиждень'))
-        self.setItemText(1, fromUtf8('Другий тиждень'))
+        self.setItemText(0, 'Перший тиждень')
+        self.setItemText(1, 'Другий тиждень')
 
     def dragEnterEvent(self, e):
         e.accept()

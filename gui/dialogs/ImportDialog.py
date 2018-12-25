@@ -1,7 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import json
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtWidgets
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from database import Logger, TEACHERS
@@ -13,38 +13,38 @@ from database.structure import *
 from database.structure import Base
 from gui.dialogs.ImportDiffDialog import ImportDiffDialog
 from gui.elements.CompleterCombo import CompleterCombo
-from gui.translate import fromUtf8
 logger = Logger()
 
 
-class ImportDialog(QtGui.QDialog):
+class ImportDialog(QtWidgets.QDialog):
     def __init__(self, window, parent=None):
         super(ImportDialog, self).__init__(parent)
         self.window = window
         self.session = self.window.session
+        self.tmp_session = None
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle(fromUtf8('Оновлення бази'))
-        self.layout = QtGui.QVBoxLayout(self)
+        self.setWindowTitle('Оновлення бази')
+        self.layout = QtWidgets.QVBoxLayout(self)
 
-        self.import_all_button = QtGui.QPushButton(fromUtf8('Повне оновлення'), self)
+        self.import_all_button = QtWidgets.QPushButton('Повне оновлення', self)
         self.layout.addWidget(self.import_all_button)
         self.import_all_button.clicked.connect(self.updatedb)
-        self.import_dep_button = QtGui.QPushButton(fromUtf8('Оновлення викладачів\nкафедри'))
+        self.import_dep_button = QtWidgets.QPushButton('Оновлення викладачів\nкафедри')
         self.layout.addWidget(self.import_dep_button)
         self.import_dep_button.clicked.connect(self.updateDepDb)
 
         self.dep_chooser = self.make_combo(
-            Departments.read(self.session, True), None, u'Department', unicode
+            Departments.read(self.session, True), None, u'Department', str
         )
         self.layout.addWidget(self.dep_chooser)
 
-        self.pro_bar = QtGui.QProgressBar(self)
+        self.pro_bar = QtWidgets.QProgressBar(self)
         self.pro_bar.setValue(0)
         self.layout.addWidget(self.pro_bar)
 
-        self.break_button = QtGui.QPushButton(fromUtf8('Перервати'))
+        self.break_button = QtWidgets.QPushButton('Перервати')
         self.break_button.clicked.connect(self.closeEvent)
         self.layout.addWidget(self.break_button)
 
@@ -89,7 +89,7 @@ class ImportDialog(QtGui.QDialog):
         pop_out = ImportDiffDialog(self.session)
         j = 0
 
-        department_name = unicode(self.dep_chooser.currentText())
+        department_name = str(self.dep_chooser.currentText())
         department_id = Departments.read(self.session, short_name=department_name)[0].id
         teachers = Teachers.read(self.session, id_department=department_id)
         teachers_number = len(teachers)
@@ -103,7 +103,7 @@ class ImportDialog(QtGui.QDialog):
         pop_out.setTmpSession(self.tmp_session)
 
         for i in range(teachers_number):
-            QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+            QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
 
             self.pro_bar.setValue(100 * j / teachers_number)
             self.pro_bar.update()
@@ -140,7 +140,7 @@ class ImportDialog(QtGui.QDialog):
             pop_out.week_tool_window.set_table(
                 data, 'teachers', pass_check=False
             )
-            pop_out.setWindowTitle(QtCore.QString(teacher_name))
+            pop_out.setWindowTitle(teacher_name)
             if duplicates:
                 pop_out.ybutton.setDisabled(True)
             pop_out.show()
@@ -149,7 +149,7 @@ class ImportDialog(QtGui.QDialog):
             QtCore.QCoreApplication.processEvents()
             self.window.tabs.set_table(get_table(self.session, teacher), 'teachers')
             self.window.tabs.setCurrentIndex(1)
-            QtGui.QApplication.restoreOverrideCursor()
+            QtWidgets.QApplication.restoreOverrideCursor()
 
             while not pop_out.is_done:
                 QtCore.QCoreApplication.processEvents()
@@ -170,5 +170,5 @@ class ImportDialog(QtGui.QDialog):
         if hasattr(self, 'tmp_session'):
             if hasattr(self.tmp_session, 'close'):
                 self.tmp_session.close()
-        QtGui.QApplication.restoreOverrideCursor()
+        QtWidgets.QApplication.restoreOverrideCursor()
         self.deleteLater()

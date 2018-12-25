@@ -1,6 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtGui import QColor, QCursor, QDrag, QPainter
 from database import Logger, structure, db_codes
 from database.structure import *
 from gui.dialogs.EditLesson import EditLesson
@@ -17,19 +18,19 @@ color_start = '''
 '''
 
 button_colors = {
-    u'Unknown': QtGui.QColor('white').name(),
-    u'Лек': QtGui.QColor(0, 110, 179).name(),
-    u'Прак': QtGui.QColor(0, 166, 152).name(),
-    u'Лаб': QtGui.QColor(181, 95, 124).name(),
-    u'issue': QtGui.QColor('red').name()
+    u'Unknown': QColor('white').name(),
+    u'Лек': QColor(0, 110, 179).name(),
+    u'Прак': QColor(0, 166, 152).name(),
+    u'Лаб': QColor(181, 95, 124).name(),
+    u'issue': QColor('red').name()
 }
 
-size_policy = QtGui.QSizePolicy(
-    QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum
+size_policy = QtWidgets.QSizePolicy(
+    QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum
 )
 
 
-class DragButton(QtGui.QPushButton):
+class DragButton(QtWidgets.QPushButton):
     def __init__(self, weekToolRef, view_args, draggable, time, *args):
         super(DragButton, self).__init__(*args)
         self.weekToolRef = weekToolRef
@@ -40,15 +41,15 @@ class DragButton(QtGui.QPushButton):
         self.set_time(time)
 
     def mousePressEvent(self, QMouseEvent):
-        QtGui.QPushButton.mousePressEvent(self, QMouseEvent)
+        QtWidgets.QPushButton.mousePressEvent(self, QMouseEvent)
 
         if QMouseEvent.button() == QtCore.Qt.RightButton:
             # Pressing callback
             if self.draggable:
                 if self.lesson.is_empty:
-                    QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+                    QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
                     lesson = Lessons.create(self.parent().session, is_temp=True, **self.time)
-                    QtGui.QApplication.restoreOverrideCursor()
+                    QtWidgets.QApplication.restoreOverrideCursor()
                     self.edit_dial = EditLesson(lesson, self.parent().session, empty=True)
                 else:
                     self.edit_dial = EditLesson(self.lesson, self.parent().session)
@@ -81,14 +82,14 @@ class DragButton(QtGui.QPushButton):
         mimeData.setText(self.text())
 
         # Grab the button to a pixmap to make it more fancy
-        pixmap = QtGui.QPixmap.grabWidget(self)
-        painter = QtGui.QPainter(pixmap)
+        pixmap = QtWidgets.QWidget.grab(self)
+        painter = QPainter(pixmap)
         painter.setCompositionMode(painter.CompositionMode_DestinationIn)
-        painter.fillRect(pixmap.rect(), QtGui.QColor(0, 0, 0, 127))
+        painter.fillRect(pixmap.rect(), QColor(0, 0, 0, 127))
         painter.end()
 
         # Make a QDrag with mime and pixmap
-        drag = QtGui.QDrag(self)
+        drag = QDrag(self)
         drag.setPixmap(pixmap)
         drag.setMimeData(mimeData)
         drag.setHotSpot(e.pos())
@@ -108,8 +109,8 @@ class DragButton(QtGui.QPushButton):
         dcorrector = QtCore.QPoint(0, 75)
         absr0 = QtCore.QRect(r0.topLeft()+absp0, r0.bottomRight()+absp0+dcorrector)
         absr1 = QtCore.QRect(r1.topLeft()+absp1-ucorrector, r1.bottomRight()+absp1)
-        # curMousePos = self.weekToolRef.mapFromGlobal(QtGui.QCursor.pos())
-        curMousePos = QtGui.QCursor.pos()
+        # curMousePos = self.weekToolRef.mapFromGlobal(QCursor.pos())
+        curMousePos = QCursor.pos()
         if self.weekToolRef.currentIndex() == 0:
             if absr1.contains(curMousePos):
                 self.weekToolRef.setCurrentIndex(1)
@@ -141,9 +142,9 @@ class DragButton(QtGui.QPushButton):
                 # tell the QDrag we accepted it
                 e.setDropAction(QtCore.Qt.MoveAction)
                 e.accept()
-            # QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+            # QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             overlay_dict = check_table(self.parent().session, True)
-            # QtGui.QApplication.restoreOverrideCursor()
+            # QtWidgets.QApplication.restoreOverrideCursor()
             self.redraw()
             e.source().redraw()
             if overlay_dict != db_codes['success']:

@@ -1,13 +1,12 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*- #
-from PyQt4 import QtGui
-from gui.translate import fromUtf8
+from PyQt5 import QtWidgets
 
 
-class InfoDialog(QtGui.QMessageBox):
+class InfoDialog(QtWidgets.QMessageBox):
     def __init__(self, message):
         super(InfoDialog, self).__init__()
-        self.setIcon(QtGui.QMessageBox.Information)
-        self.setWindowTitle(fromUtf8("Повідомлення"))
-        self.setInformativeText(fromUtf8(message))
-        self.setStandardButtons(QtGui.QMessageBox.Ok)
+        self.setIcon(QtWidgets.QMessageBox.Information)
+        self.setWindowTitle("Повідомлення")
+        self.setInformativeText(message)
+        self.setStandardButtons(QtWidgets.QMessageBox.Ok)

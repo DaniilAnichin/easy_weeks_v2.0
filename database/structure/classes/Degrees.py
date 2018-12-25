@@ -12,7 +12,7 @@ class Degrees(Base):
     short_name = Column(String)
     translated = u'Ступінь'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.full_name
 
     teachers = relationship('Teachers', backref='degree', cascade='all, delete-orphan')

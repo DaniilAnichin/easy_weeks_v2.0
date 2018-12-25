@@ -1,24 +1,23 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from PyQt4 import QtGui
+from PyQt5 import QtWidgets
 from database import Logger
-from gui.translate import fromUtf8
 logger = Logger()
 
 
-class RUSureChangeTable(QtGui.QMessageBox):
+class RUSureChangeTable(QtWidgets.QMessageBox):
     def __init__(self):
         super(RUSureChangeTable, self).__init__()
-        self.setIcon(QtGui.QMessageBox.Warning)
+        self.setIcon(QtWidgets.QMessageBox.Warning)
         info = u'Ви збираєтеся замінити розклад у програмому додатку'
         info += u'\nПопередня таблиця може містити зміни, що не було збережено'
         info += u'\nПродовжити?'
-        self.setInformativeText(fromUtf8(info))
-        self.setWindowTitle(fromUtf8('Зміна розкладу'))
-        self.setStandardButtons(QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-        self.setDefaultButton(QtGui.QMessageBox.Yes)
+        self.setInformativeText(info)
+        self.setWindowTitle('Зміна розкладу')
+        self.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        self.setDefaultButton(QtWidgets.QMessageBox.Yes)
 
     def translateUI(self):
-        self.setButtonText(QtGui.QMessageBox.Yes, fromUtf8('Так'))
-        self.setButtonText(QtGui.QMessageBox.No, fromUtf8('Ні'))
-        self.setWindowTitle(fromUtf8('Попередження'))
+        self.button(QtWidgets.QMessageBox.Yes).setText('Так')
+        self.button(QtWidgets.QMessageBox.No).setText('Ні')
+        self.setWindowTitle('Попередження')

@@ -1,9 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from database import Logger
 from database.structure import *
 from gui.dialogs.WeeksDialog import WeeksDialog
-from gui.translate import fromUtf8
 logger = Logger()
 
 
@@ -26,4 +25,4 @@ class ShowLesson(WeeksDialog):
         self.set_pair(Weeks.translated, self.lesson.week)
         self.set_pair(WeekDays.translated, self.lesson.week_day)
         self.set_pair(LessonTimes.translated, self.lesson.lesson_time)
-        self.setWindowTitle(fromUtf8('Заняття'))
+        self.setWindowTitle('Заняття')

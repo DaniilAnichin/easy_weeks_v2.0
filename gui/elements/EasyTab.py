@@ -1,15 +1,14 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from PyQt4 import QtGui
+from PyQt5 import QtWidgets
 from database import Logger
 from gui.elements.AdminTab import AdminTab
 from gui.elements.SearchTab import SearchTab
 from gui.elements.WeekTool import WeekTool
-from gui.translate import fromUtf8
 logger = Logger()
 
 
-class EasyTab(QtGui.QTabWidget):
+class EasyTab(QtWidgets.QTabWidget):
     def __init__(self, parent, session):
         super(EasyTab, self).__init__(parent)
         self.session = session
@@ -24,28 +23,28 @@ class EasyTab(QtGui.QTabWidget):
         )
 
     def initUI(self):
-        self.tab_user = QtGui.QWidget(self)
-        self.tab_method = QtGui.QWidget(self)
+        self.tab_user = QtWidgets.QWidget(self)
+        self.tab_method = QtWidgets.QWidget(self)
         self.tab_admin = AdminTab(self, self.session)
         self.tab_search = SearchTab(self, self.session)
 
         self.user_table = WeekTool(self.tab_user, self.session)
-        user_hbox = QtGui.QHBoxLayout(self.tab_user)
+        user_hbox = QtWidgets.QHBoxLayout(self.tab_user)
         user_hbox.addWidget(self.user_table)
         self.tab_user.setLayout(user_hbox)
 
         self.method_table = WeekTool(self.tab_method, self.session)
-        method_hbox = QtGui.QHBoxLayout(self.tab_method)
+        method_hbox = QtWidgets.QHBoxLayout(self.tab_method)
         method_hbox.addWidget(self.method_table, 1)
         self.tab_method.setLayout(method_hbox)
 
         self.translateUI()
 
     def translateUI(self):
-        self.addTab(self.tab_user, fromUtf8('Користувач'))
-        self.addTab(self.tab_method, fromUtf8('Методист'))
-        self.addTab(self.tab_admin, fromUtf8('Адміністратор'))
-        self.addTab(self.tab_search, fromUtf8('Пошук'))
+        self.addTab(self.tab_user, 'Користувач')
+        self.addTab(self.tab_method, 'Методист')
+        self.addTab(self.tab_admin, 'Адміністратор')
+        self.addTab(self.tab_search, 'Пошук')
 
     def set_table(self, lesson_set, view_args):
         result = self.method_table.is_editing()

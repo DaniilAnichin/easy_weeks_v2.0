@@ -1,24 +1,24 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from PyQt4 import QtGui
+from PyQt5 import QtWidgets
 from database import Logger
 from database.structure import WeekDays, LessonTimes
 from gui.elements.DragButton import DragButton
 logger = Logger()
 
 
-class ButtonGrid(QtGui.QGridLayout):
+class ButtonGrid(QtWidgets.QGridLayout):
     created = False
 
     def __init__(self, parent, weekToolRef):
         super(ButtonGrid, self).__init__(parent)
         self.weekToolRef = weekToolRef
         for i in range(6):
-            l = QtGui.QLabel(WeekDays.read(self.weekToolRef.session, id=i+2)[0].short_name)
+            l = QtWidgets.QLabel(WeekDays.read(self.weekToolRef.session, id=i+2)[0].short_name)
             l.setFixedHeight(13)
             self.addWidget(l, 0, i+1)
         for j in range(5):
-            l = QtGui.QLabel(LessonTimes.read(self.weekToolRef.session, id=j+2)[0].short_name)
+            l = QtWidgets.QLabel(LessonTimes.read(self.weekToolRef.session, id=j+2)[0].short_name)
             l.setFixedWidth(7)
             self.addWidget(l, j+1, 0)
 

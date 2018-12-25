@@ -32,8 +32,8 @@ class Lessons(Base):
         self.row_time = self.to_row(self.time())
         # logger.info('Passed lesson init')
 
-    def __unicode__(self):
-        return u'%s у час %s' % (unicode(self.lesson_plan), unicode(self.row_time))
+    def __str__(self):
+        return u'%s у час %s' % (str(self.lesson_plan), str(self.row_time))
 
     def __eq__(self, other):
         fields = self.fields()
@@ -70,9 +70,9 @@ class Lessons(Base):
     @classmethod
     def from_row(cls, row_time):
         number = row_time % len(cls.time_ids)
-        row_time /= len(cls.time_ids)
+        row_time //= len(cls.time_ids)
         day = row_time % len(cls.day_ids)
-        row_time /= len(cls.day_ids)
+        row_time //= len(cls.day_ids)
         week = row_time % len(cls.week_ids)
         return dict(
             id_week=cls.week_ids[week],
@@ -127,16 +127,16 @@ class Lessons(Base):
         # Make lesson to string to view it on the table
         if self.is_empty:
             return u''
-        result = shorten(unicode(self.lesson_plan.subject), 15)
+        result = shorten(str(self.lesson_plan.subject), 15)
         if 'teachers' not in args:
             teachers = u', '.join(
-                unicode(teacher) for teacher in self.lesson_plan.teachers
+                str(teacher) for teacher in self.lesson_plan.teachers
             )
             result += u'\n' + shorten(teachers, 15)
         if 'rooms' not in args:
-            result += u'\n' + shorten(unicode(self.room), 15)
+            result += u'\n' + shorten(str(self.room), 15)
         if 'groups' not in args:
-            groups = u', '.join(unicode(group) for group in self.lesson_plan.groups)
+            groups = u', '.join(str(group) for group in self.lesson_plan.groups)
             result += u'\n' + shorten(groups, 15)
         return result
 

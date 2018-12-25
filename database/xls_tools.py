@@ -1,12 +1,12 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*- #
 import xlsxwriter
 from database.select_table import get_table
 from database.structure import *
 
 
-def print_table(session, save_dest, table, element):
-    book = xlsxwriter.Workbook(save_dest)
+def print_table(session, filename, table, element):
+    book = xlsxwriter.Workbook(filename)
     data_type = element.__tablename__
 
     page = book.add_worksheet(u'Розклад')
@@ -33,17 +33,17 @@ def print_table(session, save_dest, table, element):
     if data_type == u'teachers':
         page.merge_range(
             0, 0, 0, 7,
-            u'Розклад занять, викладач: %s' % unicode(element),
+            u'Розклад занять, викладач: %s' % str(element),
             lformat)
     elif data_type == u'groups':
         page.merge_range(
             0, 0, 0, 7,
-            u'Розклад занять, група: %s' % unicode(element),
+            u'Розклад занять, група: %s' % str(element),
             lformat)
     elif data_type == u'rooms':
         page.merge_range(
             0, 0, 0, 7,
-            u'Розклад занять, аудиторія: %s' % unicode(element),
+            u'Розклад занять, аудиторія: %s' % str(element),
             lformat)
     for l in range(5):
         for d in range(6):

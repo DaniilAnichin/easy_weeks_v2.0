@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-#
 import json
 import urllib
@@ -15,7 +15,7 @@ def get_teacher_id(session, teacher_short_name, add_teacher=True):
     teacher_surname = teacher_short_name.split(' ')[1]
     if '\'' in teacher_surname:
         teacher_surname = teacher_surname.split('\'')[0]
-    unicode_name = unicode(teacher_short_name, 'utf-8')
+    str_name = str(teacher_short_name, 'utf-8')
     teacher_url = teachers_url % teacher_surname
 
     info = json.load(urllib.urlopen(teacher_url))
@@ -25,7 +25,7 @@ def get_teacher_id(session, teacher_short_name, add_teacher=True):
         return -1
 
     for row in info['data']:
-        if row['teacher_short_name'] == unicode_name:
+        if row['teacher_short_name'] == str_name:
             cur_teacher_id = int(row['teacher_id'])
             if add_teacher:
                 create_teacher(session, row, teacher_short_name)
@@ -33,11 +33,11 @@ def get_teacher_id(session, teacher_short_name, add_teacher=True):
     for row in info['data']:
         # For bad only:
         if row['teacher_short_name'] == u'' and \
-                        unicode(teacher_surname, 'utf-8') in row['teacher_name']:
+                        str(teacher_surname, 'utf-8') in row['teacher_name']:
             row.update(dict(
-                teacher_short_name=unicode_name,
+                teacher_short_name=str_name,
             ))
-        if row['teacher_short_name'] == unicode_name:
+        if row['teacher_short_name'] == str_name:
             cur_teacher_id = int(row['teacher_id'])
             if add_teacher:
                 create_teacher(session, row, teacher_short_name)
@@ -49,9 +49,9 @@ def get_teacher_id(session, teacher_short_name, add_teacher=True):
 
 def create_teacher(session, row, teacher_short_name):
     full_name = row['teacher_name']
-    short_name = unicode(' '.join(teacher_short_name.split(' ')[1:]), 'utf-8')
+    short_name = str(' '.join(teacher_short_name.split(' ')[1:]), 'utf-8')
     default_department_id = 2
-    degree_name = unicode(teacher_short_name.split(' ')[0], 'utf-8')
+    degree_name = str(teacher_short_name.split(' ')[0], 'utf-8')
     degree = Degrees.read(session, short_name=degree_name)
     if isinstance(degree, int):
         logger.debug('Looking for degree: ' + db_codes_output[degree])
@@ -78,15 +78,15 @@ def teacher_update(session, teacher_name, add_teacher=True):
     if isinstance(teacher_name, list):
         teacher_id = teacher_name[1]
         teacher_name = teacher_name[0]
-        if isinstance(teacher_name, unicode):
+        if isinstance(teacher_name, str):
             teacher_name = teacher_name.encode('utf-8')
         get_teacher_id(session, teacher_name, add_teacher)
     else:
-        if isinstance(teacher_name, unicode):
+        if isinstance(teacher_name, str):
             teacher_name = teacher_name.encode('utf-8')
         teacher_id = get_teacher_id(session, teacher_name, add_teacher)
 
-    teacher_name = unicode(' '.join(teacher_name.split(' ')[1:]), 'utf-8')
+    teacher_name = str(' '.join(teacher_name.split(' ')[1:]), 'utf-8')
     if teacher_id == -1:
         # logger.debug('Teacher not found')
         return -1

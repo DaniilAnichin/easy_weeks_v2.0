@@ -26,7 +26,7 @@ class Users(Base):
         kwargs.update(hashed_password=hashed)
         return super(Users, cls).create(session, **kwargs)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.nickname
 
     def authenticate(self, password):

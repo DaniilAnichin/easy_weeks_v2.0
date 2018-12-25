@@ -1,15 +1,14 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtWidgets
 from database import Logger
 from database.structure import *
 from database.select_table import find_free
 from gui.elements.CompleterCombo import CompleterCombo
-from gui.translate import fromUtf8
 logger = Logger()
 
 
-class SearchTab(QtGui.QWidget):
+class SearchTab(QtWidgets.QWidget):
     def __init__(self, parent, session):
         super(SearchTab, self).__init__(parent)
         self.session = session
@@ -17,52 +16,52 @@ class SearchTab(QtGui.QWidget):
         self.initUI()
 
     def initUI(self):
-        self.hbox = QtGui.QHBoxLayout(self)
+        self.hbox = QtWidgets.QHBoxLayout(self)
         self.hbox.setObjectName('search_tab_hbox')
-        self.form = QtGui.QFormLayout()
+        self.form = QtWidgets.QFormLayout()
         self.form.setObjectName('search_tab_form')
 
         for text in ['object', 'department', 'week', 'day', 'time']:
-            setattr(self, text + '_label', QtGui.QLabel())
+            setattr(self, text + '_label', QtWidgets.QLabel())
             setattr(self, text + '_choice', CompleterCombo())
             self.form.addRow(getattr(self, text + '_label'), getattr(self, text + '_choice'))
 
-        spacer = QtGui.QSpacerItem(
-            QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Minimum
+        spacer = QtWidgets.QSpacerItem(
+            QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Minimum
         )
-        self.submit_button = QtGui.QPushButton(self)
+        self.submit_button = QtWidgets.QPushButton(self)
         self.submit_button.clicked.connect(self.search)
-        self.form.setItem(5, QtGui.QFormLayout.LabelRole, spacer)
-        self.form.setWidget(5, QtGui.QFormLayout.FieldRole, self.submit_button)
+        self.form.setItem(5, QtWidgets.QFormLayout.LabelRole, spacer)
+        self.form.setWidget(5, QtWidgets.QFormLayout.FieldRole, self.submit_button)
 
         self.hbox.addLayout(self.form)
-        self.search_list = QtGui.QListWidget(self)
+        self.search_list = QtWidgets.QListWidget(self)
         self.search_list.itemDoubleClicked.connect(self.set_table_by_item)
         self.hbox.addWidget(self.search_list)
         self.translateUI()
 
     def translateUI(self):
-        self.object_label.setText(fromUtf8('Що знайти: '))
+        self.object_label.setText('Що знайти: ')
         self.object_choice.items = [Teachers, Rooms]
         self.object_choice.addItems([item.translated for item in self.object_choice.items])
 
         self.department_label.setText(Departments.translated + u':')
         self.department_choice.items = Departments.read(self.session, all_=True)
-        self.department_choice.addItems([unicode(time) for time in self.department_choice.items])
+        self.department_choice.addItems([str(time) for time in self.department_choice.items])
 
         self.week_label.setText(Weeks.translated + u':')
         self.week_choice.items = Weeks.read(self.session, all_=True)
-        self.week_choice.addItems([unicode(week) for week in self.week_choice.items])
+        self.week_choice.addItems([str(week) for week in self.week_choice.items])
 
         self.day_label.setText(WeekDays.translated + u':')
         self.day_choice.items = WeekDays.read(self.session, all_=True)
-        self.day_choice.addItems([unicode(day) for day in self.day_choice.items])
+        self.day_choice.addItems([str(day) for day in self.day_choice.items])
 
         self.time_label.setText(LessonTimes.translated + u':')
         self.time_choice.items = LessonTimes.read(self.session, all_=True)
-        self.time_choice.addItems([unicode(time) for time in self.time_choice.items])
+        self.time_choice.addItems([str(time) for time in self.time_choice.items])
 
-        self.submit_button.setText(fromUtf8('Знайти'))
+        self.submit_button.setText('Знайти')
 
     def get_time(self):
         return dict(
@@ -78,18 +77,18 @@ class SearchTab(QtGui.QWidget):
         params = self.get_time()
         params.update(self.department())
         cls = self.object_choice.items[self.object_choice.currentIndex()]
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         result = find_free(self.session, cls, **params)
-        QtGui.QApplication.restoreOverrideCursor()
+        QtWidgets.QApplication.restoreOverrideCursor()
         logger.debug('Number of free: "%d"' % len(result))
         self.show_results(result)
 
     def show_results(self, values):
         self.search_list.clear()
         self.search_list.view_items = values
-        self.search_list.addItems([unicode(value) for value in values])
+        self.search_list.addItems([str(value) for value in values])
         if not self.search_list.view_items:
-            self.search_list.addItem(fromUtf8('На жаль, усі(усе) зайнято'))
+            self.search_list.addItem('На жаль, усі(усе) зайнято')
 
     def set_table_by_item(self, *args):
         item = self.search_list.view_items[self.search_list.row(args[0])]

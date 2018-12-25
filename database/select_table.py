@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*- #
 from database import Logger, db_codes, structure
 from database.structure import *
@@ -12,7 +12,7 @@ def get_table(session, element):
     if isinstance(session, int):
         return db_codes['session']
     data_type = element.__tablename__
-    logger.debug('Data: %s' % unicode(element))
+    logger.debug('Data: %s' % str(element))
     if data_type == 'rooms':
         params = dict(id_room=element.id)
     else:

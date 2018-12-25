@@ -12,7 +12,7 @@ class LessonTypes(Base):
     short_name = Column(String)
     translated = u'Тип'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.full_name
 
     lesson_plans = relationship('LessonPlans', backref='lesson_type', cascade='all, delete-orphan')

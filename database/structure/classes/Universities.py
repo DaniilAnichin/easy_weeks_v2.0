@@ -12,7 +12,7 @@ class Universities(Base):
     short_name = Column(String)
     translated = u'Університет'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.short_name
 
     faculties = relationship(

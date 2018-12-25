@@ -13,7 +13,7 @@ class Rooms(Base):
     additional_stuff = Column(String)
     translated = u'Аудиторія'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     lessons = relationship('Lessons', backref='room', cascade='all, delete-orphan')

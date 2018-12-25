@@ -11,7 +11,7 @@ class Groups(Base):
     id_department = Column(Integer, ForeignKey('departments.id'))
     translated = u'Група'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     _columns = ['id', 'name', 'id_department']

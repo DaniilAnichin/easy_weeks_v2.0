@@ -1,6 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from PyQt4 import QtGui
+from PyQt5 import QtWidgets
 from database import Logger
 from database import db_codes_output
 from database.structure import *
@@ -8,18 +8,18 @@ from gui.elements.WeekTool import WeekTool
 logger = Logger()
 
 
-class ImportDiffDialog(QtGui.QDialog):
+class ImportDiffDialog(QtWidgets.QDialog):
     def __init__(self, session, parent=None):
         super(ImportDiffDialog, self).__init__(parent)
         self.resize(805, 600)
-        vlayout = QtGui.QVBoxLayout()
+        vlayout = QtWidgets.QVBoxLayout()
         self.week_tool_window = WeekTool(self, session)
         self.session = session
         vlayout.addWidget(self.week_tool_window)
-        bhlayoyt = QtGui.QHBoxLayout()
-        self.ybutton = QtGui.QPushButton(u'Застосувати')
-        self.nbutton = QtGui.QPushButton(u'Пропустити')
-        self.qbutton = QtGui.QPushButton(u'Вийти')
+        bhlayoyt = QtWidgets.QHBoxLayout()
+        self.ybutton = QtWidgets.QPushButton(u'Застосувати')
+        self.nbutton = QtWidgets.QPushButton(u'Пропустити')
+        self.qbutton = QtWidgets.QPushButton(u'Вийти')
         self.ybutton.clicked.connect(self.acceptTT)
         self.nbutton.clicked.connect(self.defuseTT)
         self.qbutton.clicked.connect(self.quitTT)
@@ -49,7 +49,7 @@ class ImportDiffDialog(QtGui.QDialog):
         self.is_done = True
 
     def acceptTT(self):
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         t_lessons = Lessons.read(self.session, id_lesson_plan=[
             old_lp.id for old_lp in LessonPlans.read(self.session, teachers=self.teacher.id)
         ])
@@ -83,4 +83,4 @@ class ImportDiffDialog(QtGui.QDialog):
                     if isinstance(new_lesson, int):
                         logger.debug(db_codes_output[new_lesson])
 
-        QtGui.QApplication.restoreOverrideCursor()
+        QtWidgets.QApplication.restoreOverrideCursor()

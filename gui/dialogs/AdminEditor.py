@@ -1,16 +1,16 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtWidgets
 from database import Logger, structure
 from gui.dialogs.WeeksDialog import WeeksDialog
-from gui.translate import fromUtf8, translates
+from gui.translate import translates
 logger = Logger()
 
 
 def safe_column(column_name, cls=None):
     # May be added later
     return not (column_name.startswith('id_')
-                or column_name.startswith('is_')
+                # or column_name.startswith('is_')
                 or column_name in
                 ['id', 'row_time', 'param_checker', 'additional_stuff',
                  'split_groups', 'needed_stuff']
@@ -34,17 +34,17 @@ class AdminEditor(WeeksDialog):
         self.fields = [column for column in self.cls.fields()
                        if safe_column(column, self.cls)]
 
-        if self.cls_name not in structure.__all__:
+        if self.cls_name not in structure.tables:
             logger.debug('Wrong params')
         else:
             logger.debug('All right')
             for column in self.fields:
                     self.make_pair(column)
-            self.vbox.addWidget(self.make_button(fromUtf8('Підтвердити'), self.accept))
+            self.vbox.addWidget(self.make_button('Підтвердити', self.accept))
             if self.empty:
-                self.setWindowTitle(fromUtf8('Створення елементу'))
+                self.setWindowTitle('Створення елементу')
             else:
-                self.setWindowTitle(fromUtf8('Редагування елементу'))
+                self.setWindowTitle('Редагування елементу')
 
     def make_pair(self, param):
         exp_result = getattr(self.example_element, param)
@@ -52,12 +52,12 @@ class AdminEditor(WeeksDialog):
             self.default_list_pair(param)
         elif isinstance(exp_result, structure.Base):
             self.default_combo_pair(param)
-        elif isinstance(exp_result, int):
-            self.default_int_pair(param)
-        elif isinstance(exp_result, (str, unicode, QtCore.QString)):
-            self.default_str_pair(param)
         elif isinstance(exp_result, bool):
             self.default_bool_pair(param)
+        elif isinstance(exp_result, int):
+            self.default_int_pair(param)
+        elif isinstance(exp_result, str):
+            self.default_str_pair(param)
         else:
             logger.info("%s is %s" % (param, type(exp_result)))
 
@@ -67,12 +67,12 @@ class AdminEditor(WeeksDialog):
             return getattr(self, param).view_items
         elif isinstance(exp_result, structure.Base):
             return getattr(self, param).items[getattr(self, param).currentIndex()]
-        elif isinstance(exp_result, int):
-            return int(getattr(self, param).value())
-        elif isinstance(exp_result, (str, unicode, QtCore.QString)):
-            return unicode(getattr(self, param).text())
         elif isinstance(exp_result, bool):
             return getattr(self, param).isChecked()
+        elif isinstance(exp_result, int):
+            return int(getattr(self, param).value())
+        elif isinstance(exp_result, str):
+            return str(getattr(self, param).text())
         else:
             logger.info("%s is %s" % (param, type(exp_result)))
 
@@ -91,36 +91,36 @@ class AdminEditor(WeeksDialog):
         self.set_list_pair(label, selected_values, values, param)
 
     def default_int_pair(self, param):
-        spin = QtGui.QSpinBox()
+        spin = QtWidgets.QSpinBox()
         spin.setRange(0, 1000000)
         if not self.empty:
             spin.setValue(getattr(self.element, param))
         setattr(self, param, spin)
 
-        hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(QtGui.QLabel(translates[param]), 1)
+        hbox = QtWidgets.QHBoxLayout()
+        hbox.addWidget(QtWidgets.QLabel(translates.get(param, param)), 1)
         hbox.addWidget(spin, 1)
         self.vbox.addLayout(hbox, 1)
 
     def default_str_pair(self, param):
-        line = QtGui.QLineEdit()
+        line = QtWidgets.QLineEdit()
         if not self.empty:
             line.setText(getattr(self.element, param))
         setattr(self, param, line)
 
-        hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(QtGui.QLabel(translates[param]), 1)
+        hbox = QtWidgets.QHBoxLayout()
+        hbox.addWidget(QtWidgets.QLabel(translates.get(param, param)), 1)
         hbox.addWidget(line, 1)
         self.vbox.addLayout(hbox, 1)
 
     def default_bool_pair(self, param):
-        check = QtGui.QCheckBox()
+        check = QtWidgets.QCheckBox()
         if not self.empty:
             check.setChecked(getattr(self.element, param))
         setattr(self, param, check)
 
-        hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(QtGui.QLabel(translates[param]), 1)
+        hbox = QtWidgets.QHBoxLayout()
+        hbox.addWidget(QtWidgets.QLabel(translates.get(param, param)), 1)
         hbox.addWidget(check, 1)
         self.vbox.addLayout(hbox, 1)
 

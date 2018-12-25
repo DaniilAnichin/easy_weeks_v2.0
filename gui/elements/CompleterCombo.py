@@ -1,11 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtWidgets
 from database import Logger
 logger = Logger()
 
 
-class CompleterCombo(QtGui.QComboBox):
+class CompleterCombo(QtWidgets.QComboBox):
     def __init__(self, parent=None):
         super(CompleterCombo, self).__init__(parent)
 
@@ -13,18 +13,18 @@ class CompleterCombo(QtGui.QComboBox):
         self.setEditable(True)
 
         # add a filter model to filter matching items
-        self.pFilterModel = QtGui.QSortFilterProxyModel(self)
+        self.pFilterModel = QtCore.QSortFilterProxyModel(self)
         self.pFilterModel.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.pFilterModel.setSourceModel(self.model())
 
         # add a completer, which uses the filter model
-        self.completer = QtGui.QCompleter(self.pFilterModel, self)
+        self.completer = QtWidgets.QCompleter(self.pFilterModel, self)
         # always show all (filtered) completions
-        self.completer.setCompletionMode(QtGui.QCompleter.UnfilteredPopupCompletion)
+        self.completer.setCompletionMode(QtWidgets.QCompleter.UnfilteredPopupCompletion)
         self.setCompleter(self.completer)
 
         # connect signals
-        self.lineEdit().textEdited[unicode].connect(self.pFilterModel.setFilterFixedString)
+        self.lineEdit().textEdited[str].connect(self.pFilterModel.setFilterFixedString)
         self.completer.activated.connect(self.on_completer_activated)
 
     # on selection of an item from the completer, select the corresponding item from combobox

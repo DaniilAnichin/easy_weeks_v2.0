@@ -13,7 +13,7 @@ class Faculties(Base):
     id_university = Column(Integer, ForeignKey('universities.id'))
     translated = u'Факультет'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.short_name
 
     departments = relationship(

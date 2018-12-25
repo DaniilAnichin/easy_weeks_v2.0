@@ -12,7 +12,7 @@ class Subjects(Base):
     short_name = Column(String)
     translated = u'Предмет'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.full_name
 
     lesson_plans = relationship('LessonPlans', backref='subject', cascade='all, delete-orphan')

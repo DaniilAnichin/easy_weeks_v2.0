@@ -1,7 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*- #
 import sys
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtGui import QDesktopServices
 from database import Logger, EW_VERSION
 from database.start_db.db_startup import connect_database
 from database.start_db.seeds import update_departments, save_departments
@@ -11,17 +12,17 @@ from gui.dialogs.ImportDialog import ImportDialog
 from gui.dialogs.InfoDialog import InfoDialog
 from gui.elements.EasyTab import EasyTab
 from gui.elements.WeekMenuBar import WeekMenuBar
-from gui.translate import fromUtf8, format_errors
+from gui.translate import format_errors
 logger = Logger()
 
 
-class WeeksMenu(QtGui.QMainWindow):
+class WeeksMenu(QtWidgets.QMainWindow):
     def __init__(self):
         super(WeeksMenu, self).__init__()
         self.resize(1024, 700)
         self.session = connect_database(hard=True)
-        self.center = QtGui.QWidget(self)
-        self.hbox = QtGui.QHBoxLayout(self.center)
+        self.center = QtWidgets.QWidget(self)
+        self.hbox = QtWidgets.QHBoxLayout(self.center)
 
         menu_data = [
             [
@@ -52,15 +53,15 @@ class WeeksMenu(QtGui.QMainWindow):
             ]
         ]
         self.tabs = EasyTab(self.center, self.session)
-        # self.set_user(Users.read(self.session, nickname='Admin')[0])
-        self.set_user()
+        self.set_user(Users.read(self.session, nickname='Admin')[0])
+        # self.set_user()
 
         self.hbox.addWidget(self.tabs)
         self.setCentralWidget(self.center)
 
-        self.statusbar = QtGui.QStatusBar(self)
+        self.statusbar = QtWidgets.QStatusBar(self)
         self.setStatusBar(self.statusbar)
-        self.data_label = QtGui.QLabel(self)
+        self.data_label = QtWidgets.QLabel(self)
         self.statusbar.addWidget(self.data_label)
 
         self.menubar = WeekMenuBar(self, menu_data=menu_data)
@@ -71,11 +72,12 @@ class WeeksMenu(QtGui.QMainWindow):
             self.set_tabs_table(self.element)
         except Exception as e:
             logger.error(e)
+            raise e
 
         self.retranslateUi()
 
     def retranslateUi(self):
-        self.setWindowTitle(fromUtf8('EasyWeeks'))
+        self.setWindowTitle('EasyWeeks')
         logger.info('Passed MainMenu TranslateUI function')
 
     def set_tabs_table(self, element=None):
@@ -87,14 +89,14 @@ class WeeksMenu(QtGui.QMainWindow):
         if not type(element) in [Teachers, Rooms, Groups]:
             return
 
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         self.clear_tabs()
         self.table_data = get_table(self.session, element)
-        QtGui.QApplication.restoreOverrideCursor()
+        QtWidgets.QApplication.restoreOverrideCursor()
 
         if not self.tabs.set_table(self.table_data, element.__tablename__):
             self.element = element
-            self.data_label.setText(unicode(element))
+            self.data_label.setText(str(element))
 
     def set_departments(self):
         logger.info('Started department setting function')
@@ -110,17 +112,17 @@ class WeeksMenu(QtGui.QMainWindow):
         logger.info('Started table choosing dialog function')
         from gui.dialogs.TableChoosingDialog import TableChoosingDialog
         self.table = TableChoosingDialog(self.session)
-        if self.table.exec_() == QtGui.QDialog.Accepted:
+        if self.table.exec_() == QtWidgets.QDialog.Accepted:
             data = [self.table.data_type, self.table.data_id]
             element = get_element(self.session, *data)
-            logger.debug('Schedule for %s' % unicode(self.element))
+            logger.debug('Schedule for %s' % str(self.element))
             return element
 
     def login(self):
         logger.info('Started user login function')
         from gui.dialogs.LoginDialog import LoginDialog
         self.login_dialog = LoginDialog(Users.read(self.session, all_=True))
-        if self.login_dialog.exec_() == QtGui.QDialog.Accepted:
+        if self.login_dialog.exec_() == QtWidgets.QDialog.Accepted:
             self.set_user(self.login_dialog.user)
             logger.info("Logged in as %s" % self.user.nickname)
 
@@ -155,7 +157,7 @@ class WeeksMenu(QtGui.QMainWindow):
 
     def check_database(self):
         logger.info('Started database check function')
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         ret = check_table(self.session, only_temp=True)
         if ret == 0:
             msg = 'Перевірка успішна'
@@ -163,13 +165,13 @@ class WeeksMenu(QtGui.QMainWindow):
             msg = format_errors(ret)
         self.info = InfoDialog(msg)
         self.info.show()
-        QtGui.QApplication.restoreOverrideCursor()
+        QtWidgets.QApplication.restoreOverrideCursor()
 
     def save_database(self):
         logger.info('Started database saving function')
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         ret = save_table(self.session)
-        QtGui.QApplication.restoreOverrideCursor()
+        QtWidgets.QApplication.restoreOverrideCursor()
         if ret == 0:
             self.tabs.method_table.set_edited(False)
             msg = 'Збережено успішно'
@@ -202,8 +204,7 @@ class WeeksMenu(QtGui.QMainWindow):
             return True
 
     def docs(self):
-        from PyQt4.QtCore import QUrl
-        QtGui.QDesktopServices.openUrl(QUrl("User_manual.PDF"))
+        QDesktopServices.openUrl(QtCore.QUrl('User_manual.pdf'))
 
     def keyPressEvent(self, e):
         if e.key() == 0x01000030:  # Qt::KEY_F1
@@ -211,7 +212,7 @@ class WeeksMenu(QtGui.QMainWindow):
 
 
 def main():
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     window = WeeksMenu()
     window.show()
     sys.exit(app.exec_())

@@ -1,14 +1,13 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtCore, QtWidgets
 from database import Logger
 from gui.elements.CompleterCombo import CompleterCombo
-from gui.translate import fromUtf8
 logger = Logger()
 
 
-class EditableList(QtGui.QListWidget):
-    def __init__(self, parent, items_list, suggested_list, inner_name, sort_key=lambda a: unicode(a)):
+class EditableList(QtWidgets.QListWidget):
+    def __init__(self, parent, items_list, suggested_list, inner_name, sort_key=lambda a: str(a)):
         super(EditableList, self).__init__(parent)
         self.sort_key = sort_key
         self.view_items = items_list[:]
@@ -20,7 +19,7 @@ class EditableList(QtGui.QListWidget):
         setattr(self.parent(), inner_name, self)
 
     def mousePressEvent(self, QMouseEvent):
-        QtGui.QListWidget.mousePressEvent(self, QMouseEvent)
+        QtWidgets.QListWidget.mousePressEvent(self, QMouseEvent)
 
         if self.blocked:
             # Pause to prevent multiple deleting
@@ -51,9 +50,9 @@ class EditableList(QtGui.QListWidget):
             return
 
         self.view_items += [__args[0]]
-        # self.view_items.sort(key=lambda a: unicode(a))
+        # self.view_items.sort(key=lambda a: str(a))
         # index = self.view_items.index(__args[0])
-        # self.insertItem(index, unicode(__args[0]))
+        # self.insertItem(index, str(__args[0]))
         super(EditableList, self).addItem(self.sort_key(__args[0]))
         logger.info('Added item "%s"' % self.sort_key(__args[0]))
 
@@ -87,17 +86,17 @@ class EditableList(QtGui.QListWidget):
         self.completer.addItems([self.sort_key(item) for item in self.completer_items])
 
         # Create modal window
-        self.dialog = QtGui.QDialog()
+        self.dialog = QtWidgets.QDialog()
         self.dialog.setModal(True)
 
         # Create button, connect
-        submit = QtGui.QPushButton(fromUtf8('Додати'))
+        submit = QtWidgets.QPushButton('Додати')
         # logger.debug(completer.currentText())
         submit.clicked.connect(self.addItemByIndex)
         submit.clicked.connect(self.dialog.close)
 
         # Add to layout
-        vbox = QtGui.QVBoxLayout(self.dialog)
+        vbox = QtWidgets.QVBoxLayout(self.dialog)
         vbox.addWidget(self.completer, 1)
         vbox.addWidget(submit, 1)
 

@@ -98,5 +98,8 @@ ENV/
 *.xls
 *.xlsx
 
+# Manual
+*.pdf
+
 # logs
 *.logs

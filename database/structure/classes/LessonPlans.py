@@ -12,12 +12,12 @@ class LessonPlans(Base):
     id_lesson_type = Column(Integer, ForeignKey('lesson_types.id'))
     translated = u'Навчальній план'
 
-    def __unicode__(self):
+    def __str__(self):
         return u'{0},\n{1}\nз {2}\nз {3}'.format(
-            unicode(self.lesson_type),
-            unicode(self.subject),
-            u', '.join([unicode(group) for group in self.groups]),
-            u', '.join([unicode(teacher) for teacher in self.teachers])
+            str(self.lesson_type),
+            str(self.subject),
+            u', '.join([str(group) for group in self.groups]),
+            u', '.join([str(teacher) for teacher in self.teachers])
         )
 
     amount = Column(Integer, default=2)

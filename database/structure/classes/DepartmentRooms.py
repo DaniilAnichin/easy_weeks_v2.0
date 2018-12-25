@@ -11,7 +11,7 @@ class DepartmentRooms(Base):
     id_room = Column(Integer, ForeignKey('rooms.id'))
     translated = u'Кімнати кафедри'
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%d in %d' % (self.id_room, self.id_department)
 
     _columns = ['id_room', 'id_department']

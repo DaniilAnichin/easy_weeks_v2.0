@@ -13,7 +13,7 @@ class Teachers(Base):
     id_degree = Column(Integer, ForeignKey('degrees.id'))
     translated = u'Викладач'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.full_name
 
     _columns = ['id', 'full_name', 'short_name', 'id_department', 'id_degree']

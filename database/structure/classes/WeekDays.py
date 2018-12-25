@@ -12,7 +12,7 @@ class WeekDays(Base):
     short_name = Column(String)
     translated = u'День'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.full_name
 
     lessons = relationship('Lessons', backref='week_day', cascade='all, delete-orphan')

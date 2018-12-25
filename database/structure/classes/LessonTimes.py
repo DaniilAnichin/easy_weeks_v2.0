@@ -12,7 +12,7 @@ class LessonTimes(Base):
     short_name = Column(String)
     translated = u'Час'
 
-    def __unicode__(self):
+    def __str__(self):
         return self.full_name
 
     lessons = relationship('Lessons', backref='lesson_time', cascade='all, delete-orphan')
