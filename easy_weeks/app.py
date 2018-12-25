@@ -115,7 +115,7 @@ class WeeksMenu(QtWidgets.QMainWindow):
         if self.table.exec_() == QtWidgets.QDialog.Accepted:
             data = [self.table.data_type, self.table.data_id]
             element = get_element(self.session, *data)
-            logger.debug('Schedule for %s' % str(self.element))
+            logger.debug(f'Schedule for {self.element}')
             return element
 
     def login(self):
@@ -124,7 +124,7 @@ class WeeksMenu(QtWidgets.QMainWindow):
         self.login_dialog = LoginDialog(Users.read(self.session, all_=True))
         if self.login_dialog.exec_() == QtWidgets.QDialog.Accepted:
             self.set_user(self.login_dialog.user)
-            logger.info("Logged in as %s" % self.user.nickname)
+            logger.info(f'Logged in as {self.user.nickname}')
 
     def make_account_query(self):
         logger.info('Started account query sending function')
@@ -218,5 +218,5 @@ def main():
     sys.exit(app.exec_())
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

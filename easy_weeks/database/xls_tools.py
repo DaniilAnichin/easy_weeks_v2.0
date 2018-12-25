@@ -5,11 +5,18 @@ from easy_weeks.database.select_table import get_table
 from easy_weeks.database.structure import *
 
 
+titles = {
+    'teachers': lambda element: f'Розклад занять, викладач: {element}',
+    'groups': lambda element: f'Розклад занять, група: {element}',
+    'rooms': lambda element: f'Розклад занять, аудиторія: {element}',
+}
+
+
 def print_table(session, filename, table, element):
     book = xlsxwriter.Workbook(filename)
     data_type = element.__tablename__
 
-    page = book.add_worksheet(u'Розклад')
+    page = book.add_worksheet('Розклад')
     lformat = book.add_format()
     lformat.set_align('center')
     lformat.set_font_size(15)
@@ -22,70 +29,59 @@ def print_table(session, filename, table, element):
     page.set_column(0, 0, 10)
     page.set_column(1, 1, 15)
     page.set_column(2, 7, 40)
-    page.write(1, 0, u'Час', sformat)
-    page.write(1, 1, u'Тиждень', sformat)
+    page.write(1, 0, 'Час', sformat)
+    page.write(1, 1, 'Тиждень', sformat)
     for i in range(2, 8):
         page.write(1, i, WeekDays.read(session, id=i)[0].full_name, lformat)
     for i in range(2, 12, 2):
         page.merge_range(i, 0, i+1, 0, LessonTimes.read(session, id=i - ((i-2)/2))[0].full_name, sformat)
         page.write(i, 1, Weeks.read(session, id=2)[0].full_name, sformat)
         page.write(i+1, 1, Weeks.read(session, id=3)[0].full_name, sformat)
-    if data_type == u'teachers':
-        page.merge_range(
-            0, 0, 0, 7,
-            u'Розклад занять, викладач: %s' % str(element),
-            lformat)
-    elif data_type == u'groups':
-        page.merge_range(
-            0, 0, 0, 7,
-            u'Розклад занять, група: %s' % str(element),
-            lformat)
-    elif data_type == u'rooms':
-        page.merge_range(
-            0, 0, 0, 7,
-            u'Розклад занять, аудиторія: %s' % str(element),
-            lformat)
+    title = titles.get(data_type, None)
+    if title:
+        page.merge_range(0, 0, 0, 7, title(element), lformat)
+
     for l in range(5):
         for d in range(6):
             lesson1 = table[0][d][l]
             lesson2 = table[1][d][l]
-            names1 = u''
-            names2 = u''
-            if data_type == u'teachers':
-                names1 = u', '.join([g.name for g in lesson1.lesson_plan.groups])
-                names2 = u', '.join([g.name for g in lesson2.lesson_plan.groups])
-            elif data_type == u'groups':
-                names1 = u', '.join([t.short_name for t in lesson1.lesson_plan.teachers])
-                names2 = u', '.join([t.short_name for t in lesson2.lesson_plan.teachers])
-            data1 = u'\n'.join([
+            names1 = ''
+            names2 = ''
+            if data_type == 'teachers':
+                names1 = ', '.join([g.name for g in lesson1.lesson_plan.groups])
+                names2 = ', '.join([g.name for g in lesson2.lesson_plan.groups])
+            elif data_type == 'groups':
+                names1 = ', '.join([t.short_name for t in lesson1.lesson_plan.teachers])
+                names2 = ', '.join([t.short_name for t in lesson2.lesson_plan.teachers])
+            data1 = '\n'.join([
                 lesson1.lesson_plan.subject.full_name,
                 lesson1.lesson_plan.lesson_type.short_name,
                 names1,
                 lesson1.room.name
             ])
-            data2 = u'\n'.join([
+            data2 = '\n'.join([
                 lesson2.lesson_plan.subject.full_name,
                 lesson2.lesson_plan.lesson_type.short_name,
                 names2,
                 lesson2.room.name
             ])
-            if data_type == u'rooms':
-                data1 = u'\n'.join([
+            if data_type == 'rooms':
+                data1 = '\n'.join([
                     lesson1.lesson_plan.subject.full_name,
                     lesson1.lesson_plan.lesson_type.short_name,
-                    u', '.join([t.short_name for t in lesson1.lesson_plan.teachers]),
-                    u', '.join([g.name for g in lesson1.lesson_plan.groups])
+                    ', '.join([t.short_name for t in lesson1.lesson_plan.teachers]),
+                    ', '.join([g.name for g in lesson1.lesson_plan.groups])
                 ])
-                data2 = u'\n'.join([
+                data2 = '\n'.join([
                     lesson2.lesson_plan.subject.full_name,
                     lesson2.lesson_plan.lesson_type.short_name,
-                    u', '.join([t.short_name for t in lesson2.lesson_plan.teachers]),
-                    u', '.join([g.name for g in lesson2.lesson_plan.groups])
+                    ', '.join([t.short_name for t in lesson2.lesson_plan.teachers]),
+                    ', '.join([g.name for g in lesson2.lesson_plan.groups])
                 ])
             if lesson1.id == 1:
-                data1 = u''
+                data1 = ''
             if lesson2.id == 1:
-                data2 = u''
+                data2 = ''
             if data1 == data2:
                 page.merge_range(2*l+2, d+2, 2*l+3, d+2, data1, sformat)
             else:
@@ -100,9 +96,9 @@ def print_table(session, filename, table, element):
 
 
 def print_department_table(session, save_dst, data_type, dep_id):
-    data_dict = {u'teachers': Teachers, u'groups': Groups}
+    data_dict = {'teachers': Teachers, 'groups': Groups}
     book = xlsxwriter.Workbook(save_dst)
-    page = book.add_worksheet(u'Розклад')
+    page = book.add_worksheet('Розклад')
 
     page.set_column(0, 0, 5)
     page.set_column(1, 1, 10)
@@ -140,7 +136,7 @@ def print_department_table(session, save_dst, data_type, dep_id):
 
     for e in data_dict[data_type].read(session, id_department=dep_id):
         if isinstance(e, Teachers):
-            page.write(1, column_index, e.degree.short_name + u' ' + e.short_name, tformat)
+            page.write(1, column_index, e.degree.short_name + ' ' + e.short_name, tformat)
         else:
             page.write(1, column_index, e.name, tformat)
 
@@ -149,30 +145,30 @@ def print_department_table(session, save_dst, data_type, dep_id):
             for d in range(6):
                 lesson1 = table[0][d][l]
                 lesson2 = table[1][d][l]
-                names1 = u''
-                names2 = u''
-                if data_type == u'teachers':
-                    names1 = u', '.join([g.name for g in lesson1.lesson_plan.groups])
-                    names2 = u', '.join([g.name for g in lesson2.lesson_plan.groups])
-                elif data_type == u'groups':
-                    names1 = u', '.join([t.short_name for t in lesson1.lesson_plan.teachers])
-                    names2 = u', '.join([t.short_name for t in lesson2.lesson_plan.teachers])
-                data1 = u'\n'.join([
+                names1 = ''
+                names2 = ''
+                if data_type == 'teachers':
+                    names1 = ', '.join([g.name for g in lesson1.lesson_plan.groups])
+                    names2 = ', '.join([g.name for g in lesson2.lesson_plan.groups])
+                elif data_type == 'groups':
+                    names1 = ', '.join([t.short_name for t in lesson1.lesson_plan.teachers])
+                    names2 = ', '.join([t.short_name for t in lesson2.lesson_plan.teachers])
+                data1 = '\n'.join([
                     lesson1.lesson_plan.subject.full_name,
                     lesson1.lesson_plan.lesson_type.short_name,
                     names1,
                     lesson1.room.name
                 ])
-                data2 = u'\n'.join([
+                data2 = '\n'.join([
                     lesson2.lesson_plan.subject.full_name,
                     lesson2.lesson_plan.lesson_type.short_name,
                     names2,
                     lesson2.room.name
                 ])
                 if lesson1.id == 1:
-                    data1 = u''
+                    data1 = ''
                 if lesson2.id == 1:
-                    data2 = u''
+                    data2 = ''
                 if data1 == data2:
                     page.merge_range(2 * l + 2 + 10 * d, column_index, 2 * l + 3 + 10 * d, column_index, data1, sformat)
                 else:
@@ -181,8 +177,9 @@ def print_department_table(session, save_dst, data_type, dep_id):
         column_index += 1
 
     column_index -= 1
-    page.merge_range(0, 0, 0, column_index, u'Розклад %s кафедри %s' % (u'викладачів' if data_type == u'teachers'
-                                                                        else u'груп',
+    page.merge_range(0, 0, 0, column_index, 'Розклад %s кафедри %s' % ('викладачів'
+                                                                       if data_type == 'teachers'
+                                                                       else 'груп',
                      Departments.read(session, id=dep_id)[0].full_name), lformat)
     for row in range(2, 63):
         page.set_row(row, 75)

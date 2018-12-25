@@ -163,5 +163,5 @@ def save_departments(session):
         'Rooms': rooms_data
     }
     import codecs
-    with codecs.open(DEPARTMENTS, 'w', encoding='utf-8') as out:
+    with codecs.open(DEPARTMENTS, 'w') as out:
         json.dump(data, out, indent=4, ensure_ascii=False)

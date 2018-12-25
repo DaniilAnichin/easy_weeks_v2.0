@@ -12,7 +12,7 @@ def get_table(session, element):
     if isinstance(session, int):
         return db_codes['session']
     data_type = element.__tablename__
-    logger.debug('Data: %s' % str(element))
+    logger.debug(f'Data: {element}')
     if data_type == 'rooms':
         params = dict(id_room=element.id)
     else:

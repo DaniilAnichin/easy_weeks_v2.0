@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-#
-import json
-import urllib
+import requests
 from easy_weeks.database import Logger, db_codes, db_codes_output, TEACHERS
 from easy_weeks.database.structure import *
 logger = Logger()
@@ -15,43 +14,41 @@ def get_teacher_id(session, teacher_short_name, add_teacher=True):
     teacher_surname = teacher_short_name.split(' ')[1]
     if '\'' in teacher_surname:
         teacher_surname = teacher_surname.split('\'')[0]
-    str_name = str(teacher_short_name, 'utf-8')
     teacher_url = teachers_url % teacher_surname
 
-    info = json.load(urllib.urlopen(teacher_url))
+    info = requests.get(teacher_url).json()
 
     if info['statusCode'] != 200:
-        logger.debug('Bad response: ' + info['statusCode'] + ' ' + teacher_url.decode('utf-8'))
+        logger.debug(f'Bad response: {info["statusCode"]} {teacher_url}')
         return -1
 
     for row in info['data']:
-        if row['teacher_short_name'] == str_name:
+        if row['teacher_short_name'] == teacher_short_name:
             cur_teacher_id = int(row['teacher_id'])
             if add_teacher:
                 create_teacher(session, row, teacher_short_name)
             return cur_teacher_id
     for row in info['data']:
         # For bad only:
-        if row['teacher_short_name'] == u'' and \
-                        str(teacher_surname, 'utf-8') in row['teacher_name']:
-            row.update(dict(
-                teacher_short_name=str_name,
-            ))
-        if row['teacher_short_name'] == str_name:
+        if row['teacher_short_name'] == u'' and teacher_surname in row['teacher_name']:
+            row.update({
+                'teacher_short_name': teacher_short_name,
+            })
+        if row['teacher_short_name'] == teacher_short_name:
             cur_teacher_id = int(row['teacher_id'])
             if add_teacher:
                 create_teacher(session, row, teacher_short_name)
             return cur_teacher_id
 
-    logger.info('Empty response: ' + teacher_url.decode('utf-8'))
+    logger.info(f'Empty response: {teacher_url}')
     return -1
 
 
 def create_teacher(session, row, teacher_short_name):
     full_name = row['teacher_name']
-    short_name = str(' '.join(teacher_short_name.split(' ')[1:]), 'utf-8')
+    degree_name, *name_parts = teacher_short_name.split(' ')
+    short_name = ' '.join(name_parts)
     default_department_id = 2
-    degree_name = str(teacher_short_name.split(' ')[0], 'utf-8')
     degree = Degrees.read(session, short_name=degree_name)
     if isinstance(degree, int):
         logger.debug('Looking for degree: ' + db_codes_output[degree])
@@ -78,15 +75,11 @@ def teacher_update(session, teacher_name, add_teacher=True):
     if isinstance(teacher_name, list):
         teacher_id = teacher_name[1]
         teacher_name = teacher_name[0]
-        if isinstance(teacher_name, str):
-            teacher_name = teacher_name.encode('utf-8')
         get_teacher_id(session, teacher_name, add_teacher)
     else:
-        if isinstance(teacher_name, str):
-            teacher_name = teacher_name.encode('utf-8')
         teacher_id = get_teacher_id(session, teacher_name, add_teacher)
 
-    teacher_name = str(' '.join(teacher_name.split(' ')[1:]), 'utf-8')
+    teacher_name = ' '.join(teacher_name.split(' ')[1:])
     if teacher_id == -1:
         # logger.debug('Teacher not found')
         return -1
@@ -101,9 +94,9 @@ def teacher_update(session, teacher_name, add_teacher=True):
         return -1
 
     cur_url = lessons_url % teacher_id
-    info = json.load(urllib.urlopen(cur_url))
+    info = requests.get(cur_url).json()
     if info['statusCode'] != 200:
-        logger.debug('Bad response: ' + str(info['statusCode']) + ' ' + cur_url.decode('utf-8'))
+        logger.debug(f'Bad response: {info["statusCode"]} {cur_url}')
         return -1
 
     department_id = 2
@@ -122,7 +115,7 @@ def teacher_update(session, teacher_name, add_teacher=True):
             elif isinstance(db_group, list):
                 db_group = db_group[0]
             if isinstance(db_group, int):
-                logger.debug('Creating/Reading group: ' + db_codes_output[db_group])
+                logger.debug(f'Creating/Reading group: {db_codes_output[db_group]}')
             else:
                 groups.append(db_group)
 
@@ -146,7 +139,7 @@ def teacher_update(session, teacher_name, add_teacher=True):
         elif isinstance(db_room, list):
             db_room = db_room[0]
         if isinstance(db_room, int):
-            logger.debug('Creating/Reading room: ' + db_codes_output[db_room])
+            logger.debug(f'Creating/Reading room: {db_codes_output[db_room]}')
             continue
 
         # Subject:

@@ -19,7 +19,7 @@ def create_new_database(path=DATABASE_NAME):
     if os.path.isfile(full_path):
         logger.debug("Database with same name already exits")
         return -1
-    en = create_engine('sqlite:///%s' % full_path)
+    en = create_engine(f'sqlite:///{full_path}')
     Base.metadata.create_all(en)
     session_m = sessionmaker(bind=en)
     s = session_m()
@@ -46,7 +46,7 @@ def create_database(delete_past=True, path=DATABASE_NAME):
 def connect_database(path=DATABASE_NAME, hard=False):
     full_path = os.path.join(DATABASE_DIR, path)
     if os.path.isfile(full_path):
-        en = create_engine('sqlite:///%s' % full_path)
+        en = create_engine(f'sqlite:///{full_path}')
         Base.metadata.create_all(en)
         session_m = sessionmaker(bind=en)
         session = session_m()
