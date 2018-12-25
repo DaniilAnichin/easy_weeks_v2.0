@@ -204,7 +204,7 @@ class WeeksMenu(QtWidgets.QMainWindow):
             return True
 
     def docs(self):
-        QDesktopServices.openUrl(QtCore.QUrl('User_manual.pdf'))
+        QDesktopServices.openUrl(QtCore.QUrl('user_manual.pdf'))
 
     def keyPressEvent(self, e):
         if e.key() == 0x01000030:  # Qt::KEY_F1

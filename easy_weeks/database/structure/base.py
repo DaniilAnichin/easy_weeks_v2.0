@@ -5,8 +5,6 @@ from sqlalchemy import Column, Integer
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 from easy_weeks.database import db_codes, Logger
 logger = Logger()
-first_cap_re = re.compile('(.)([A-Z][a-z]+)')
-all_cap_re = re.compile('([a-z0-9])([A-Z])')
 
 
 @as_declarative()
@@ -22,8 +20,7 @@ class Base(object):
 
     @declared_attr
     def __tablename__(self):
-        s1 = first_cap_re.sub(r'\1_\2', self.__name__)
-        return all_cap_re.sub(r'\1_\2', s1).lower()
+        return self.__module__.split('.')[-1]
 
     @classmethod
     def single(cls):
