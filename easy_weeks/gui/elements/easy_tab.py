@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 from PyQt5 import QtWidgets
 from easy_weeks.database import Logger
-from easy_weeks.gui.elements.AdminTab import AdminTab
-from easy_weeks.gui.elements.SearchTab import SearchTab
-from easy_weeks.gui.elements.WeekTool import WeekTool
+from easy_weeks.gui.elements import AdminTab
+from easy_weeks.gui.elements.search_tab import SearchTab
+from easy_weeks.gui.elements.week_tool import WeekTool
 logger = Logger()
 
 

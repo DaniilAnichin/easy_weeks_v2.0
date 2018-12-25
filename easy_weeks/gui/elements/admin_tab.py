@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 from PyQt5 import QtCore, QtWidgets
 from easy_weeks.database import Logger, db_codes, db_codes_output, structure
-from easy_weeks.gui.dialogs.AdminEditor import AdminEditor
-from easy_weeks.gui.dialogs.RUSureDelete import RUSureDelete
-from easy_weeks.gui.dialogs.InfoDialog import InfoDialog
-from easy_weeks.gui.elements.CompleterCombo import CompleterCombo
+from easy_weeks.gui.dialogs import AdminEditor, RUSureDelete, InfoDialog
+from easy_weeks.gui.elements.completer_combo import CompleterCombo
 logger = Logger()
 
 

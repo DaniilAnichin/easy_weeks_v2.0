@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from easy_weeks.database import Logger
 from easy_weeks.database.structure import *
-from easy_weeks.gui.dialogs.WeeksDialog import WeeksDialog
+from easy_weeks.gui.dialogs.weeks_dialog import WeeksDialog
 logger = Logger()
 
 

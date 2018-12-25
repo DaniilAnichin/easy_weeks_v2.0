@@ -3,8 +3,6 @@
 from functools import partial
 from PyQt5 import QtWidgets
 from easy_weeks.database import Logger
-from easy_weeks.gui.elements.CompleterCombo import CompleterCombo
-from easy_weeks.gui.elements.EditableList import EditableList
 logger = Logger()
 
 
@@ -28,6 +26,7 @@ class WeeksDialog(QtWidgets.QDialog):
         return this_button
 
     def make_combo(self, choice_list, selected, name, sort_key):
+        from easy_weeks.gui.elements import CompleterCombo
         combo = CompleterCombo()
         combo.items = choice_list[:]
         combo.items.sort(key=sort_key)
@@ -39,6 +38,7 @@ class WeeksDialog(QtWidgets.QDialog):
         return combo
 
     def make_list(self, values_list, choice_list, name):
+        from easy_weeks.gui.elements import EditableList
         items_list = EditableList(self, values_list, choice_list, name)
         # logger.info('Added list widget with name "%s"' % name)
         return items_list

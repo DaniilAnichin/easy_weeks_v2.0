@@ -4,7 +4,6 @@ from PyQt5 import QtWidgets
 from easy_weeks.database import Logger
 from easy_weeks.database.structure import *
 from easy_weeks.database.xls_tools import print_table, print_department_table
-from easy_weeks.gui.elements.CompleterCombo import CompleterCombo
 logger = Logger()
 
 
@@ -35,6 +34,7 @@ class PrintDialog(QtWidgets.QDialog):
         self.setLayout(self.layout)
 
     def make_combo(self, choice_list, selected, name, sort_key):
+        from easy_weeks.gui.elements import CompleterCombo
         combo = CompleterCombo()
         combo.items = choice_list[:]
         combo.items.sort(key=sort_key)

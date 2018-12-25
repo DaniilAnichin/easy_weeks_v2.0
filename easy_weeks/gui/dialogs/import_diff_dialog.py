@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from easy_weeks.database import Logger
 from easy_weeks.database import db_codes_output
 from easy_weeks.database.structure import *
-from easy_weeks.gui.elements.WeekTool import WeekTool
 logger = Logger()
 
 
 class ImportDiffDialog(QtWidgets.QDialog):
     def __init__(self, session, parent=None):
         super(ImportDiffDialog, self).__init__(parent)
+
+        from easy_weeks.gui.elements import WeekTool
         self.resize(805, 600)
         vlayout = QtWidgets.QVBoxLayout()
         self.week_tool_window = WeekTool(self, session)

@@ -5,8 +5,7 @@ from PyQt5.QtWidgets import QApplication
 from easy_weeks.database import Logger, db_codes_output
 from easy_weeks.database.structure import Lessons, LessonPlans
 from easy_weeks.database.select_table import undefined_lp
-from easy_weeks.gui.dialogs.WeeksDialog import WeeksDialog
-from easy_weeks.gui.dialogs.RUSureDelete import RUSureDelete
+from easy_weeks.gui.dialogs.weeks_dialog import WeeksDialog
 logger = Logger()
 
 
@@ -36,8 +35,8 @@ class EditLesson(WeeksDialog):
         for elem in field_list:
             self.default_combo_pair(elem)
 
-        self.vbox.addWidget(self.make_button('Підтвердити'), self.accept)
-        self.vbox.addWidget(self.make_button('Видалити'), self.delete)
+        self.vbox.addWidget(self.make_button('Підтвердити', self.accept))
+        self.vbox.addWidget(self.make_button('Видалити', self.delete))
         self.setWindowTitle('Редагування заняття')
         QApplication.restoreOverrideCursor()
 
@@ -85,6 +84,7 @@ class EditLesson(WeeksDialog):
         super(EditLesson, self).accept()
 
     def delete(self):
+        from easy_weeks.gui.dialogs import RUSureDelete
         self.rusure = RUSureDelete(self.lesson)
         if self.rusure.exec_() == QtWidgets.QMessageBox.Yes:
             res = Lessons.delete(self.session, main_id=self.lesson.id)

@@ -4,7 +4,7 @@ from PyQt5 import QtCore, QtWidgets
 from easy_weeks.database import Logger
 from easy_weeks.database.structure import *
 from easy_weeks.database.select_table import find_free
-from easy_weeks.gui.elements.CompleterCombo import CompleterCombo
+from easy_weeks.gui.elements import CompleterCombo
 logger = Logger()
 
 

@@ -1,9 +1,9 @@
-# from AdminTab import AdminTab
-# from ButtonGrid import ButtonGrid
-# from CompleterCombo import CompleterCombo
-# from DragButton import DragButton
-# from EasyTab import EasyTab
-# from EditableList import EditableList
-# from SearchTab import SearchTab
-# from WeekMenuBar import WeekMenuBar
-# from WeekTool import WeekTool
+from .admin_tab import AdminTab
+from .button_grid import ButtonGrid
+from .completer_combo import CompleterCombo
+from .drag_button import DragButton
+from .easy_tab import EasyTab
+from .editable_list import EditableList
+from .search_tab import SearchTab
+from .week_menu_bar import WeekMenuBar
+from .week_tool import WeekTool

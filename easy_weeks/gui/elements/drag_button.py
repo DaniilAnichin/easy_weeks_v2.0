@@ -4,8 +4,8 @@ from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import QColor, QCursor, QDrag, QPainter
 from easy_weeks.database import Logger, structure, db_codes
 from easy_weeks.database.structure import *
-from easy_weeks.gui.dialogs.EditLesson import EditLesson
-from easy_weeks.gui.dialogs.ShowLesson import ShowLesson
+from easy_weeks.gui.dialogs import EditLesson
+from easy_weeks.gui.dialogs import ShowLesson
 from easy_weeks.database.select_table import check_table
 logger = Logger()
 

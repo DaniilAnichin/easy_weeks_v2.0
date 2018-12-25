@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5 import QtCore, QtWidgets
 from easy_weeks.database import Logger, structure
-from easy_weeks.gui.dialogs.WeeksDialog import WeeksDialog
+from easy_weeks.gui.dialogs.weeks_dialog import WeeksDialog
 from easy_weeks.gui.translate import translates
 logger = Logger()
 

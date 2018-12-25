@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5 import QtCore, QtWidgets
 from easy_weeks.database import Logger
-from easy_weeks.gui.elements.CompleterCombo import CompleterCombo
+from easy_weeks.gui.elements import CompleterCombo
 logger = Logger()
 
 

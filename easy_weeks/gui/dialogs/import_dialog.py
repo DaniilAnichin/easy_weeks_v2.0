@@ -11,8 +11,6 @@ from easy_weeks.database.start_db.seeds import create_empty, create_common, upda
 from easy_weeks.database.select_table import get_table, same_tables, clear_temp, find_duplicates
 from easy_weeks.database.structure import *
 from easy_weeks.database.structure import Base
-from easy_weeks.gui.dialogs.ImportDiffDialog import ImportDiffDialog
-from easy_weeks.gui.elements.CompleterCombo import CompleterCombo
 logger = Logger()
 
 
@@ -51,6 +49,7 @@ class ImportDialog(QtWidgets.QDialog):
         self.setLayout(self.layout)
 
     def make_combo(self, choice_list, selected, name, sort_key):
+        from easy_weeks.gui.elements import CompleterCombo
         combo = CompleterCombo()
         combo.items = choice_list[:]
         combo.items.sort(key=sort_key)
@@ -83,6 +82,7 @@ class ImportDialog(QtWidgets.QDialog):
         self.deleteLater()
 
     def updateDepDb(self):
+        from easy_weeks.gui.dialogs import ImportDiffDialog
         self.import_all_button.setDisabled(True)
         self.import_dep_button.setDisabled(True)
         self.pro_bar.show()

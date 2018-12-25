@@ -1,27 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QWidget, QToolBox, QAbstractButton
 from easy_weeks.database import Logger
-from easy_weeks.gui.elements.DragButton import DragButton
-from easy_weeks.gui.elements.ButtonGrid import ButtonGrid
-from easy_weeks.gui.dialogs.RUSureChangeTable import RUSureChangeTable
+from easy_weeks.gui.elements import ButtonGrid
+from easy_weeks.gui.dialogs import RUSureChangeTable
 logger = Logger()
 
 
-class WeekTool(QtWidgets.QToolBox):
+class WeekTool(QToolBox):
     def __init__(self, parent, session, *args, **kwargs):
         super(WeekTool, self).__init__(parent, *args, **kwargs)
         self.session = session
         self.initUI()
 
     def initUI(self):
-        self.first_panel = QtWidgets.QWidget(self)
+        self.first_panel = QWidget(self)
         self.first_panel.acceptDrops()
         self.first_panel.session = self.session
         self.addItem(self.first_panel, '')
         self.first_table = ButtonGrid(self.first_panel, self)
 
-        self.second_panel = QtWidgets.QWidget(self)
+        self.second_panel = QWidget(self)
         self.second_panel.acceptDrops()
         self.second_panel.session = self.session
         self.addItem(self.second_panel, '')
@@ -30,7 +29,7 @@ class WeekTool(QtWidgets.QToolBox):
         self.set_edited(False)
 
         self.setMouseTracking(True)
-        self.tabButtons = self.findChildren(QtWidgets.QAbstractButton)
+        self.tabButtons = self.findChildren(QAbstractButton)
         for button in self.tabButtons:
             button.setMouseTracking(True)
 

@@ -8,10 +8,10 @@ from easy_weeks.database.start_db.db_startup import connect_database
 from easy_weeks.database.start_db.seeds import update_departments, save_departments
 from easy_weeks.database.select_table import *
 from easy_weeks.database.structure import *
-from easy_weeks.gui.dialogs.ImportDialog import ImportDialog
-from easy_weeks.gui.dialogs.InfoDialog import InfoDialog
-from easy_weeks.gui.elements.EasyTab import EasyTab
-from easy_weeks.gui.elements.WeekMenuBar import WeekMenuBar
+from easy_weeks.gui.dialogs import ImportDialog
+from easy_weeks.gui.dialogs import InfoDialog
+from easy_weeks.gui.elements import EasyTab
+from easy_weeks.gui.elements import WeekMenuBar
 from easy_weeks.gui.translate import format_errors
 logger = Logger()
 
@@ -110,7 +110,7 @@ class WeeksMenu(QtWidgets.QMainWindow):
 
     def show_table_dialog(self):
         logger.info('Started table choosing dialog function')
-        from easy_weeks.gui.dialogs.TableChoosingDialog import TableChoosingDialog
+        from easy_weeks.gui.dialogs import TableChoosingDialog
         self.table = TableChoosingDialog(self.session)
         if self.table.exec_() == QtWidgets.QDialog.Accepted:
             data = [self.table.data_type, self.table.data_id]
@@ -120,7 +120,7 @@ class WeeksMenu(QtWidgets.QMainWindow):
 
     def login(self):
         logger.info('Started user login function')
-        from easy_weeks.gui.dialogs.LoginDialog import LoginDialog
+        from easy_weeks.gui.dialogs import LoginDialog
         self.login_dialog = LoginDialog(Users.read(self.session, all_=True))
         if self.login_dialog.exec_() == QtWidgets.QDialog.Accepted:
             self.set_user(self.login_dialog.user)
@@ -128,7 +128,7 @@ class WeeksMenu(QtWidgets.QMainWindow):
 
     def make_account_query(self):
         logger.info('Started account query sending function')
-        from easy_weeks.gui.dialogs.AccountQuery import AccountQuery
+        from easy_weeks.gui.dialogs import AccountQuery
         self.query = AccountQuery(self)
         self.query.exec_()
 
@@ -181,7 +181,7 @@ class WeeksMenu(QtWidgets.QMainWindow):
         self.info.show()
 
     def print_database(self):
-        from easy_weeks.gui.dialogs.PrintDialog import PrintDialog
+        from easy_weeks.gui.dialogs import PrintDialog
         self.print_dialog = PrintDialog(
             self.session, self.element, self.table_data
         )

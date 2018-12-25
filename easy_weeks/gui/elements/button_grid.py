@@ -3,7 +3,7 @@
 from PyQt5 import QtWidgets
 from easy_weeks.database import Logger
 from easy_weeks.database.structure import WeekDays, LessonTimes
-from easy_weeks.gui.elements.DragButton import DragButton
+from easy_weeks.gui.elements.drag_button import DragButton
 logger = Logger()
 
 
