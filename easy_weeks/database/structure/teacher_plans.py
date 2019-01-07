@@ -9,9 +9,9 @@ logger = Logger()
 class TeacherPlans(Base):
     id_teacher = Column(Integer, ForeignKey('teachers.id'))
     id_lesson_plan = Column(Integer, ForeignKey('lesson_plans.id'))
-    translated = u'Заняття викладача'
+    translated = 'Заняття викладача'
 
     def __str__(self):
-        return u'%d in %d' % (self.id_teacher, self.id_lesson_plan)
+        return f'{self.id_teacher} to {self.id_lesson_plan}'
 
     _columns = ['id_teacher', 'id_lesson_plan']

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from PyQt5 import QtCore, QtWidgets
+# from PyQt5 import QtWidgets
+from PyQt5.QtCore import QMimeData, QPoint, QRect, Qt
+from PyQt5.QtWidgets import QApplication, QPushButton, QSizePolicy, QWidget
 from PyQt5.QtGui import QColor, QCursor, QDrag, QPainter
 from easy_weeks.database import Logger, structure, db_codes
 from easy_weeks.database.structure import *
@@ -18,19 +20,17 @@ color_start = '''
 '''
 
 button_colors = {
-    u'Unknown': QColor('white').name(),
-    u'Лек': QColor(0, 110, 179).name(),
-    u'Прак': QColor(0, 166, 152).name(),
-    u'Лаб': QColor(181, 95, 124).name(),
-    u'issue': QColor('red').name()
+    'Unknown': QColor('white').name(),
+    'Лек': QColor(0, 110, 179).name(),
+    'Прак': QColor(0, 166, 152).name(),
+    'Лаб': QColor(181, 95, 124).name(),
+    'issue': QColor('red').name(),
 }
 
-size_policy = QtWidgets.QSizePolicy(
-    QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum
-)
+size_policy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
 
 
-class DragButton(QtWidgets.QPushButton):
+class DragButton(QPushButton):
     def __init__(self, weekToolRef, view_args, draggable, time, *args):
         super(DragButton, self).__init__(*args)
         self.weekToolRef = weekToolRef
@@ -41,17 +41,18 @@ class DragButton(QtWidgets.QPushButton):
         self.set_time(time)
 
     def mousePressEvent(self, QMouseEvent):
-        QtWidgets.QPushButton.mousePressEvent(self, QMouseEvent)
+        QPushButton.mousePressEvent(self, QMouseEvent)
 
-        if QMouseEvent.button() == QtCore.Qt.RightButton:
+        if QMouseEvent.button() == Qt.RightButton:
             # Pressing callback
             if self.draggable:
                 if self.lesson.is_empty:
-                    QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+                    QApplication.setOverrideCursor(Qt.WaitCursor)
                     lesson = Lessons.create(self.parent().session, is_temp=True, **self.time)
-                    QtWidgets.QApplication.restoreOverrideCursor()
+                    QApplication.restoreOverrideCursor()
                     self.edit_dial = EditLesson(lesson, self.parent().session, empty=True)
                 else:
+                    lesson = None
                     self.edit_dial = EditLesson(self.lesson, self.parent().session)
                 result = self.edit_dial.exec_()
                 if result == EditLesson.Accepted:
@@ -65,6 +66,13 @@ class DragButton(QtWidgets.QPushButton):
                     if self.lesson.is_empty:
                         self.lesson = lesson
                     self.save_changes()
+
+                    overlay_dict = check_table(self.parent().session, only_temp=True)
+                    if overlay_dict != db_codes['success']:
+                        overlaying = sum(overlay_dict.values(), [])
+                        if self.lesson.id != 1 and overlaying.count(self.lesson.row_time):
+                            self.set_error()
+
             else:
                 if not self.lesson.is_empty:
                     self.show_dial = ShowLesson(self.lesson)
@@ -72,17 +80,17 @@ class DragButton(QtWidgets.QPushButton):
                 else:
                     pass
                     # logger.debug('Are you kiddig me?')
-            # logger.info('Pressed: %s' % self.__str__())
+            # logger.info(f'Pressed: {self}')
 
     def mouseMoveEvent(self, e):
-        if e.buttons() != QtCore.Qt.LeftButton or not self.draggable:
+        if e.buttons() != Qt.LeftButton or not self.draggable:
             return
 
-        mimeData = QtCore.QMimeData()
+        mimeData = QMimeData()
         mimeData.setText(self.text())
 
         # Grab the button to a pixmap to make it more fancy
-        pixmap = QtWidgets.QWidget.grab(self)
+        pixmap = QWidget.grab(self)
         painter = QPainter(pixmap)
         painter.setCompositionMode(painter.CompositionMode_DestinationIn)
         painter.fillRect(pixmap.rect(), QColor(0, 0, 0, 127))
@@ -95,21 +103,21 @@ class DragButton(QtWidgets.QPushButton):
         drag.setHotSpot(e.pos())
 
         # start the drag operation
-        if drag.exec_(QtCore.Qt.CopyAction | QtCore.Qt.MoveAction) == QtCore.Qt.MoveAction:
+        if drag.exec_(Qt.CopyAction | Qt.MoveAction) == Qt.MoveAction:
             logger.debug('Moved: %s' % self)
         else:
             logger.debug('Copied: %s' % self)
 
     def dragMoveEvent(self, e):
-        absp0 = self.weekToolRef.mapToGlobal(self.weekToolRef.tabButtons[0].pos())
-        absp1 = self.weekToolRef.mapToGlobal(self.weekToolRef.tabButtons[1].pos())
+        abs_x = self.weekToolRef.mapToGlobal(self.weekToolRef.tabButtons[0].pos())
+        abs_y = self.weekToolRef.mapToGlobal(self.weekToolRef.tabButtons[1].pos())
         r0 = self.weekToolRef.tabButtons[0].rect()
         r1 = self.weekToolRef.tabButtons[1].rect()
-        ucorrector = QtCore.QPoint(0, 30)
-        dcorrector = QtCore.QPoint(0, 75)
-        absr0 = QtCore.QRect(r0.topLeft()+absp0, r0.bottomRight()+absp0+dcorrector)
-        absr1 = QtCore.QRect(r1.topLeft()+absp1-ucorrector, r1.bottomRight()+absp1)
-        # curMousePos = self.weekToolRef.mapFromGlobal(QCursor.pos())
+        ucorrector = QPoint(0, 30)
+        dcorrector = QPoint(0, 75)
+        absr0 = QRect(r0.topLeft() + abs_x, r0.bottomRight() + abs_x + dcorrector)
+        absr1 = QRect(r1.topLeft() + abs_y - ucorrector, r1.bottomRight() + abs_y)
+
         curMousePos = QCursor.pos()
         if self.weekToolRef.currentIndex() == 0:
             if absr1.contains(curMousePos):
@@ -123,14 +131,14 @@ class DragButton(QtWidgets.QPushButton):
 
     def dropEvent(self, e):
         if self != e.source():
-            if e.keyboardModifiers() & QtCore.Qt.ShiftModifier:
+            if e.keyboardModifiers() & Qt.ShiftModifier:
                 # Perform swap:
                 content = e.source().lesson
                 # e.source().set_lesson(self.lesson)
                 self.set_lesson(content.make_temp(self.parent().session, self.time))
 
                 # tell the QDrag we accepted it
-                e.setDropAction(QtCore.Qt.CopyAction)
+                e.setDropAction(Qt.CopyAction)
                 self.save_changes()
                 e.accept()
             else:
@@ -140,21 +148,19 @@ class DragButton(QtWidgets.QPushButton):
                 self.set_lesson(content)
 
                 # tell the QDrag we accepted it
-                e.setDropAction(QtCore.Qt.MoveAction)
+                e.setDropAction(Qt.MoveAction)
                 e.accept()
-            # QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-            overlay_dict = check_table(self.parent().session, True)
-            # QtWidgets.QApplication.restoreOverrideCursor()
+            # QApplication.setOverrideCursor(Qt.WaitCursor)
+            overlay_dict = check_table(self.parent().session, only_temp=True)
+            # QApplication.restoreOverrideCursor()
             self.redraw()
             e.source().redraw()
             if overlay_dict != db_codes['success']:
                 overlaying = sum(overlay_dict.values(), [])
-                if e.source().lesson.id != 1:
-                    if overlaying.count(e.source().lesson.row_time):
-                        e.source().set_error()
-                if self.lesson.id != 1:
-                    if overlaying.count(self.lesson.row_time):
-                        self.set_error()
+                if e.source().lesson.id != 1 and overlaying.count(e.source().lesson.row_time):
+                    e.source().set_error()
+                if self.lesson.id != 1 and overlaying.count(self.lesson.row_time):
+                    self.set_error()
         else:
             e.ignore()
 
@@ -173,16 +179,16 @@ class DragButton(QtWidgets.QPushButton):
         self.setStyleSheet(color_start.format(button_colors[lesson_type]))
 
     def set_time(self, time):
-        self.time = dict(
-            id_week=structure.Lessons.week_ids[time[0]],
-            id_week_day=structure.Lessons.day_ids[time[1]],
-            id_lesson_time=structure.Lessons.time_ids[time[2]]
-        )
+        self.time = {
+            'id_week': structure.Lessons.week_ids[time[0]],
+            'id_week_day': structure.Lessons.day_ids[time[1]],
+            'id_lesson_time': structure.Lessons.time_ids[time[2]],
+        }
 
     def before_close(self):
         if self.lesson.is_temp and not self.lesson.is_empty:
             # ret = type(self.lesson).delete(self.parent().session, self.lesson.id)
-            # logger.debug('Button deleted:? {}'.format(db_codes_output[ret]))
+            # logger.debug(f'Button deleted:? {db_codes_output[ret]}')
             self.deleteLater()
 
     def save_changes(self):

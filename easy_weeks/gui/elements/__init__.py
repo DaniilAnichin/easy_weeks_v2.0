@@ -1,6 +1,5 @@
 from .admin_tab import AdminTab
 from .button_grid import ButtonGrid
-from .completer_combo import CompleterCombo
 from .drag_button import DragButton
 from .easy_tab import EasyTab
 from .editable_list import EditableList

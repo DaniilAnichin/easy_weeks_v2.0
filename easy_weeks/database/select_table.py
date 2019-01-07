@@ -14,15 +14,14 @@ def get_table(session, element):
     data_type = element.__tablename__
     logger.debug(f'Data: {element}')
     if data_type == 'rooms':
-        params = dict(id_room=element.id)
+        params = {'id_room': element.id}
     else:
-        lesson_plan_ids = [lp.id for lp in LessonPlans.read(
-            session, **{data_type: element.id}
-        )]
-        params = dict(id_lesson_plan=lesson_plan_ids)
+        lesson_plan_ids = [lp.id for lp in LessonPlans.read(session, **{data_type: element.id})]
+        params = {'id_lesson_plan': lesson_plan_ids}
 
     empty = Lessons.read(session, id=1)[0]
     full = Lessons.read(session, **params)
+    lessons_by_row_time = {lesson.row_time: lesson for lesson in full}
     rettable = [[[empty
                   for i in range(len(Lessons.time_ids))]
                  for j in range(len(Lessons.day_ids))]
@@ -31,11 +30,16 @@ def get_table(session, element):
     for i, week in enumerate(rettable):
         for j, day in enumerate(week):
             for k in range(len(day)):
-                row_time = k + 5 * j + 30 * i
-                lesson = [x for x in full if x.row_time == row_time]
+                time = {
+                    'id_lesson_time': k + 2,
+                    'id_week_day': j + 2,
+                    'id_week': i + 2,
+                }
+                row_time = Lessons.to_row(time)
+                lesson = lessons_by_row_time.get(row_time, None)
                 if lesson:
-                    day[k] = lesson[0].make_temp(session)
-                    res = Lessons.update(session, lesson[0].id, is_empty=True)
+                    day[k] = lesson.make_temp(session)
+                    Lessons.update(session, lesson.id, is_empty=True)
     return rettable
 
 
@@ -57,7 +61,7 @@ def undefined_lp(session, element=None):
     return result
 
 
-def check_part(session, element):
+def check_part(session, element) -> tuple:
     data = {
         'Groups': lambda group: dict(id_lesson_plan=[lp.id for lp in group.lesson_plans]),
         'Teachers': lambda teach: dict(id_lesson_plan=[lp.id for lp in teach.lesson_plans]),
@@ -85,18 +89,9 @@ def check_table(session, only_temp=False):
     # Can optimize by reading not the all groups/teachers/rooms
     if only_temp:
         lessons = Lessons.read(session, is_temp=True)
-        groups = []
-        teachers = []
-        rooms = []
-        for l in lessons:
-            for g in l.lesson_plan.groups:
-                if not groups.count(g):
-                    groups.append(g)
-            for t in l.lesson_plan.teachers:
-                if not teachers.count(t):
-                    teachers.append(t)
-            if not rooms.count(l.room):
-                rooms.append(l.room)
+        groups = set(sum([lesson.lesson_plan.groups for lesson in lessons], []))
+        teachers = set(sum([lesson.lesson_plan.groups for lesson in lessons], []))
+        rooms = {lesson.room for lesson in lessons}
     else:
         groups = Groups.read(session, all_=True)
         teachers = Teachers.read(session, all_=True)
@@ -117,7 +112,7 @@ def check_table(session, only_temp=False):
             res, elem = check_part(session, element)
             if res != db_codes['success']:
                 if elem not in overlaying.keys():
-                    overlaying.update({elem: res})
+                    overlaying[elem] = res
                 else:
                     overlaying[elem] += res
     if overlaying:
@@ -141,28 +136,24 @@ def find_duplicates(session, old_session, main_teacher):
                     old_session,
                     groups=[
                         group.id for group in Groups.read(
-                            old_session, name=[
-                                gro.name for gro in lesson.lesson_plan.groups
-                                ]
+                            old_session, name=[gro.name for gro in lesson.lesson_plan.groups]
                         )
-                        ]
+                    ]
                 )
-                ]
+            ]
         }
-        grouper = Lessons.read(old_session, **params)
-        if grouper and not isinstance(grouper, int):
-            if not lesson.lesson_plan.teachers[0].short_name == \
-                    grouper[0].lesson_plan.teachers[0].short_name:
+        by_groups = Lessons.read(old_session, **params)
+        if by_groups and not isinstance(by_groups, int):
+            if not lesson.lesson_plan.teachers[0].short_name == by_groups[0].lesson_plan.teachers[0].short_name:
                 duplicates.append(lesson.row_time)
                 continue
         params = {
             'row_time': lesson.row_time,
             'room': Rooms.read(old_session, name=lesson.room.name)[0]
         }
-        roomer = Lessons.read(old_session, **params)
-        if roomer:
-            if not lesson.lesson_plan.teachers[0].short_name == \
-                    roomer[0].lesson_plan.teachers[0].short_name:
+        by_rooms = Lessons.read(old_session, **params)
+        if by_rooms:
+            if not lesson.lesson_plan.teachers[0].short_name == by_rooms[0].lesson_plan.teachers[0].short_name:
                 duplicates.append(lesson.row_time)
     return duplicates
 
@@ -176,7 +167,7 @@ def save_table(session):
         clear_empty(session)
         for lesson in Lessons.read(session, is_temp=True):
             ret = lesson.update(session, lesson.id, is_temp=False)
-            # logger.degub('Edited?: {}'.format(db_codes_output[ret]))
+            # logger.debug(f'Edited?: {db_codes_output[ret]}')
     return result
 
 
@@ -188,7 +179,7 @@ def clear_empty(session):
     # Skips the first empty lesson:
     for lesson in lessons[1:]:
         ret = Lessons.delete(session, main_id=lesson.id)
-        # logger.degub('Deleted?: {}'.format(db_codes_output[ret]))
+        # logger.debug(f'Deleted?: {db_codes_output[ret]}')
     return db_codes['success']
 
 
@@ -199,7 +190,7 @@ def clear_temp(session):
     lessons = Lessons.read(session, is_temp=True)
     for lesson in lessons:
         ret = Lessons.delete(session, main_id=lesson.id)
-        # logger.degub('Deleted?: {}'.format(db_codes_output[ret]))
+        # logger.debug(f'Deleted?: {db_codes_output[ret]}')
 
 
 def recover_empty(session):
@@ -209,7 +200,7 @@ def recover_empty(session):
     lessons = Lessons.read(session, is_empty=True)
     for lesson in lessons[1:]:
         ret = Lessons.update(session, main_id=lesson.id, is_empty=False)
-        # logger.degub('Restored?: {}'.format(db_codes_output[ret]))
+        # logger.debug(f'Restored?: {db_codes_output[ret]}')
     return db_codes['success']
 
 
@@ -266,26 +257,26 @@ def same_tables(first_session, second_session, teacher):
             )
         ]
     )
-    first_table.sort(key=lambda a: a.row_time)
     second_table = Lessons.read(
         second_session,
         id_lesson_plan=[
             lp.id for lp in LessonPlans.read(
-                second_session, teachers=[Teachers.read(
-                    second_session, short_name=teacher.short_name
-                )[0].id]
+                second_session, teachers=[Teachers.read(second_session, short_name=teacher.short_name)[0].id]
             )
         ]
     )
+    first_table.sort(key=lambda a: a.row_time)
     second_table.sort(key=lambda a: a.row_time)
     for first, second in zip(first_table, second_table):
-        if first.is_empty and second.is_empty:
+        empty = (first.is_empty, second.is_empty)
+        if all(empty):
             continue
-        if first.is_empty or second.is_empty:
+        if any(empty):
             return False
         if not first == second:
             return False
     return True
+
 
 if __name__ == '__main__':
     from easy_weeks.database.start_db.db_startup import connect_database
@@ -293,5 +284,4 @@ if __name__ == '__main__':
     first_db = connect_database()
     second_db = connect_database('FICT_timetable2.db')
 
-    teacher = Teachers.read(first_db, id=20)[0]
-    logger.debug(same_tables(first_db, second_db, teacher))
+    logger.debug(same_tables(first_db, second_db, Teachers.read(first_db, id=20)[0]))

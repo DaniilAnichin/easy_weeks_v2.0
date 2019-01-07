@@ -16,69 +16,64 @@ class Lessons(Base):
     is_temp = Column(Boolean, default=False)
     is_empty = Column(Boolean, default=False)
     row_time = Column(Integer)
-    translated = u'Заняття'
+    translated = 'Заняття'
     week_ids = range(2, 4)
     day_ids = range(2, 8)
     time_ids = range(2, 7)
     table_size = len(week_ids) * len(day_ids) * len(time_ids)
 
-    def __init__(self, *args, **kwargs):
-        row_time = kwargs.get('row_time', '')
-
-        if row_time != '':
+    def __init__(self, *args, row_time: int=None, **kwargs):
+        if row_time is not None:
             kwargs.update(self.from_row(row_time))
 
         super(Lessons, self).__init__(*args, **kwargs)
         self.row_time = self.to_row(self.time())
-        # logger.info('Passed lesson init')
 
-    def __str__(self):
-        return u'%s у час %s' % (str(self.lesson_plan), str(self.row_time))
+    def __str__(self) -> str:
+        return f'{self.lesson_plan} у час {self.row_time}'
 
-    def __eq__(self, other):
-        fields = self.fields()
-        fields.pop(fields.index('id'))
-        fields.pop(fields.index('is_temp'))
+    def __eq__(self, other) -> bool:
         if self.row_time != other.row_time:
             return False
         if self.room.name != other.room.name:
             return False
         if self.lesson_plan.subject.short_name != other.lesson_plan.subject.short_name:
             return False
-        teacher_set = set([teacher.short_name for teacher in self.lesson_plan.teachers])
-        teacher_set2 = set([teacher.short_name for teacher in other.lesson_plan.teachers])
-        if not teacher_set == teacher_set2:
-            return False
-        group_set = set([group.name for group in self.lesson_plan.groups])
-        group_set2 = set([group.name for group in other.lesson_plan.groups])
-        if not group_set == group_set2:
-            return False
-        return True
 
-    def time(self):
-        return dict(
-            id_week=self.id_week,
-            id_week_day=self.id_week_day,
-            id_lesson_time=self.id_lesson_time
-        )
+        self_teacher_set = {teacher.short_name for teacher in self.lesson_plan.teachers}
+        other_teacher_set = {teacher.short_name for teacher in other.lesson_plan.teachers}
+        if self_teacher_set != other_teacher_set:
+            return False
 
-    def set_time(self, time):
+        self_group_set = {group.name for group in self.lesson_plan.groups}
+        other_group_set = {group.name for group in other.lesson_plan.groups}
+        return self_group_set == other_group_set
+
+    def time(self) -> dict:
+        return {
+            'id_week': self.id_week,
+            'id_week_day': self.id_week_day,
+            'id_lesson_time': self.id_lesson_time,
+        }
+
+    def set_time(self, time: dict) -> None:
         for key in time.keys():
             setattr(self, key, time[key])
         self.row_time = self.to_row(time)
 
     @classmethod
-    def from_row(cls, row_time):
-        number = row_time % len(cls.time_ids)
-        row_time //= len(cls.time_ids)
-        day = row_time % len(cls.day_ids)
-        row_time //= len(cls.day_ids)
-        week = row_time % len(cls.week_ids)
-        return dict(
-            id_week=cls.week_ids[week],
-            id_week_day=cls.day_ids[day],
-            id_lesson_time=cls.time_ids[number]
-        )
+    def from_row(cls, row_time: int) -> dict:
+        times, days, weeks = len(cls.time_ids), len(cls.day_ids), len(cls.week_ids)
+        number = row_time % times
+        row_time //= times
+        day = row_time % days
+        row_time //= days
+        week = row_time % weeks
+        return {
+            'id_week': cls.week_ids[week],
+            'id_week_day': cls.day_ids[day],
+            'id_lesson_time': cls.time_ids[number]
+        }
 
     @classmethod
     def to_row(cls, time):
@@ -93,16 +88,16 @@ class Lessons(Base):
         return row_time
 
     @classmethod
-    def bad_time(cls):
-        return dict(id_week=1, id_week_day=1, id_lesson_time=1)
+    def bad_time(cls) -> dict:
+        return {'id_week': 1, 'id_week_day': 1, 'id_lesson_time': 1}
 
     @classmethod
     def get_empty(cls, **kwargs):
-        defaults = dict(
-            id_week=cls.week_ids[0],
-            id_week_day=cls.day_ids[0],
-            id_lesson_type=cls.time_ids[0]
-        )
+        defaults = {
+            'id_week': cls.week_ids[0],
+            'id_week_day': cls.day_ids[0],
+            'id_lesson_type': cls.time_ids[0],
+        }
         if 'rooms' in kwargs.keys():
             defaults.pop('rooms')
             defaults.update({'rooms': kwargs['rooms']})
@@ -123,21 +118,20 @@ class Lessons(Base):
                                 is_temp=True, id_room=self.id_room, **time)[0]
         return temp_lesson
 
-    def to_table(self, *args):
-        # Make lesson to string to view it on the table
+    def to_table(self) -> str:
+        # Convert lesson to string to view it on the table
         if self.is_empty:
-            return u''
-        result = shorten(str(self.lesson_plan.subject), 15)
-        if 'teachers' not in args:
-            teachers = u', '.join(
-                str(teacher) for teacher in self.lesson_plan.teachers
-            )
-            result += u'\n' + shorten(teachers, 15)
-        if 'rooms' not in args:
-            result += u'\n' + shorten(str(self.room), 15)
-        if 'groups' not in args:
-            groups = u', '.join(str(group) for group in self.lesson_plan.groups)
-            result += u'\n' + shorten(groups, 15)
+            return ''
+
+        teachers = ', '.join(str(teacher) for teacher in self.lesson_plan.teachers)
+        groups = ', '.join(str(group) for group in self.lesson_plan.groups)
+
+        result = '\n'.join((
+            shorten(self.lesson_plan.subject),
+            shorten(teachers),
+            shorten(self.room),
+            shorten(groups)
+        ))
         return result
 
     _columns = ['id', 'id_lesson_plan', 'id_room', 'id_lesson_time',
@@ -148,7 +142,7 @@ class Lessons(Base):
     @classmethod
     def read(cls, session, all_=False, **kwargs):
         if not set(kwargs.keys()).intersection({'is_temp', 'id', 'all_'}):
-            kwargs.update(dict(is_temp=False))
+            kwargs.update({'is_temp': False})
         return super(Lessons, cls).read(session, all_=all_, **kwargs)
 
     @classmethod

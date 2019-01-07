@@ -10,7 +10,7 @@ logger = Logger()
 class LessonTimes(Base):
     full_name = Column(String)
     short_name = Column(String)
-    translated = u'Час'
+    translated = 'Час'
 
     def __str__(self):
         return self.full_name

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtWidgets import QApplication
-from easy_weeks.database import Logger, db_codes_output
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QMessageBox
+from easy_weeks.database import Logger
 from easy_weeks.database.structure import Lessons, LessonPlans
 from easy_weeks.database.select_table import undefined_lp
 from easy_weeks.gui.dialogs.weeks_dialog import WeeksDialog
@@ -10,10 +10,13 @@ logger = Logger()
 
 
 class EditLesson(WeeksDialog):
+    deleting = None
+    rusure = None
+
     def __init__(self, element, session, empty=False, time=False, *args, **kwargs):
         super(EditLesson, self).__init__(*args, **kwargs)
 
-        QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.WaitCursor)
         self.session = session
         self.empty = empty
 
@@ -21,7 +24,6 @@ class EditLesson(WeeksDialog):
             logger.info('Wrong object passed: not a lesson')
             raise ValueError
 
-        # logger.info('Setting lesson data')
         self.lesson = element
         self.lp = self.lesson.lesson_plan
 
@@ -54,7 +56,8 @@ class EditLesson(WeeksDialog):
 
     def default_combo_pair(self, param, lp=False):
         getter = self.lp if lp else self.lesson
-        cls = type(getattr(Lessons.read(self.session, id=1)[0], param))
+        base_cls = LessonPlans if lp else Lessons
+        cls = type(getattr(base_cls.read(self.session, id=1)[0], param))
         label = cls.translated
         values = cls.read(self.session, all_=True)
         name = cls.__tablename__
@@ -66,7 +69,8 @@ class EditLesson(WeeksDialog):
 
     def default_list_pair(self, param, lp=False):
         getter = self.lp if lp else self.lesson
-        cls = type(getattr(Lessons.read(self.session, id=1)[0], param)[0])
+        base_cls = LessonPlans if lp else Lessons
+        cls = type(getattr(base_cls.read(self.session, id=1)[0], param)[0])
         label = cls.translated
         selected_values = getattr(getter, param)
         values = cls.read(self.session, all_=True)
@@ -86,7 +90,7 @@ class EditLesson(WeeksDialog):
     def delete(self):
         from easy_weeks.gui.dialogs import RUSureDelete
         self.rusure = RUSureDelete(self.lesson)
-        if self.rusure.exec_() == QtWidgets.QMessageBox.Yes:
+        if self.rusure.exec_() == QMessageBox.Yes:
             res = Lessons.delete(self.session, main_id=self.lesson.id)
             # logger.debug(db_codes_output[res])
             del self.lesson

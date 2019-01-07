@@ -11,7 +11,7 @@ class Teachers(Base):
     short_name = Column(String)
     id_department = Column(Integer, ForeignKey('departments.id'))
     id_degree = Column(Integer, ForeignKey('degrees.id'))
-    translated = u'Викладач'
+    translated = 'Викладач'
 
     def __str__(self):
         return self.full_name

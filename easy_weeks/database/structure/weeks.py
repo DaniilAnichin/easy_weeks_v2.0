@@ -10,7 +10,7 @@ logger = Logger()
 class Weeks(Base):
     full_name = Column(String)
     short_name = Column(String)
-    translated = u'Тиждень'
+    translated = 'Тиждень'
 
     def __str__(self):
         return self.full_name

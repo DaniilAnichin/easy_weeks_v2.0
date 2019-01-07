@@ -157,9 +157,9 @@ class Base(object):
             linked = getattr(result, link)
             if isinstance(linked, list):
                 for element in linked:
-                    setattr(element, 'id_' + cls.single(), default_id)
+                    setattr(element, f'id_{cls.single()}', default_id)
             # else:
-            #     setattr(linked, 'id_' + cls.single(), 1)
+            #     setattr(linked, f'id_{cls.single()}', 1)
         for association in cls.associations():
             linked = getattr(result, association)
             for element in linked:

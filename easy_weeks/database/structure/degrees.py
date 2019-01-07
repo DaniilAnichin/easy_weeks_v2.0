@@ -10,7 +10,7 @@ logger = Logger()
 class Degrees(Base):
     full_name = Column(String)
     short_name = Column(String)
-    translated = u'Ступінь'
+    translated = 'Ступінь'
 
     def __str__(self):
         return self.full_name

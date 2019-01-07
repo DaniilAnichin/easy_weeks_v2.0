@@ -10,7 +10,7 @@ logger = Logger()
 class LessonTypes(Base):
     full_name = Column(String)
     short_name = Column(String)
-    translated = u'Тип'
+    translated = 'Тип'
 
     def __str__(self):
         return self.full_name

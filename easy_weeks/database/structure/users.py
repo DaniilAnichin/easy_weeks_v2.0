@@ -13,7 +13,7 @@ class Users(Base):
     hashed_password = Column(String)
     status = Column(String)   # Expected values are 'admin' and 'method'
     message = Column(String)   # Message when giving an methodist request
-    translated = u'Користувач'
+    translated = 'Користувач'
 
     @classmethod
     def create(cls, session, **kwargs):
@@ -30,16 +30,14 @@ class Users(Base):
         return self.nickname
 
     def authenticate(self, password):
-        logger.info('User %s auth passing' % self.nickname)
+        logger.info(f'User {self.nickname} auth passing')
         encoded = password.encode('cp1251')
         result = bcrypt.hashpw(encoded, self.hashed_password.encode('cp1251'))
         return self.hashed_password.encode('cp1251') == result
 
     # To give methodist user separated rights we need to create merging table
     # between User and Department, but if we don't - user can edit any table.
-    departments = relationship(
-        'Departments', secondary='user_departments', backref='users'
-    )
+    departments = relationship('Departments', secondary='user_departments', backref='users')
 
     _columns = ['id', 'nickname', 'hashed_password', 'message', 'status']
     _associations = ['departments']

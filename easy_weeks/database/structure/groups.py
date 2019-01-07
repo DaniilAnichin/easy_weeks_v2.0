@@ -9,7 +9,7 @@ logger = Logger()
 class Groups(Base):
     name = Column(String)
     id_department = Column(Integer, ForeignKey('departments.id'))
-    translated = u'Група'
+    translated = 'Група'
 
     def __str__(self):
         return self.name

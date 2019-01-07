@@ -51,12 +51,12 @@ def create_teacher(session, row, teacher_short_name):
     default_department_id = 2
     degree = Degrees.read(session, short_name=degree_name)
     if isinstance(degree, int):
-        logger.debug('Looking for degree: ' + db_codes_output[degree])
+        logger.debug(f'Looking for degree: {db_codes_output[degree]}')
         degree_id = 2
     elif len(degree) > 0:
         degree_id = degree[0].id
     else:
-        logger.debug('No degree found: ' + degree_name)
+        logger.debug(f'No degree found: {degree_name}')
         degree_id = 2
 
     teacher = Teachers.create(
@@ -151,7 +151,7 @@ def teacher_update(session, teacher_name, add_teacher=True):
         elif isinstance(db_subject, list):
             db_subject = db_subject[0]
         if isinstance(db_subject, int):
-            logger.debug('Creating/Reading subject: ' + db_codes_output[db_subject])
+            logger.debug(f'Creating/Reading subject: {db_codes_output[db_subject]}')
             continue
 
         # Collecting LessonPlans data
@@ -159,7 +159,7 @@ def teacher_update(session, teacher_name, add_teacher=True):
         if isinstance(lesson_type, int) or not lesson_type:
             lesson_type = LessonTypes.read(session, short_name=u'Лек')
         if isinstance(lesson_type, int):
-            logger.debug('Creating/Reading subject: ' + db_codes_output[lesson_type])
+            logger.debug(f'Creating/Reading subject: {db_codes_output[lesson_type]}')
             continue
         else:
             lesson_type = lesson_type[0]
@@ -193,7 +193,7 @@ def teacher_update(session, teacher_name, add_teacher=True):
                     **lesson_plan_info
                 )
                 if isinstance(lesson_plan, int):
-                    logger.debug('Creating LP: ' + db_codes_output[lesson_plan])
+                    logger.debug(f'Creating LP: {db_codes_output[lesson_plan]}')
 
         if not isinstance(lesson_plan, LessonPlans):
             logger.debug('Ploblem while loading LP model')
@@ -207,5 +207,5 @@ def teacher_update(session, teacher_name, add_teacher=True):
             row_time=row_time
         )
         if isinstance(new_lesson, int):
-            logger.debug('Error while creating Lesson: ' + db_codes_output[new_lesson])
-            logger.debug('At ' + str(row_time))
+            logger.debug(f'Error while creating Lesson: {db_codes_output[new_lesson]}')
+            logger.debug(f'At {str}'(row_time))

@@ -26,4 +26,4 @@ tables = [
     'LessonTypes', 'Lessons', 'Rooms', 'Subjects', 'Teachers', 'Universities',
     'WeekDays', 'Weeks', 'Users', 'UserDepartments'
 ]
-__all__ = tables
+__all__ = tables + ['Base']

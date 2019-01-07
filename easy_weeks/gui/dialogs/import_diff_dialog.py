@@ -18,9 +18,9 @@ class ImportDiffDialog(QtWidgets.QDialog):
         self.session = session
         vlayout.addWidget(self.week_tool_window)
         bhlayoyt = QtWidgets.QHBoxLayout()
-        self.ybutton = QtWidgets.QPushButton(u'Застосувати')
-        self.nbutton = QtWidgets.QPushButton(u'Пропустити')
-        self.qbutton = QtWidgets.QPushButton(u'Вийти')
+        self.ybutton = QtWidgets.QPushButton('Застосувати')
+        self.nbutton = QtWidgets.QPushButton('Пропустити')
+        self.qbutton = QtWidgets.QPushButton('Вийти')
         self.ybutton.clicked.connect(self.acceptTT)
         self.nbutton.clicked.connect(self.defuseTT)
         self.qbutton.clicked.connect(self.quitTT)

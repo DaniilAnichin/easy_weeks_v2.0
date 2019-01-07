@@ -4,7 +4,7 @@ from PyQt5 import QtCore, QtWidgets
 from easy_weeks.database import Logger
 from easy_weeks.database.structure import *
 from easy_weeks.database.select_table import find_free
-from easy_weeks.gui.elements import CompleterCombo
+from easy_weeks.gui.components import CompleterCombo
 logger = Logger()
 
 
@@ -45,33 +45,33 @@ class SearchTab(QtWidgets.QWidget):
         self.object_choice.items = [Teachers, Rooms]
         self.object_choice.addItems([item.translated for item in self.object_choice.items])
 
-        self.department_label.setText(Departments.translated + u':')
+        self.department_label.setText(Departments.translated + ':')
         self.department_choice.items = Departments.read(self.session, all_=True)
         self.department_choice.addItems([str(time) for time in self.department_choice.items])
 
-        self.week_label.setText(Weeks.translated + u':')
+        self.week_label.setText(Weeks.translated + ':')
         self.week_choice.items = Weeks.read(self.session, all_=True)
         self.week_choice.addItems([str(week) for week in self.week_choice.items])
 
-        self.day_label.setText(WeekDays.translated + u':')
+        self.day_label.setText(WeekDays.translated + ':')
         self.day_choice.items = WeekDays.read(self.session, all_=True)
         self.day_choice.addItems([str(day) for day in self.day_choice.items])
 
-        self.time_label.setText(LessonTimes.translated + u':')
+        self.time_label.setText(LessonTimes.translated + ':')
         self.time_choice.items = LessonTimes.read(self.session, all_=True)
         self.time_choice.addItems([str(time) for time in self.time_choice.items])
 
         self.submit_button.setText('Знайти')
 
     def get_time(self):
-        return dict(
-            lesson_time=self.time_choice.items[self.time_choice.currentIndex()],
-            week_day=self.day_choice.items[self.day_choice.currentIndex()],
-            week=self.week_choice.items[self.week_choice.currentIndex()],
-        )
+        return {
+            'lesson_time': self.time_choice.items[self.time_choice.currentIndex()],
+            'week_day': self.day_choice.items[self.day_choice.currentIndex()],
+            'week': self.week_choice.items[self.week_choice.currentIndex()],
+        }
 
     def department(self):
-        return dict(department=self.department_choice.items[self.department_choice.currentIndex()])
+        return {'department': self.department_choice.items[self.department_choice.currentIndex()]}
 
     def search(self):
         params = self.get_time()
@@ -80,7 +80,7 @@ class SearchTab(QtWidgets.QWidget):
         QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         result = find_free(self.session, cls, **params)
         QtWidgets.QApplication.restoreOverrideCursor()
-        logger.debug('Number of free: "%d"' % len(result))
+        logger.debug(f'Number of free: "{len(result)}"')
         self.show_results(result)
 
     def show_results(self, values):

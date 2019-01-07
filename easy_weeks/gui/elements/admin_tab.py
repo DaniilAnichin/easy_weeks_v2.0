@@ -1,50 +1,55 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from PyQt5 import QtCore, QtWidgets
+# from PyQt5 import QtWidgets
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (
+    QApplication, QHBoxLayout, QLineEdit, QListWidget, QMessageBox,
+    QPushButton, QSizePolicy, QSpacerItem, QVBoxLayout, QWidget
+)
 from easy_weeks.database import Logger, db_codes, db_codes_output, structure
 from easy_weeks.gui.dialogs import AdminEditor, RUSureDelete, InfoDialog
-from easy_weeks.gui.elements.completer_combo import CompleterCombo
+from easy_weeks.gui.components import CompleterCombo
 logger = Logger()
 
 
-class AdminTab(QtWidgets.QWidget):
+class AdminTab(QWidget):
     def __init__(self, parent, session):
         super(AdminTab, self).__init__(parent)
         self.session = session
         self.setObjectName('admin_tab')
 
-        self.vbox = QtWidgets.QVBoxLayout(self)
-        self.hbox = QtWidgets.QHBoxLayout()
+        self.vbox = QVBoxLayout(self)
+        self.hbox = QHBoxLayout()
 
         self.objects = CompleterCombo(self)
         self.objects.items = []
         self.objects.currentIndexChanged.connect(self.set_list)
         self.hbox.addWidget(self.objects)
 
-        self.search = QtWidgets.QLineEdit()
+        self.search = QLineEdit()
         self.search.textChanged.connect(self.set_search)
         self.hbox.addWidget(self.search)
 
-        spacer = QtWidgets.QSpacerItem(
-            40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum
+        spacer = QSpacerItem(
+            40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum
         )
         self.hbox.addItem(spacer)
 
-        self.addButton = QtWidgets.QPushButton(self)
+        self.addButton = QPushButton(self)
         self.addButton.clicked.connect(self.show_add)
         self.hbox.addWidget(self.addButton)
 
-        self.deleteButton = QtWidgets.QPushButton(self)
+        self.deleteButton = QPushButton(self)
         self.deleteButton.clicked.connect(self.show_delete)
         self.hbox.addWidget(self.deleteButton)
 
-        self.editButton = QtWidgets.QPushButton(self)
+        self.editButton = QPushButton(self)
         self.editButton.clicked.connect(self.show_edit)
         self.hbox.addWidget(self.editButton)
 
         self.vbox.addLayout(self.hbox)
 
-        self.items_list = QtWidgets.QListWidget(self)
+        self.items_list = QListWidget(self)
         self.database_items = []
         self.view_items = []
         self.vbox.addWidget(self.items_list)
@@ -58,7 +63,7 @@ class AdminTab(QtWidgets.QWidget):
 
     def set_objects(self):
         try:
-            QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+            QApplication.setOverrideCursor(Qt.WaitCursor)
             self.objects.items = [getattr(structure, item) for item in structure.tables]
             for item in self.objects.items:
                 columns = item.columns()
@@ -67,25 +72,25 @@ class AdminTab(QtWidgets.QWidget):
 
             self.objects.items.sort(key=lambda a: a.translated)
             self.objects.addItems([item.translated for item in self.objects.items])
-            QtWidgets.QApplication.restoreOverrideCursor()
         except Exception as e:
             logger.error(e)
-            QtWidgets.QApplication.restoreOverrideCursor()
+        finally:
+            QApplication.restoreOverrideCursor()
 
     def set_list(self):
-        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.WaitCursor)
         cls = self.objects.items[self.objects.currentIndex()]
-        logger.info('Setting admin list for %s' % cls.__name__)
+        logger.info(f'Setting admin list for {cls.__name__}')
         self.items_list.clear()
         self.database_items = cls.read(self.session, all_=True)
         self.database_items.sort(key=str)
         self.view_items = self.database_items[:]
         self.items_list.addItems([str(item) for item in self.view_items])
-        QtWidgets.QApplication.restoreOverrideCursor()
+        QApplication.restoreOverrideCursor()
 
     def show_add(self):
         cls = self.objects.items[self.objects.currentIndex()]
-        logger.info('Running create dialog for %s' % cls.__name__)
+        logger.info(f'Running create dialog for {cls.__name__}')
 
         self.editor = AdminEditor(cls, self.session, empty=True)
         if self.editor.exec_() == AdminEditor.Accepted:
@@ -93,7 +98,7 @@ class AdminTab(QtWidgets.QWidget):
             fields = self.editor.fields
             values = {key: self.editor.get_pair(key) for key in fields}
             result = cls.create(self.session, **values)
-            logger.debug('Result: "%s"' % str(result))
+            logger.debug(f'Result: "{result}"')
             self.database_items.append(result)
             self.database_items.sort(key=str)
             self.set_search()
@@ -105,31 +110,28 @@ class AdminTab(QtWidgets.QWidget):
         if index < 0 or index > self.view_items.__len__():
             return
         element = self.view_items[index]
-        cls = type(element)
         self.warning = RUSureDelete(element)
-        if self.warning.exec_() == QtWidgets.QMessageBox.Yes:
-            logger.info('Item %s deleted' % str(self.items_list.currentItem().text()))
+        if self.warning.exec_() == QMessageBox.Yes:
+            logger.info(f'Item {self.items_list.currentItem().text()} deleted')
             self.items_list.takeItem(index)
             self.database_items.pop(index)
-            logger.info(db_codes_output[cls.delete(self.session, main_id=element.id)])
+            logger.info(db_codes_output[type(element).delete(self.session, main_id=element.id)])
 
     def show_edit(self):
         index = self.items_list.row(self.items_list.currentItem())
         if index < 0 or index > self.view_items.__len__():
             return
         element = self.view_items[index]
-        logger.info('Running edit dialog for %s' % str(element))
+        logger.info(f'Running edit dialog for {element}')
 
-        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        QApplication.setOverrideCursor(Qt.WaitCursor)
         self.editor = AdminEditor(element, self.session)
-        QtWidgets.QApplication.restoreOverrideCursor()
+        QApplication.restoreOverrideCursor()
         if self.editor.exec_() == AdminEditor.Accepted:
             logger.info('Editing accepted')
             fields = self.editor.fields
             values = {key: self.editor.get_pair(key) for key in fields}
-            result = type(element).update(
-                self.session, main_id=element.id, **values
-            )
+            result = type(element).update(self.session, main_id=element.id, **values)
             logger.debug(db_codes_output[result])
             if result != db_codes['success']:
                 InfoDialog('Збереження не вдалось').show()
@@ -137,7 +139,7 @@ class AdminTab(QtWidgets.QWidget):
             self.set_search()
 
     def set_search(self):
-        text = str(self.search.text())
+        text = self.search.text().lower()
+        self.view_items = filter(lambda x: text in str(x).lower(), self.database_items)
         self.items_list.clear()
-        self.view_items = filter(lambda x: text in str(x), self.database_items)
         self.items_list.addItems([str(item) for item in self.view_items])

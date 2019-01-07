@@ -1,47 +1,62 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*- #
-from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtWidgets import QApplication
 
 
-try:
-    _encoding = QtWidgets.QApplication.UnicodeUTF8
+# try:
+#     _encoding = QApplication.UnicodeUTF8
+#
+#     def translate(context, text, disambig):
+#         return QApplication.translate(context, text, disambig, _encoding)
+# except AttributeError:
+#     def translate(context, text, disambig):
+#         return QApplication.translate(context, text, disambig)
 
-    def translate(context, text, disambig):
-        return QtWidgets.QApplication.translate(context, text, disambig, _encoding)
-except AttributeError:
-    def translate(context, text, disambig):
-        return QtWidgets.QApplication.translate(context, text, disambig)
 
-
-def shorten(line, number):
+def shorten(item, number=15):
+    line = str(item)
     return line[:number] + (line[number:] and '...')
 
 
 def format_errors(overlay_dict):
     from easy_weeks.database.structure import Lessons
-    header = u'Перекриття у заняттях:\n'
+    header = 'Перекриття у заняттях:\n'
     for key in overlay_dict.keys():
         time = map(lambda x: Lessons.from_row(x), overlay_dict[key])
-        time_output = map(lambda x: u'{0}/{1}/{2}'.format(
+        time_output = map(lambda x: '{0}/{1}/{2}'.format(
             x['id_week'] - 1,
             x['id_week_day'] - 1,
             x['id_lesson_time'] - 1
         ), time)
 
-        header += u'{0}: {1}\n'.format(key, u', '.join(time_output))
+        header += f'{key}: {", ".join(time_output)}\n'
     return header
 
 
 translates = {
-    'name': u'Назва',
-    'capacity': u'Місткість',
-    'amount': u'Пар за 2 тиждні',
-    'additional_stuff': u'Додатковво',
-    'full_name': u'Повне ім\'я',
-    'short_name': u'Скорочене ім\'я',
-    'nickname': u'Логін',
-    'status': u'Статус',
-    'hashed_password': u'Закодований пароль',
-    'needed_stuff': u'Додатково',
-    'split_groups': u'Розбивати групи'
+    'name': 'Назва',
+    'capacity': 'Місткість',
+    'amount': 'Пар за 2 тиждні',
+    'additional_stuff': 'Додатковво',
+    'full_name': 'Повне ім\'я',
+    'short_name': 'Скорочене ім\'я',
+    'nickname': 'Логін',
+    'status': 'Статус',
+    'hashed_password': 'Закодований пароль',
+    'needed_stuff': 'Додатково',
+    'split_groups': 'Розбивати групи'
+}
+
+
+titles_for_single = {
+    'teachers': lambda element: f'Розклад занять, викладач: {element}',
+    'groups': lambda element: f'Розклад занять, група: {element}',
+    'rooms': lambda element: f'Розклад занять, аудиторія: {element}',
+}
+
+
+titles_for_many = {
+    'teachers': lambda department: f'Розклад викладачів кафедри {department}',
+    'groups': lambda department: f'Розклад груп кафедри {department}',
+    'rooms': lambda department: f'Розклад аудиторій кафедри {department}',
 }

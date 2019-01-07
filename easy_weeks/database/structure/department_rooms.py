@@ -9,9 +9,9 @@ logger = Logger()
 class DepartmentRooms(Base):
     id_department = Column(Integer, ForeignKey('departments.id'))
     id_room = Column(Integer, ForeignKey('rooms.id'))
-    translated = u'Кімнати кафедри'
+    translated = 'Кімнати кафедри'
 
     def __str__(self):
-        return u'%d in %d' % (self.id_room, self.id_department)
+        return f'{self.id_room} in {self.id_department}'
 
     _columns = ['id_room', 'id_department']

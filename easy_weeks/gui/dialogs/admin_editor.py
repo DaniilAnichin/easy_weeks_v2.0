@@ -1,21 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtWidgets import QLabel, QHBoxLayout, QSpinBox, QCheckBox, QLineEdit
 from easy_weeks.database import Logger, structure
 from easy_weeks.gui.dialogs.weeks_dialog import WeeksDialog
 from easy_weeks.gui.translate import translates
+
+
 logger = Logger()
+inner_columns = {'id', 'row_time', 'param_checker', 'additional_stuff', 'split_groups', 'needed_stuff'}
+time_classes = {structure.WeekDays, structure.Weeks, structure.LessonTimes}
 
 
 def safe_column(column_name, cls=None):
-    # May be added later
-    return not (column_name.startswith('id_')
-                or column_name.startswith('is_')
-                or column_name in
-                ['id', 'row_time', 'param_checker', 'additional_stuff',
-                 'split_groups', 'needed_stuff']
-                or (cls in [structure.WeekDays, structure.Weeks, structure.LessonTimes]
-                    and column_name == 'lessons'))
+    return not (
+        column_name.startswith('id_')
+        or
+        column_name.startswith('is_')
+        or
+        column_name in inner_columns
+        or (
+            cls in time_classes
+            and
+            column_name == 'lessons'
+        )
+    )
 
 
 class AdminEditor(WeeksDialog):
@@ -26,25 +34,25 @@ class AdminEditor(WeeksDialog):
         self.empty = empty
         self.cls = element if empty else type(element)
         self.cls_name = self.cls.__name__
-        if self.cls_name in ['Weeks', 'WeekDays', 'LessonTimes']:
-            self.example_element = self.cls.read(self.session, id=2)[0]
-        else:
-            self.example_element = self.cls.read(self.session, id=1)[0]
-        self.element = self.cls.read(self.session, id=1)[0] if empty else element
-        self.fields = [column for column in self.cls.fields()
-                       if safe_column(column, self.cls)]
-
         if self.cls_name not in structure.tables:
             logger.debug('Wrong params')
-        else:
-            logger.debug('All right')
-            for column in self.fields:
-                    self.make_pair(column)
-            self.vbox.addWidget(self.make_button('Підтвердити', self.accept))
-            if self.empty:
-                self.setWindowTitle('Створення елементу')
-            else:
-                self.setWindowTitle('Редагування елементу')
+            return
+
+        self.example_element = self.cls.read(self.session, id=2 if self.cls in time_classes else 1)[0]
+        self.element = self.cls.read(self.session, id=1)[0] if empty else element
+        self.fields = [
+            column
+            for column
+            in self.cls.fields()
+            if safe_column(column, self.cls)
+        ]
+
+        logger.debug('All right')
+        for column in self.fields:
+            self.make_pair(column)
+
+        self.vbox.addWidget(self.make_button('Підтвердити', self.accept))
+        self.setWindowTitle('Створення елементу' if self.empty else 'Редагування елементу')
 
     def make_pair(self, param):
         exp_result = getattr(self.example_element, param)
@@ -59,7 +67,7 @@ class AdminEditor(WeeksDialog):
         elif isinstance(exp_result, str):
             self.default_str_pair(param)
         else:
-            logger.info("%s is %s" % (param, type(exp_result)))
+            logger.info(f'{param} is {type(exp_result)}')
 
     def get_pair(self, param):
         exp_result = getattr(self.example_element, param)
@@ -74,7 +82,7 @@ class AdminEditor(WeeksDialog):
         elif isinstance(exp_result, str):
             return str(getattr(self, param).text())
         else:
-            logger.info("%s is %s" % (param, type(exp_result)))
+            logger.info(f'{param} is {type(exp_result)}')
 
     def default_combo_pair(self, param):
         cls = type(getattr(self.example_element, param))
@@ -91,43 +99,39 @@ class AdminEditor(WeeksDialog):
         self.set_list_pair(label, selected_values, values, param)
 
     def default_int_pair(self, param):
-        spin = QtWidgets.QSpinBox()
+        spin = QSpinBox()
         spin.setRange(0, 1000000)
         if not self.empty:
             spin.setValue(getattr(self.element, param))
         setattr(self, param, spin)
 
-        hbox = QtWidgets.QHBoxLayout()
-        hbox.addWidget(QtWidgets.QLabel(translates.get(param, param)), 1)
+        hbox = QHBoxLayout()
+        hbox.addWidget(QLabel(translates.get(param, param)), 1)
         hbox.addWidget(spin, 1)
         self.vbox.addLayout(hbox, 1)
 
     def default_str_pair(self, param):
-        line = QtWidgets.QLineEdit()
+        line = QLineEdit()
         if not self.empty:
             line.setText(getattr(self.element, param))
         setattr(self, param, line)
 
-        hbox = QtWidgets.QHBoxLayout()
-        hbox.addWidget(QtWidgets.QLabel(translates.get(param, param)), 1)
+        hbox = QHBoxLayout()
+        hbox.addWidget(QLabel(translates.get(param, param)), 1)
         hbox.addWidget(line, 1)
         self.vbox.addLayout(hbox, 1)
 
     def default_bool_pair(self, param):
-        check = QtWidgets.QCheckBox()
+        check = QCheckBox()
         if not self.empty:
             check.setChecked(getattr(self.element, param))
         setattr(self, param, check)
 
-        hbox = QtWidgets.QHBoxLayout()
-        hbox.addWidget(QtWidgets.QLabel(translates.get(param, param)), 1)
+        hbox = QHBoxLayout()
+        hbox.addWidget(QLabel(translates.get(param, param)), 1)
         hbox.addWidget(check, 1)
         self.vbox.addLayout(hbox, 1)
 
     def accept(self):
         logger.debug('Here is editor saving')
-        # logger.debug('Values are:')
-        # for column in self.cls.fields():
-        #     if not (column.startswith('id_') or column == 'id' or column == 'row_time'):
-        #         logger.debug('%s - "%s"' % (column, self.make_text(self.get_pair(column))))
         super(AdminEditor, self).accept()

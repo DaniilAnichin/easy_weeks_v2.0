@@ -3,13 +3,7 @@
 import xlsxwriter
 from easy_weeks.database.select_table import get_table
 from easy_weeks.database.structure import *
-
-
-titles = {
-    'teachers': lambda element: f'Розклад занять, викладач: {element}',
-    'groups': lambda element: f'Розклад занять, група: {element}',
-    'rooms': lambda element: f'Розклад занять, аудиторія: {element}',
-}
+from easy_weeks.gui.translate import titles_for_single, titles_for_many
 
 
 def print_table(session, filename, table, element):
@@ -17,6 +11,7 @@ def print_table(session, filename, table, element):
     data_type = element.__tablename__
 
     page = book.add_worksheet('Розклад')
+
     lformat = book.add_format()
     lformat.set_align('center')
     lformat.set_font_size(15)
@@ -26,9 +21,11 @@ def print_table(session, filename, table, element):
     sformat.set_align('vcenter')
     sformat.set_shrink()
     sformat.set_border()
+
     page.set_column(0, 0, 10)
     page.set_column(1, 1, 15)
     page.set_column(2, 7, 40)
+
     page.write(1, 0, 'Час', sformat)
     page.write(1, 1, 'Тиждень', sformat)
     for i in range(2, 8):
@@ -37,7 +34,7 @@ def print_table(session, filename, table, element):
         page.merge_range(i, 0, i+1, 0, LessonTimes.read(session, id=i - ((i-2)/2))[0].full_name, sformat)
         page.write(i, 1, Weeks.read(session, id=2)[0].full_name, sformat)
         page.write(i+1, 1, Weeks.read(session, id=3)[0].full_name, sformat)
-    title = titles.get(data_type, None)
+    title = titles_for_single.get(data_type, None)
     if title:
         page.merge_range(0, 0, 0, 7, title(element), lformat)
 
@@ -136,7 +133,7 @@ def print_department_table(session, save_dst, data_type, dep_id):
 
     for e in data_dict[data_type].read(session, id_department=dep_id):
         if isinstance(e, Teachers):
-            page.write(1, column_index, e.degree.short_name + ' ' + e.short_name, tformat)
+            page.write(1, column_index, f'{e.degree.short_name} {e.short_name}', tformat)
         else:
             page.write(1, column_index, e.name, tformat)
 
@@ -147,6 +144,7 @@ def print_department_table(session, save_dst, data_type, dep_id):
                 lesson2 = table[1][d][l]
                 names1 = ''
                 names2 = ''
+                # TODO Should we do the same for both?
                 if data_type == 'teachers':
                     names1 = ', '.join([g.name for g in lesson1.lesson_plan.groups])
                     names2 = ', '.join([g.name for g in lesson2.lesson_plan.groups])
@@ -177,12 +175,12 @@ def print_department_table(session, save_dst, data_type, dep_id):
         column_index += 1
 
     column_index -= 1
-    page.merge_range(0, 0, 0, column_index, 'Розклад %s кафедри %s' % ('викладачів'
-                                                                       if data_type == 'teachers'
-                                                                       else 'груп',
-                     Departments.read(session, id=dep_id)[0].full_name), lformat)
+    department = Departments.read(session, id=dep_id)[0].full_name
+
+    page.merge_range(0, 0, 0, column_index, titles_for_many[data_type](department), lformat)
     for row in range(2, 63):
         page.set_row(row, 75)
+
     page.set_column(3, column_index, 40)
     page.print_area(0, 0, 62, column_index)
     page.set_paper(8)

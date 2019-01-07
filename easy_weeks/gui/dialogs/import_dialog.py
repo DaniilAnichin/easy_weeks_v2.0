@@ -11,10 +11,11 @@ from easy_weeks.database.start_db.seeds import create_empty, create_common, upda
 from easy_weeks.database.select_table import get_table, same_tables, clear_temp, find_duplicates
 from easy_weeks.database.structure import *
 from easy_weeks.database.structure import Base
+from easy_weeks.gui.mixins.combo_mixin import ComboMixin
 logger = Logger()
 
 
-class ImportDialog(QtWidgets.QDialog):
+class ImportDialog(ComboMixin, QtWidgets.QDialog):
     def __init__(self, window, parent=None):
         super(ImportDialog, self).__init__(parent)
         self.window = window
@@ -47,18 +48,6 @@ class ImportDialog(QtWidgets.QDialog):
         self.layout.addWidget(self.break_button)
 
         self.setLayout(self.layout)
-
-    def make_combo(self, choice_list, selected, name, sort_key):
-        from easy_weeks.gui.elements import CompleterCombo
-        combo = CompleterCombo()
-        combo.items = choice_list[:]
-        combo.items.sort(key=sort_key)
-        combo.addItems([sort_key(item) for item in combo.items])
-        setattr(self, name, combo)
-        if selected:
-            combo.setCurrentIndex(combo.items.index(selected))
-        logger.info('Added combobox with name "%s"' % name)
-        return combo
 
     def updatedb(self):
         self.import_all_button.setDisabled(True)

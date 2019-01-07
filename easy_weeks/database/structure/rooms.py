@@ -11,7 +11,7 @@ class Rooms(Base):
     name = Column(String)
     capacity = Column(Integer)
     additional_stuff = Column(String)
-    translated = u'Аудиторія'
+    translated = 'Аудиторія'
 
     def __str__(self):
         return self.name
@@ -42,16 +42,11 @@ class Rooms(Base):
                 if not isinstance(kwargs[key], list):
                     kwargs[key] = [kwargs[key]]
 
-                kwargs[key] = [item.id if not isinstance(item, int) else item
-                               for item in kwargs[key]]
+                kwargs[key] = [item.id if not isinstance(item, int) else item for item in kwargs[key]]
                 if key == 'lessons':
-                    result = result.filter(Rooms.lessons.any(
-                        Lessons.id.in_(kwargs[key])
-                    ))
+                    result = result.filter(Rooms.lessons.any(Lessons.id.in_(kwargs[key])))
                 elif key == 'departments':
-                    result = result.filter(Rooms.departments.any(
-                        Departments.id.in_(kwargs[key])
-                    ))
+                    result = result.filter(Rooms.departments.any(Departments.id.in_(kwargs[key])))
             else:
                 if isinstance(kwargs[key], list):
                     result = result.filter(getattr(cls, key).in_(kwargs[key]))

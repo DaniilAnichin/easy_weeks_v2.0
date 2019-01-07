@@ -10,7 +10,7 @@ logger = Logger()
 class Subjects(Base):
     full_name = Column(String)
     short_name = Column(String)
-    translated = u'Предмет'
+    translated = 'Предмет'
 
     def __str__(self):
         return self.full_name
